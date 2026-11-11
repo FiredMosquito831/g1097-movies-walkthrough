@@ -120,8 +120,8 @@ UI = {
         "check_concept": "Am înțeles conceptul", "concepts": "concepte",
         "jump_title": "Sari la un fișier sau la o metodă",
         "jump_btn": "Metode",
-        "download": "⬇ Descarcă fișierele adnotate (ZIP)",
-        "download_note": "Aceleași fișiere, cu comentariile în ele — le deschizi în Android Studio sau în orice editor.",
+        "download": "⬇ Descarcă proiectul complet (ZIP)",
+        "download_note": "Proiectul întreg, cu fișierele adnotate: se deschide în Android Studio (File → Open) și rulează direct pe emulator.",
         "lang_other": "EN", "lang_other_title": "Switch to English",
         "progress": "Progresul tău", "complete": "complet", "of": "din", "checks": "bife",
         "saved_local": "salvat local, fără cont",
@@ -147,8 +147,8 @@ UI = {
         "check_concept": "I understand this concept", "concepts": "concepts",
         "jump_title": "Jump to a file or a method",
         "jump_btn": "Methods",
-        "download": "⬇ Download the annotated files (ZIP)",
-        "download_note": "The same files, with the comments in them — open them in Android Studio or any editor.",
+        "download": "⬇ Download the full project (ZIP)",
+        "download_note": "The whole project, with the annotated files: open it in Android Studio (File → Open) and run it straight on the emulator.",
         "lang_other": "RO", "lang_other_title": "Switch to Romanian",
         "progress": "Your progress", "complete": "complete", "of": "of", "checks": "checks",
         "saved_local": "saved locally, no account",
@@ -1150,47 +1150,90 @@ def _norm_code(text: str, kind: str):
     return tuple(l.strip() for l in text.replace("\r\n", "\n").split("\n") if l.strip())
 
 
-README_TXT = """Fisierele adnotate / Annotated files
-====================================
+ROOT_FILES = [".gitignore", "build.gradle.kts", "gradle.properties", "gradlew", "gradlew.bat"]
+GRADLE_FILES = ["gradle/libs.versions.toml", "gradle/gradle-daemon-jvm.properties",
+                "gradle/wrapper/gradle-wrapper.properties"]
 
-Acestea sunt fisierele sursa ale aplicatiei, cu comentariile de explicatie
-adaugate. Codul propriu-zis este identic cu cel din repo-ul
-mihaidoinea/dma2026 la commitul d719ffc - singura diferenta sunt liniile
-de comentariu.
 
-These are the app's source files with the explanatory comments added. The
-code itself is identical to mihaidoinea/dma2026 at commit d719ffc - the only
+def _settings_for(proj: str) -> str:
+    """settings.gradle.kts trimmed to a single module, so the project builds alone."""
+    src = open(os.path.join(CODE_SRC, "settings.gradle.kts"), encoding="utf-8").read()
+    keep = [l for l in src.split("\n") if not l.strip().startswith("include(")]
+    body = "\n".join(keep).rstrip()
+    body = re.sub(r'rootProject\.name = "[^"]*"', 'rootProject.name = "%s"' % proj, body)
+    return body + '\ninclude(":%s")\n' % proj
+
+
+def _readme_for(proj: str, num: str, n: int) -> str:
+    return """Proiectul %(p)s, cu codul adnotat / %(p)s, with the annotated code
+====================================================================
+
+Acesta este proiectul INTREG al aplicatiei %(p)s, nu doar cateva fisiere.
+Se deschide direct in Android Studio si ruleaza.
+
+This is the WHOLE %(p)s project, not just a few files.
+It opens directly in Android Studio and runs.
+
+Ce s-a schimbat fata de repo / What differs from the repo
+---------------------------------------------------------
+%(n)d fisiere sunt versiunile ADNOTATE din capitolul %(c)s al site-ului:
+codul este identic cu cel din mihaidoinea/dma2026 la commitul d719ffc,
+singura diferenta sunt liniile de comentariu.
+
+%(n)d files are the ANNOTATED versions from chapter %(c)s of the site:
+the code is identical to mihaidoinea/dma2026 at commit d719ffc, the only
 difference is the comment lines.
 
-Cum le folosesti / How to use them
-----------------------------------
-1. Dezarhiveaza / Unzip.
-2. Structura respecta proiectul real: <Proiect>/src/main/...
-   O poti deschide direct in Android Studio (File > Open) sau copia peste
-   proiectul tau.
-3. Fisierele NU sunt un proiect complet - lipsesc build.gradle si resursele
-   care nu sunt acoperite in capitol. Sunt pentru citit si comparat.
+Restul fisierelor (build.gradle.kts, resursele, manifestul, testele) sunt
+identice cu repo-ul.
+
+The other files (build.gradle.kts, resources, manifest, tests) are identical
+to the repo.
+
+Cum il deschizi / How to open it
+--------------------------------
+1. Dezarhiveaza arhiva / Unzip the archive.
+2. Android Studio -> File -> Open -> alege folderul %(p)s / pick the %(p)s folder.
+3. Lasa Gradle sa faca sync (prima data descarca dependentele).
+   Let Gradle sync (the first time it downloads the dependencies).
+4. Run pe emulator sau telefon / on an emulator or a phone.
+
+Necesita / Requires
+-------------------
+- Android Studio (orice versiune recenta) / any recent version
+- JDK 17+ (vine cu Android Studio / ships with Android Studio)
+- Android SDK 37 (se instaleaza din SDK Manager daca lipseste)
+  (install it from the SDK Manager if missing)
+- Un emulator cu API 33+ sau un telefon / an API 33+ emulator or a phone
+
+Nota / Note
+-----------
+settings.gradle.kts a fost redus la un singur modul, ca proiectul sa se
+poata construi singur. In repo-ul original sunt 8 module.
+settings.gradle.kts was trimmed to a single module so the project can build
+on its own. The original repo has 8 modules.
 
 by FiredMosquito831
-"""
+""" % {"p": proj, "n": n, "c": num}
 
 
 def build_annotated_downloads():
-    """One ZIP per annotated chapter, with the annotated files in their real paths."""
+    """One ZIP per annotated chapter: the FULL runnable project, annotated files swapped in."""
     import zipfile
 
     out = os.path.join(OUT, "downloads")
     os.makedirs(out, exist_ok=True)
+    jar = os.path.join(HERE, "download-src", "gradle-wrapper.jar")
     made, skipped = 0, []
     for num, proj in ANNOTATED.items():
         ch = ch_by_num(num)
         md_path = os.path.join(SRC, ch[3])
-        root = os.path.join(CODE_SRC, proj)
-        if not os.path.isfile(md_path) or not os.path.isdir(root):
+        mod_root = os.path.join(CODE_SRC, proj)
+        if not os.path.isfile(md_path) or not os.path.isdir(mod_root):
             skipped.append(num)
             continue
         index = {}
-        for dirpath, _, files in os.walk(root):
+        for dirpath, _, files in os.walk(mod_root):
             for f in files:
                 if not f.endswith((".java", ".xml")):
                     continue
@@ -1202,24 +1245,42 @@ def build_annotated_downloads():
                 except OSError:
                     continue
                 index[_norm_code(body, kind)] = rel
+        annotated = {}
         md = open(md_path, encoding="utf-8").read()
-        written = 0
-        zpath = os.path.join(out, f"cap-{num}.zip")
-        with zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED) as z:
-            z.writestr("CITESTE.txt", README_TXT)
-            for lang, body in _md_blocks(md):
-                if lang not in ("java", "xml"):
-                    continue
-                rel = index.get(_norm_code(body, lang))
-                if rel:
-                    z.writestr(rel, body.replace("\r\n", "\n").rstrip() + "\n")
-                    written += 1
-        if written:
-            made += 1
-        else:
-            os.remove(zpath)
+        for tag, body in _md_blocks(md):
+            if tag not in ("java", "xml"):
+                continue
+            rel = index.get(_norm_code(body, tag))
+            if rel:
+                annotated[rel] = body.replace("\r\n", "\n").rstrip() + "\n"
+        if not annotated:
             skipped.append(num)
-    print(f"downloads: {made} archives" + (f" (skipped {skipped})" if skipped else ""))
+            continue
+        zpath = os.path.join(out, "cap-%s.zip" % num)
+        with zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED) as z:
+            z.writestr("%s/CITESTE.txt" % proj, _readme_for(proj, num, len(annotated)))
+            for rel in ROOT_FILES:
+                src = os.path.join(CODE_SRC, rel)
+                if os.path.isfile(src):
+                    z.write(src, "%s/%s" % (proj, rel))
+            z.writestr("%s/settings.gradle.kts" % proj, _settings_for(proj))
+            for rel in GRADLE_FILES:
+                src = os.path.join(CODE_SRC, rel)
+                if os.path.isfile(src):
+                    z.write(src, "%s/%s" % (proj, rel))
+            if os.path.isfile(jar):
+                z.write(jar, "%s/gradle/wrapper/gradle-wrapper.jar" % proj)
+            for dirpath, _, files in os.walk(mod_root):
+                for f in files:
+                    full = os.path.join(dirpath, f)
+                    rel = os.path.relpath(full, CODE_SRC).replace("\\", "/")
+                    arc = "%s/%s" % (proj, rel)
+                    if rel in annotated:
+                        z.writestr(arc, annotated[rel])
+                    else:
+                        z.write(full, arc)
+        made += 1
+    print("downloads: %d full projects%s" % (made, (" (skipped %s)" % skipped) if skipped else ""))
     return made
 
 
