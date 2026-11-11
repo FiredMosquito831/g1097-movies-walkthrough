@@ -354,6 +354,7 @@ HEAD = """<!doctype html>
   <a class="brand" href="{brand_index}">G1097</a>
   <nav class="sections">{section_nav}</nav>
   <div class="spacer"></div>
+  <button id="codeBtn" type="button" title="{code_title}">⌨ {code_label}</button>
   <a class="btn lang" href="{other_href}" title="{other_title}">{other_label}</a>
   <button id="themeBtn" type="button" title="Theme">🌗 Auto</button>
 </header>
@@ -364,6 +365,18 @@ HEAD = """<!doctype html>
 {pager}
 </main>
 </div>
+<aside id="codePanel" class="code-panel" aria-hidden="true" data-base="{base}">
+  <div class="cp-resize" id="cpResize" title="Drag"></div>
+  <div class="cp-head">
+    <span class="cp-title">{code_panel_title}</span>
+    <input id="cpSearch" type="search" placeholder="{code_search}" autocomplete="off">
+    <button id="cpClose" type="button" aria-label="Close">✕</button>
+  </div>
+  <div class="cp-body">
+    <nav id="cpTree" class="cp-tree"><p class="cp-hint">{code_hint}</p></nav>
+    <div id="cpCode" class="cp-code"><p class="cp-hint">{code_hint}</p></div>
+  </div>
+</aside>
 <script src="{base}assets/app.js"></script>
 </body>
 </html>
@@ -539,6 +552,9 @@ HERO = {
 }
 
 
+CODE_LABELS = {'ro': {'code_label': 'Cod', 'code_title': 'Deschide browserul de cod', 'code_panel_title': 'dma2026 — cod sursă', 'code_search': 'Caută fișier…', 'code_hint': 'Alege un fișier din stânga.'}, 'en': {'code_label': 'Code', 'code_title': 'Open the code browser', 'code_panel_title': 'dma2026 — source code', 'code_search': 'Search a file…', 'code_hint': 'Pick a file on the left.'}}
+
+
 def section_page(slug, ro_t, en_t, ro_s, en_s, nums, lang, outdir, base, ui, lcol):
     """Write a section landing page."""
     title = en_t if lang == "en" else ro_t
@@ -578,6 +594,11 @@ def section_page(slug, ro_t, en_t, ro_s, en_s, nums, lang, outdir, base, ui, lco
         other_href=(f"en/{slug}.html" if lang == "ro" else f"../{slug}.html"),
         other_label=ui["lang_other"],
         other_title=ui["lang_other_title"],
+        code_label=CODE_LABELS[lang]["code_label"],
+        code_title=CODE_LABELS[lang]["code_title"],
+        code_panel_title=CODE_LABELS[lang]["code_panel_title"],
+        code_search=CODE_LABELS[lang]["code_search"],
+        code_hint=CODE_LABELS[lang]["code_hint"],
         sidebar=sidebar_html("", lang, total_checks),
         main_attrs=f' data-section="{slug}"',
         body=body,
@@ -607,6 +628,11 @@ for lang in ("ro", "en"):
             other_href=(f"en/cap-{num}.html" if lang == "ro" else f"../cap-{num}.html"),
             other_label=ui["lang_other"],
             other_title=ui["lang_other_title"],
+            code_label=CODE_LABELS[lang]["code_label"],
+            code_title=CODE_LABELS[lang]["code_title"],
+            code_panel_title=CODE_LABELS[lang]["code_panel_title"],
+            code_search=CODE_LABELS[lang]["code_search"],
+            code_hint=CODE_LABELS[lang]["code_hint"],
             sidebar=sidebar_html(num, lang, total_checks),
             main_attrs=f' data-chapter="{num}." data-total="{totals[num]}"',
             body=body,
@@ -724,6 +750,11 @@ in the <code>mihaidoinea/dma2026</code> repository. The material is built strict
         other_href=("en/index.html" if lang == "ro" else "../index.html"),
         other_label=ui["lang_other"],
         other_title=ui["lang_other_title"],
+        code_label=CODE_LABELS[lang]["code_label"],
+        code_title=CODE_LABELS[lang]["code_title"],
+        code_panel_title=CODE_LABELS[lang]["code_panel_title"],
+        code_search=CODE_LABELS[lang]["code_search"],
+        code_hint=CODE_LABELS[lang]["code_hint"],
         sidebar=sidebar_html("", lang, total_checks),
         main_attrs="",
         body=index_body,
@@ -742,3 +773,82 @@ json.dump({"totalChecks": total_checks,
           ensure_ascii=False, indent=1)
 
 print("built:", len(CHAPTERS), "chapters +", len(SECTIONS), "sections + appendix")
+
+
+# --------------------------------------------------------------- code browser
+CODE_SRC = os.path.join(HERE, "src")
+CODE_OUT = os.path.join(OUT, "code")
+
+LEXERS = {
+    ".java": "java",
+    ".xml": "xml",
+    ".kts": "kotlin",
+    ".toml": "toml",
+    ".properties": "ini",
+    ".md": "markdown",
+    ".bat": "batch",
+    ".gitignore": "text",
+    ".keep": "text",
+    ".gradlew": "bash",
+}
+
+
+def build_code_browser():
+    """Highlight every source file into site/code/<n>.html and write tree.json."""
+    from pygments import highlight as pyg_highlight
+    from pygments.lexers import get_lexer_by_name
+    from pygments.formatters import HtmlFormatter
+
+    if not os.path.isdir(CODE_SRC):
+        print("code browser: no src/ folder — skipped")
+        return 0
+
+    os.makedirs(CODE_OUT, exist_ok=True)
+    rels = []
+    for root, dirs, files in os.walk(CODE_SRC):
+        dirs.sort()
+        for f in sorted(files):
+            full = os.path.join(root, f)
+            rel = os.path.relpath(full, CODE_SRC).replace("\\", "/")
+            rels.append(rel)
+
+    rels.sort(key=lambda p: (p.lower(), p))
+
+    fmt = HtmlFormatter(nowrap=True, cssclass="hl")
+    entries = []
+    for i, rel in enumerate(rels):
+        full = os.path.join(CODE_SRC, rel.replace("/", os.sep))
+        try:
+            text = open(full, encoding="utf-8", errors="replace").read()
+        except OSError:
+            continue
+        ext = "." + rel.rsplit(".", 1)[-1] if "." in rel.rsplit("/", 1)[-1] else ""
+        if rel.endswith(".gitignore") or rel.endswith(".keep") or rel.endswith("gradlew"):
+            ext = "." + rel.rsplit("/", 1)[-1]
+        name = LEXERS.get(ext, "text")
+        try:
+            lexer = get_lexer_by_name(name, stripall=False)
+        except Exception:
+            lexer = get_lexer_by_name("text")
+        try:
+            html = pyg_highlight(text, lexer, fmt)
+        except Exception:
+            html = ("<span>" + text.replace("&", "&amp;").replace("<", "&lt;")
+                    .replace(">", "&gt;") + "</span>")
+        with open(os.path.join(CODE_OUT, f"{i}.html"), "w", encoding="utf-8") as out:
+            out.write(html)
+        entries.append({
+            "i": i,
+            "p": rel,
+            "n": rel.rsplit("/", 1)[-1],
+            "l": name,
+            "b": len(text.encode("utf-8")),
+        })
+
+    with open(os.path.join(OUT, "assets", "tree.json"), "w", encoding="utf-8") as fh:
+        json.dump({"files": entries}, fh, ensure_ascii=False, separators=(",", ":"))
+    print(f"code browser: {len(entries)} files")
+    return len(entries)
+
+
+build_code_browser()

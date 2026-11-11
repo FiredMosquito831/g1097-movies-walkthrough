@@ -328,6 +328,201 @@
     if (rs) rs.addEventListener("click", resetProgress);
   }
 
+
+  /* ---------------- code browser panel ---------------- */
+  var cpState = { files: null, loaded: false, current: null, dirs: {} };
+
+  function cpPanel() { return document.getElementById("codePanel"); }
+
+  function loadTree(cb) {
+    if (cpState.loaded) { cb(); return; }
+    var panel = cpPanel();
+    var base = panel ? (panel.getAttribute("data-base") || "") : "";
+    fetch(base + "assets/tree.json")
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        cpState.files = data.files || [];
+        cpState.loaded = true;
+        cb();
+      })
+      .catch(function () {
+        var tree = document.getElementById("cpTree");
+        if (tree) tree.innerHTML = '<p class="cp-hint">tree.json missing</p>';
+      });
+  }
+
+  function buildTree() {
+    var tree = document.getElementById("cpTree");
+    if (!tree) return;
+    tree.innerHTML = "";
+    var folders = {};   // path -> element
+    var frag = document.createDocumentFragment();
+
+    function ensureFolder(parts) {
+      var key = "";
+      var parentEl = frag;
+      for (var i = 0; i < parts.length; i++) {
+        key = key ? key + "/" + parts[i] : parts[i];
+        if (!folders[key]) {
+          var wrap = document.createElement("div");
+          var head = document.createElement("div");
+          head.className = "cp-dir";
+          head.textContent = "▾ " + parts[i];
+          var kids = document.createElement("div");
+          kids.className = "cp-children";
+          wrap.appendChild(head);
+          wrap.appendChild(kids);
+          parentEl.appendChild(wrap);
+          var depth = key.split("/").length;
+          var startOpen = depth <= 2;   // deep project trees start collapsed
+          if (!startOpen) {
+            kids.classList.add("cp-hidden");
+            head.textContent = "▸ " + parts[i];
+          }
+          folders[key] = { head: head, kids: kids, open: startOpen };
+          head.addEventListener("click", function (el) {
+            return function () {
+              var st = folders[el];
+              st.open = !st.open;
+              st.kids.classList.toggle("cp-hidden", !st.open);
+              st.head.textContent = (st.open ? "▾ " : "▸ ") + st.head.textContent.slice(2);
+            };
+          }(key));
+        }
+        parentEl = folders[key].kids;
+      }
+      return parentEl;
+    }
+
+    cpState.files.forEach(function (f) {
+      var parts = f.p.split("/");
+      var name = parts.pop();
+      var parent = parts.length ? ensureFolder(parts) : frag;
+      var a = document.createElement("a");
+      a.className = "cp-file";
+      a.href = "#";
+      a.textContent = name;
+      a.setAttribute("data-i", f.i);
+      a.setAttribute("data-p", f.p);
+      a.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        openCode(this.getAttribute("data-i"), this.getAttribute("data-p"), this);
+      });
+      parent.appendChild(a);
+    });
+
+    tree.appendChild(frag);
+  }
+
+  function openCode(i, path, el) {
+    var panel = cpPanel();
+    if (!panel) return;
+    var base = panel.getAttribute("data-base") || "";
+    var box = document.getElementById("cpCode");
+    var prev = document.querySelector(".cp-file.active");
+    if (prev) prev.classList.remove("active");
+    if (el) el.classList.add("active");
+    cpState.current = path;
+    try { localStorage.setItem("g1097:test1:codeFile", path); } catch (e) {}
+    box.innerHTML = '<p class="cp-hint">…</p>';
+    fetch(base + "code/" + i + ".html")
+      .then(function (r) { return r.text(); })
+      .then(function (html) {
+        box.innerHTML = '<p class="cp-path">' + path.replace(/&/g, "&amp;").replace(/</g, "&lt;") +
+                        '</p><pre class="hl">' + html + "</pre>";
+      })
+      .catch(function () { box.innerHTML = '<p class="cp-hint">Could not load the file.</p>'; });
+  }
+
+  function cpOpen() {
+    var panel = cpPanel();
+    if (!panel) return;
+    panel.classList.add("open");
+    panel.setAttribute("aria-hidden", "false");
+    loadTree(function () {
+      if (!document.querySelector(".cp-file")) buildTree();
+      if (!cpState.restored && cpState.current === null) {
+        cpState.restored = true;
+        var saved = null;
+        try { saved = localStorage.getItem("g1097:test1:codeFile"); } catch (e) {}
+        if (saved) {
+          var f = cpState.files.filter(function (x) { return x.p === saved; })[0];
+          if (f) openCode(f.i, f.p, document.querySelector('.cp-file[data-p="' + saved + '"]'));
+        }
+      }
+    });
+  }
+
+  function cpClose() {
+    var panel = cpPanel();
+    if (!panel) return;
+    panel.classList.remove("open");
+    panel.setAttribute("aria-hidden", "true");
+  }
+
+  function initCodePanel() {
+    var btn = document.getElementById("codeBtn");
+    var panel = cpPanel();
+    if (!btn || !panel) return;
+
+    btn.addEventListener("click", function () {
+      if (panel.classList.contains("open")) cpClose(); else cpOpen();
+    });
+
+    var close = document.getElementById("cpClose");
+    if (close) close.addEventListener("click", cpClose);
+
+    document.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape" && panel.classList.contains("open")) cpClose();
+    });
+
+    /* resizable */
+    var grip = document.getElementById("cpResize");
+    if (grip) {
+      var dragging = false;
+      grip.addEventListener("mousedown", function (ev) {
+        dragging = true; ev.preventDefault();
+        document.body.style.userSelect = "none";
+      });
+      document.addEventListener("mousemove", function (ev) {
+        if (!dragging) return;
+        var w = window.innerWidth - ev.clientX;
+        w = Math.max(340, Math.min(w, window.innerWidth * 0.96));
+        panel.style.setProperty("--cp-w", w + "px");
+      });
+      document.addEventListener("mouseup", function () {
+        if (!dragging) return;
+        dragging = false;
+        document.body.style.userSelect = "";
+        try {
+          localStorage.setItem("g1097:test1:codeW",
+            panel.style.getPropertyValue("--cp-w") || "");
+        } catch (e) {}
+      });
+      try {
+        var savedW = localStorage.getItem("g1097:test1:codeW");
+        if (savedW) panel.style.setProperty("--cp-w", savedW);
+      } catch (e) {}
+    }
+
+    /* search */
+    var search = document.getElementById("cpSearch");
+    if (search) {
+      search.addEventListener("input", function () {
+        var q = this.value.toLowerCase().trim();
+        var nodes = document.querySelectorAll(".cp-tree .cp-file");
+        for (var i = 0; i < nodes.length; i++) {
+          var p = (nodes[i].getAttribute("data-p") || "").toLowerCase();
+          nodes[i].style.display = (!q || p.indexOf(q) !== -1) ? "" : "none";
+        }
+        var dirs = document.querySelectorAll(".cp-tree .cp-children");
+        for (var j = 0; j < dirs.length; j++) dirs[j].classList.remove("cp-hidden");
+      });
+    }
+  }
+
+  initCodePanel();
+
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", boot);
   } else {
