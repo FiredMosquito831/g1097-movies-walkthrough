@@ -45,6 +45,16 @@ CHAPTERS = [
      "10 - Reconstruieste de la zero.md", "10 - Rebuild from scratch.md"),
     ("11", "Extensii", "Extensions",
      "11 - Extensii.md", "11 - Extensions.md"),
+    ("12", "DMA06 — ListView vs RecyclerView", "DMA06 — ListView vs RecyclerView",
+     "12 - DMA06 - ListView vs RecyclerView.md", "12 - DMA06 - ListView vs RecyclerView.md"),
+    ("13", "DMA05 — ViewBinding", "DMA05 — ViewBinding",
+     "13 - DMA05 - ViewBinding.md", "13 - DMA05 - ViewBinding.md"),
+    ("14", "DMA03 — Navigare și meniuri", "DMA03 — Navigation and menus",
+     "14 - DMA03 - Navigare si meniuri.md", "14 - DMA03 - Navigation and menus.md"),
+    ("15", "DMA02 — Ciclu de viață", "DMA02 — Lifecycle",
+     "15 - DMA02 - Application si ciclu de viata.md", "15 - DMA02 - Application and lifecycle.md"),
+    ("16", "Istoricul repo-ului", "Repository history",
+     "16 - Istoricul repo-ului.md", "16 - Repository history.md"),
 ]
 
 MD_EXT = ["extra", "codehilite", "toc", "tables", "fenced_code", "attr_list",
