@@ -259,7 +259,7 @@ HEAD = """<!doctype html>
 <body data-lang="{lang}">
 <header class="topbar">
   <button id="menuBtn" type="button" aria-label="Menu">☰</button>
-  <a class="brand" href="{base}index.html">Test 1 <span>· G1097</span></a>
+  <a class="brand" href="{brand_index}">Test 1 <span>· G1097</span></a>
   <div class="spacer"></div>
   <a class="btn lang" href="{other_href}" title="{other_title}">{other_label}</a>
   <button id="themeBtn" type="button" title="Theme">🌗 Auto</button>
@@ -277,18 +277,18 @@ HEAD = """<!doctype html>
 """
 
 
-def sidebar_html(active: str, base: str, lang: str, total_checks: int) -> str:
+def sidebar_html(active: str, lang: str, total_checks: int) -> str:
     ui = UI[lang]
     idx = 1 if lang == "en" else 0
     rows = [
-        f'<a href="{base}index.html" class="{"active" if active == "index" else ""}">'
+        f'<a href="index.html" class="{"active" if active == "index" else ""}">'
         f'<span class="num">★</span> {ui["overview"]}</a>'
     ]
     for ch in CHAPTERS:
         num, label = ch[0], ch[1 + idx]
         cls = "active" if active == num else ""
         rows.append(
-            f'<a href="{base}cap-{num}.html" class="{cls}">'
+            f'<a href="cap-{num}.html" class="{cls}">'
             f'<span class="num">{num}</span> {htmlmod.escape(label)}</a>'
         )
     return (
@@ -300,27 +300,27 @@ def sidebar_html(active: str, base: str, lang: str, total_checks: int) -> str:
     )
 
 
-def pager_html(idx: int, base: str, lang: str) -> str:
+def pager_html(idx: int, lang: str) -> str:
     ui = UI[lang]
     lcol = 1 if lang == "en" else 0
     parts = ['<nav class="pager">']
     if idx > 0:
         pnum, plabel = CHAPTERS[idx - 1][0], CHAPTERS[idx - 1][1 + lcol]
         parts.append(
-            f'<a class="prev" href="{base}cap-{pnum}.html">'
+            f'<a class="prev" href="cap-{pnum}.html">'
             f'<span class="dir">{ui["prev_ch"].format(pnum)}</span>'
             f'<span class="ttl">{htmlmod.escape(plabel)}</span></a>'
         )
     else:
         parts.append(
-            f'<a class="prev" href="{base}index.html">'
+            f'<a class="prev" href="index.html">'
             f'<span class="dir">{ui["prev"]}</span>'
             f'<span class="ttl">{ui["overview"]}</span></a>'
         )
     if idx < len(CHAPTERS) - 1:
         nnum, nlabel = CHAPTERS[idx + 1][0], CHAPTERS[idx + 1][1 + lcol]
         parts.append(
-            f'<a class="next" href="{base}cap-{nnum}.html">'
+            f'<a class="next" href="cap-{nnum}.html">'
             f'<span class="dir">{ui["next_ch"].format(nnum)}</span>'
             f'<span class="ttl">{htmlmod.escape(nlabel)}</span></a>'
         )
@@ -393,13 +393,14 @@ for lang in ("ro", "en"):
             title=ui["ch_title"].format(num, label),
             desc=ui["ch_desc"].format(num, label),
             base=base,
+            brand_index="index.html",
             other_href=other_href,
             other_label=ui["lang_other"],
             other_title=ui["lang_other_title"],
-            sidebar=sidebar_html(num, base, lang, total_checks),
+            sidebar=sidebar_html(num, lang, total_checks),
             main_attrs=f' data-chapter="{num}." data-total="{totals[num]}"',
             body=body,
-            pager=pager_html(idx, base, lang),
+            pager=pager_html(idx, lang),
         )
         open(os.path.join(outdir, f"cap-{num}.html"), "w", encoding="utf-8").write(page)
 
@@ -503,10 +504,11 @@ Don't copy it — rebuild it.</p>
         title=ui["index_title"],
         desc=ui["index_desc"],
         base=base,
+        brand_index="index.html",
         other_href="en/index.html" if lang == "ro" else "../index.html",
         other_label=ui["lang_other"],
         other_title=ui["lang_other_title"],
-        sidebar=sidebar_html("index", base, lang, total_checks),
+        sidebar=sidebar_html("index", lang, total_checks),
         main_attrs="",
         body=index_body,
         pager="",
