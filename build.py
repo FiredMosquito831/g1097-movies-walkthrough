@@ -71,6 +71,14 @@ CHAPTERS = [
      "23 - Bancul 5 - Migrare ListView la RecyclerView.md", "23 - Bank 5 - ListView to RecyclerView.md"),
     ("24", "Bancul 6 — Persistență și verificare", "Bank 6 — Persistence and verification",
      "24 - Bancul 6 - Persistenta si verificare.md", "24 - Bank 6 - Persistence and verification.md"),
+    ("25", "Codul DMA02 adnotat", "DMA02 code annotated",
+     "25 - Codul DMA02 adnotat.md", "25 - DMA02 code annotated.md"),
+    ("26", "Codul DMA03 adnotat", "DMA03 code annotated",
+     "26 - Codul DMA03 adnotat.md", "26 - DMA03 code annotated.md"),
+    ("27", "Codul DMA05 adnotat", "DMA05 code annotated",
+     "27 - Codul DMA05 adnotat.md", "27 - DMA05 code annotated.md"),
+    ("28", "Codul DMA06 adnotat", "DMA06 code annotated",
+     "28 - Codul DMA06 adnotat.md", "28 - DMA06 code annotated.md"),
 ]
 
 MD_EXT = ["extra", "codehilite", "toc", "tables", "fenced_code", "attr_list",
@@ -321,7 +329,7 @@ SECTIONS = [
 APPENDIX = ("anexe", "Anexe — proiectele de curs", "Appendix — the course projects",
             "Proiectele DMA02/DMA03/DMA05/DMA06 și istoricul complet al repo-ului.",
             "The DMA02/DMA03/DMA05/DMA06 projects and the complete repo history.",
-            ["12", "13", "14", "15", "16"])
+            ["12", "13", "14", "15", "16", "25", "26", "27", "28"])
 
 SECTION_OF = {}
 for slug, _, _, _, _, nums in SECTIONS + [APPENDIX]:
@@ -687,6 +695,10 @@ for lang in ("ro", "en"):
 </ol>
 <blockquote><p><b>Regula de aur:</b> nu copia. Tastează. Fiecare dată când copiezi, pierzi
 exact exercițiul pe care îl vei da la test.</p></blockquote>
+<p><b>Panoul de cod:</b> butonul <code>⌨ Cod</code> din dreapta sus deschide un browser cu
+tot codul sursă al repo-ului — arbore de fișiere în stânga, cod colorat în dreapta. Trage
+de marginea lui stângă ca să-l lărgești sau să-l îngustezi. E <b>read-only</b>: editezi în
+Android Studio.</p>
 <p>Sursa de adevăr e commitul <code>d719ffc</code> (<code>G1097_S07</code>, 2026-11-09) din
 repo-ul <code>mihaidoinea/dma2026</code>. Materialul e construit strict pe grupa <b>1097</b>.</p>
 """
@@ -704,6 +716,9 @@ repo-ul <code>mihaidoinea/dma2026</code>. Materialul e construit strict pe grupa
 </ol>
 <blockquote><p><b>Golden rule:</b> don't copy. Type it. Every time you copy, you lose exactly
 the exercise you'll be given in the test.</p></blockquote>
+<p><b>Code panel:</b> the <code>⌨ Code</code> button in the top right opens a browser with the
+whole repo source — file tree on the left, highlighted code on the right. Drag its left edge
+to widen or narrow it. It is <b>read-only</b>: you edit in Android Studio.</p>
 <p>The source of truth is commit <code>d719ffc</code> (<code>G1097_S07</code>, 2026-11-09)
 in the <code>mihaidoinea/dma2026</code> repository. The material is built strictly on group
 <b>1097</b>.</p>
