@@ -193,7 +193,7 @@ def preprocess(raw: str, lang: str):
         i += 1
 
     text = "\n".join(out)
-    text = re.sub(r"\]\((\d\d)%20-%20[^)]*\.md\)", r"](\1.html)", text)
+    text = re.sub(r"\]\((\d\d)%20-%20[^)]*\.md\)", r"](cap-\1.html)", text)
     text = re.sub(r"\]\((?:README|index)\.md\)", r"](index.html)", text)
     return text, items
 
@@ -387,7 +387,7 @@ for lang in ("ro", "en"):
         num, label = ch[0], ch[1 + lcol]
         md_text, items = parsed[lang][num]
         body = render(md_text)
-        other_href = f"../cap-{num}.html" if lang == "ro" else f"../cap-{num}.html"
+        other_href = f"en/cap-{num}.html" if lang == "ro" else f"../cap-{num}.html"
         page = HEAD.format(
             lang=lang,
             title=ui["ch_title"].format(num, label),
