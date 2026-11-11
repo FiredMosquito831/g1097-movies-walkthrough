@@ -121,6 +121,8 @@ UI = {
         "jump_title": "Sari la un fișier sau la o metodă",
         "jump_btn": "Metode",
         "download": "⬇ Descarcă proiectul complet (ZIP)",
+        "repo_btn": "⌥ Tot repo-ul, în Android Studio",
+        "repo_note": "Toate cele 8 module într-un singur proiect, cu codul adnotat. Clonezi cu {clone} și îl deschizi direct în Android Studio — alegi modulul din configurația de run.",
         "download_note": "Proiectul întreg, cu fișierele adnotate: se deschide în Android Studio (File → Open) și rulează direct pe emulator.",
         "lang_other": "EN", "lang_other_title": "Switch to English",
         "progress": "Progresul tău", "complete": "complet", "of": "din", "checks": "bife",
@@ -148,6 +150,8 @@ UI = {
         "jump_title": "Jump to a file or a method",
         "jump_btn": "Methods",
         "download": "⬇ Download the full project (ZIP)",
+        "repo_btn": "⌥ The whole repo, in Android Studio",
+        "repo_note": "All eight modules in one project, with the annotated code. Clone it with {clone} and open it straight in Android Studio — pick the module from the run configuration.",
         "download_note": "The whole project, with the annotated files: open it in Android Studio (File → Open) and run it straight on the emulator.",
         "lang_other": "RO", "lang_other_title": "Switch to Romanian",
         "progress": "Your progress", "complete": "complete", "of": "of", "checks": "checks",
@@ -410,6 +414,21 @@ ANNOTATED = {
     "22": "G1097", "25": "DMA02", "26": "DMA03", "27": "DMA05",
     "28": "DMA06", "29": "G1096", "30": "G1098", "31": "G1099",
 }
+
+ANNOTATED_REPO = "https://github.com/FiredMosquito831/dma2026-adnotat"
+
+
+def repo_html(ui: dict) -> str:
+    clone = ANNOTATED_REPO + ".git"
+    note = ui["repo_note"].replace("{clone}", f"<code>git clone {clone}</code>")
+    return (
+        f'<div class="dl-box repo-box">'
+        f'<a class="dl-btn" href="{ANNOTATED_REPO}" target="_blank" rel="noopener">'
+        f'{htmlmod.escape(ui["repo_btn"])}</a>'
+        f'<p class="dl-note">{note}</p>'
+        f'</div>'
+    )
+
 
 def download_html(num: str, base: str, ui: dict) -> str:
     return (
@@ -891,7 +910,7 @@ for lang in ("ro", "en"):
         jump = ""
         if num in ANNOTATED:
             body, jump = annotate_code_nav(body, md_text, num, ui)
-            block = download_html(num, base, ui)
+            block = repo_html(ui) + download_html(num, base, ui)
             cut = body.find("<h2")
             body = (body[:cut] + block + body[cut:]) if cut > 0 else body + block
         sub = subnav_html(body, jump, ui)
