@@ -79,6 +79,10 @@ Un pas e „gata” când: codul compilează, aplicația rulează, și poți exp
 | 14 | [14 - DMA03 - Navigare si meniuri.md](14%20-%20DMA03%20-%20Navigare%20si%20meniuri.md) | `DrawerLayout`, `NavigationView`, `PopupMenu`, Back, `AlertDialog`, `Snackbar` | 14.1–14.8 |
 | 15 | [15 - DMA02 - Application si ciclu de viata.md](15%20-%20DMA02%20-%20Application%20si%20ciclu%20de%20viata.md) | Ciclul de viață complet, clasa `Application`, `Intent` implicit | 15.1–15.6 |
 | 16 | [16 - Istoricul repo-ului.md](16%20-%20Istoricul%20repo-ului.md) | Toate cele 44 de commituri, evoluția pe sesiuni, comparația între grupe | 16.1–16.6 |
+| 25 | [25 - Codul DMA02 adnotat.md](25%20-%20Codul%20DMA02%20adnotat.md) | Codul DMA02 bloc cu bloc: `Application`, ciclu de viață, `Intent` implicit | 25.1–25.6 |
+| 26 | [26 - Codul DMA03 adnotat.md](26%20-%20Codul%20DMA03%20adnotat.md) | Codul DMA03 bloc cu bloc: drawer, toolbar, meniuri, dialoguri | 26.1–26.8 |
+| 27 | [27 - Codul DMA05 adnotat.md](27%20-%20Codul%20DMA05%20adnotat.md) | Codul DMA05 bloc cu bloc: `ViewBinding`, toate widget-urile | 27.1–27.6 |
+| 28 | [28 - Codul DMA06 adnotat.md](28%20-%20Codul%20DMA06%20adnotat.md) | Codul DMA06 bloc cu bloc: cele trei trepte de listă | 28.1–28.10 |
 
 > **Partea I** construiește aplicația ta. **Partea II** acoperă restul repo-ului: cele patru proiecte de curs (care conțin exact lucrurile care lipsesc din G1097 — RecyclerView, ViewBinding, meniuri, ciclu de viață) și istoricul complet.
 

@@ -79,6 +79,10 @@ A step is “done” when: the code compiles, the app runs, and you can explain 
 | 14 | [14 - DMA03 - Navigare si meniuri.md](14%20-%20DMA03%20-%20Navigare%20si%20meniuri.md) | `DrawerLayout`, `NavigationView`, `PopupMenu`, Back, `AlertDialog`, `Snackbar` | 14.1–14.8 |
 | 15 | [15 - DMA02 - Application si ciclu de viata.md](15%20-%20DMA02%20-%20Application%20si%20ciclu%20de%20viata.md) | The full lifecycle, the `Application` class, implicit `Intent` | 15.1–15.6 |
 | 16 | [16 - Istoricul repo-ului.md](16%20-%20Istoricul%20repo-ului.md) | All 44 commits, per-session evolution, cross-group comparison | 16.1–16.6 |
+| 25 | [25 - Codul DMA02 adnotat.md](25%20-%20Codul%20DMA02%20adnotat.md) | DMA02 code block by block: `Application`, lifecycle, implicit `Intent` | 25.1–25.6 |
+| 26 | [26 - Codul DMA03 adnotat.md](26%20-%20Codul%20DMA03%20adnotat.md) | DMA03 code block by block: drawer, toolbar, menus, dialogs | 26.1–26.8 |
+| 27 | [27 - Codul DMA05 adnotat.md](27%20-%20Codul%20DMA05%20adnotat.md) | DMA05 code block by block: `ViewBinding`, every widget | 27.1–27.6 |
+| 28 | [28 - Codul DMA06 adnotat.md](28%20-%20Codul%20DMA06%20adnotat.md) | DMA06 code block by block: the three list steps | 28.1–28.10 |
 
 > **Part I** builds your app. **Part II** covers the rest of the repo: the four course projects (which contain exactly what G1097 lacks — RecyclerView, ViewBinding, menus, the lifecycle) and the complete history.
 
