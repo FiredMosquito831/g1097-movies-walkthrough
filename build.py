@@ -122,7 +122,9 @@ UI = {
         "jump_btn": "Metode",
         "download": "⬇ Descarcă proiectul complet (ZIP)",
         "repo_btn": "⌥ Tot repo-ul, în Android Studio",
-        "repo_note": "Toate cele 8 module într-un singur proiect, cu codul adnotat. Clonezi cu {clone} și îl deschizi direct în Android Studio — alegi modulul din configurația de run.",
+        "prof_btn": "↗ Repo-ul profesorului",
+        "prof_note": "Sursa originală, fără comentarii — pentru comparație: {clone}",
+        "repo_note": "Toate cele 8 module într-un singur proiect, cu codul adnotat. Clonezi cu {clone} și îl deschizi în Android Studio. Comentariile sunt în <b>română</b> pe <code>main</code>; pentru <b>engleză</b>: <code>git checkout english</code>.",
         "download_note": "Proiectul întreg, cu fișierele adnotate: se deschide în Android Studio (File → Open) și rulează direct pe emulator.",
         "lang_other": "EN", "lang_other_title": "Switch to English",
         "progress": "Progresul tău", "complete": "complet", "of": "din", "checks": "bife",
@@ -151,7 +153,9 @@ UI = {
         "jump_btn": "Methods",
         "download": "⬇ Download the full project (ZIP)",
         "repo_btn": "⌥ The whole repo, in Android Studio",
-        "repo_note": "All eight modules in one project, with the annotated code. Clone it with {clone} and open it straight in Android Studio — pick the module from the run configuration.",
+        "prof_btn": "↗ The professor's repo",
+        "prof_note": "The original source, without comments — for comparison: {clone}",
+        "repo_note": "All eight modules in one project, with the annotated code. Clone it with {clone} and open it in Android Studio. Comments are in <b>Romanian</b> on <code>main</code>; for <b>English</b>: <code>git checkout english</code>.",
         "download_note": "The whole project, with the annotated files: open it in Android Studio (File → Open) and run it straight on the emulator.",
         "lang_other": "RO", "lang_other_title": "Switch to Romanian",
         "progress": "Your progress", "complete": "complete", "of": "of", "checks": "checks",
@@ -415,6 +419,22 @@ ANNOTATED = {
     "28": "DMA06", "29": "G1096", "30": "G1098", "31": "G1099",
 }
 
+PROF_REPO = "https://github.com/mihaidoinea/dma2026"
+PROF_CHAPTERS = {"01", "16", "32"}
+
+
+def prof_repo_html(ui: dict) -> str:
+    clone = PROF_REPO + ".git"
+    note = ui["prof_note"].replace("{clone}", f"<code>git clone {clone}</code>")
+    return (
+        f'<div class="dl-box prof-box">'
+        f'<a class="dl-btn" href="{PROF_REPO}" target="_blank" rel="noopener">'
+        f'{htmlmod.escape(ui["prof_btn"])}</a>'
+        f'<p class="dl-note">{note}</p>'
+        f'</div>'
+    )
+
+
 ANNOTATED_REPO = "https://github.com/FiredMosquito831/dma2026-adnotat"
 
 
@@ -647,11 +667,15 @@ HEAD = """<!doctype html>
 """
 
 
+# short labels for the top bar; the full titles stay on the section pages
+NAV_SHORT = {"anexe": ("Cod adnotat", "Annotated code")}
+
+
 def section_nav_html(active_section: str, lang: str) -> str:
-    idx_t = 1 if lang == "en" else 2
     parts = []
-    for slug, ro_t, en_t, _ro_s, _en_s, _nums in SECTIONS:
-        label = en_t if lang == "en" else ro_t
+    for slug, ro_t, en_t, _ro_s, _en_s, _nums in SECTIONS + [APPENDIX]:
+        short = NAV_SHORT.get(slug)
+        label = (short[1] if lang == "en" else short[0]) if short else (en_t if lang == "en" else ro_t)
         cls = "sec active" if slug == active_section else "sec"
         parts.append(f'<a class="{cls}" href="{slug}.html">{htmlmod.escape(label)}</a>')
     return "".join(parts)
@@ -908,9 +932,13 @@ for lang in ("ro", "en"):
         md_text, _items = parsed[lang][num]
         body = render(md_text)
         jump = ""
+        block = ""
         if num in ANNOTATED:
             body, jump = annotate_code_nav(body, md_text, num, ui)
-            block = repo_html(ui) + download_html(num, base, ui)
+            block = repo_html(ui) + download_html(num, base, ui) + prof_repo_html(ui)
+        elif num in PROF_CHAPTERS:
+            block = prof_repo_html(ui)
+        if block:
             cut = body.find("<h2")
             body = (body[:cut] + block + body[cut:]) if cut > 0 else body + block
         sub = subnav_html(body, jump, ui)
