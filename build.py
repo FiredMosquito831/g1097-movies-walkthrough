@@ -55,6 +55,18 @@ CHAPTERS = [
      "15 - DMA02 - Application si ciclu de viata.md", "15 - DMA02 - Application and lifecycle.md"),
     ("16", "Istoricul repo-ului", "Repository history",
      "16 - Istoricul repo-ului.md", "16 - Repository history.md"),
+    ("17", "Bancul 1 — Atribute noi", "Bank 1 — New attributes",
+     "17 - Bancul 1 - Atribute noi.md", "17 - Bank 1 - New attributes.md"),
+    ("18", "Bancul 2 — Bindinguri și adaptoare", "Bank 2 — Bindings and adapters",
+     "18 - Bancul 2 - Bindinguri si adaptoare.md", "18 - Bank 2 - Bindings and adapters.md"),
+    ("19", "Bancul 3 — Valori în UI", "Bank 3 — Values in the UI",
+     "19 - Bancul 3 - Valori in UI si persistenta.md", "19 - Bank 3 - Values in UI and state.md"),
+    ("20", "Bancul 4 — Controale noi", "Bank 4 — New controls",
+     "20 - Bancul 4 - Controale noi.md", "20 - Bank 4 - New controls.md"),
+    ("21", "Cheatsheet", "Cheatsheet",
+     "21 - Cheatsheet.md", "21 - Cheatsheet.md"),
+    ("22", "Codul adnotat", "Annotated code",
+     "22 - Codul adnotat.md", "22 - Annotated code.md"),
 ]
 
 MD_EXT = ["extra", "codehilite", "toc", "tables", "fenced_code", "attr_list",
@@ -148,7 +160,7 @@ def preprocess(raw: str, lang: str):
                 i += 1
                 continue
 
-            m = re.match(r"^(#{3,5})\s+(?:Exerci[iț]iu|Exercise)\s+(\d+\.\d+)(.*)$", ln)
+            m = re.match(r"^(#{2,5})\s+(?:Exerci[iț]iu(?:l)?|Exercise)\s+(\d+\.\d+)(.*)$", ln)
             if m:
                 num, tail = m.group(2), m.group(3).strip(" —-–")
                 key = f"ex:{num}"
@@ -199,13 +211,25 @@ def preprocess(raw: str, lang: str):
 
 
 def add_drill_checkpoint(md_text: str, num: str, items: list, lang: str) -> str:
-    if num != "10":
+    """Add a single 'I finished this' checkbox to chapters that have no numbered steps."""
+    if num == "10":
+        key = "drill:10"
+        title = "Drill" if lang == "en" else "Drill cronometrat"
+        marker = "## Timing table" if lang == "en" else "## Tabel de cronometrare"
+        label = UI[lang]["check_drill"]
+    elif num == "21":
+        key = "read:21"
+        title = "Cheatsheet read"
+        marker = "## 21.2" if lang == "en" else "## 21.2"
+        label = "Am citit cheatsheet-ul" if lang != "en" else "I read the cheatsheet"
+    elif num == "22":
+        key = "read:22"
+        title = "Annotated code read"
+        marker = "## 22.2" if lang == "en" else "## 22.2"
+        label = "Am citit codul adnotat" if lang != "en" else "I read the annotated code"
+    else:
         return md_text
-    key = "drill:10"
-    items.append({"key": key, "num": "10", "kind": "drill",
-                  "title": "Drill" if lang == "en" else "Drill cronometrat"})
-    marker = "## Timing table" if lang == "en" else "## Tabel de cronometrare"
-    label = UI[lang]["check_drill"]
+    items.append({"key": key, "num": num, "kind": "drill", "title": title})
     insert = (f'<div class="chk chk-drill" data-key="{key}">'
               f'<span>{label}</span></div>\n\n')
     return md_text.replace(marker, insert + marker, 1)
