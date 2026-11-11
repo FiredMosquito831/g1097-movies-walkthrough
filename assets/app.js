@@ -127,8 +127,8 @@
         : "<b>" + p + "%</b> din " + tot + " bife (" + all + " făcute)";
     }
 
-    /* index page: per-chapter bars + global */
-    var grid = document.getElementById("chapterGrid");
+    /* index / section pages: per-chapter bars + totals */
+    var grid = document.getElementById("chapterGrid") || document.getElementById("sectionGrid");
     if (grid) {
       var cards = grid.querySelectorAll("[data-chapter]");
       var gDone = 0, gTot = 0;
@@ -145,8 +145,9 @@
         if (cb) cb.style.width = cp + "%";
         if (ct) ct.textContent = cdone + "/" + ctot;
       }
-      var gb = document.getElementById("globalBar");
       var gp = gTot ? Math.round((gDone / gTot) * 100) : 0;
+      /* root index */
+      var gb = document.getElementById("globalBar");
       if (gb) gb.style.width = gp + "%";
       var g1 = document.getElementById("globalPct");
       var g2 = document.getElementById("globalDone");
@@ -154,6 +155,13 @@
       if (g1) g1.textContent = gp + "%";
       if (g2) g2.textContent = String(gDone);
       if (g3) g3.textContent = String(gTot);
+      /* section landing */
+      var sb = document.getElementById("sectionBar");
+      if (sb) sb.style.width = gp + "%";
+      var s1 = document.getElementById("sectionPct");
+      var s2 = document.getElementById("sectionDone");
+      if (s1) s1.textContent = gp + "%";
+      if (s2) s2.textContent = String(gDone);
     }
   }
 

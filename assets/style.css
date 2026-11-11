@@ -542,3 +542,72 @@ details .codehilite, details pre { margin-left: 0; margin-right: 0; }
   .codehilite, pre { max-width: 100%; }
   .pager a { min-width: 0; }
 }
+
+/* ---------------- section navigation (header) ---------------- */
+.topbar .sections {
+  display: flex; align-items: center; gap: 4px;
+  margin-left: 18px;
+}
+.topbar .sections a.sec {
+  display: inline-flex; align-items: center;
+  height: 34px; padding: 0 12px;
+  font-size: 13.5px; font-weight: 600;
+  color: var(--fg-soft); text-decoration: none;
+  border-radius: 8px; white-space: nowrap;
+  transition: background .15s, color .15s;
+}
+.topbar .sections a.sec:hover { background: var(--bg-soft); color: var(--accent); }
+.topbar .sections a.sec.active {
+  background: var(--accent-soft); color: var(--accent);
+}
+
+/* ---------------- section landing: path cards ---------------- */
+.path-grid {
+  display: grid; gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  margin: 0 0 40px;
+}
+.path-card {
+  display: block; padding: 24px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  text-decoration: none; color: inherit;
+  transition: border-color .15s, box-shadow .15s, transform .15s, background .15s;
+}
+.path-card:hover {
+  border-color: var(--accent); background: var(--accent-soft);
+  box-shadow: var(--shadow-lg); transform: translateY(-2px);
+}
+.path-card .pc-title {
+  font-size: 1.18rem; font-weight: 700; color: var(--accent-dark);
+  margin-bottom: 8px;
+}
+.path-card .pc-sub {
+  font-size: .94rem; color: var(--fg-soft); line-height: 1.55;
+  margin-bottom: 14px;
+}
+.path-card .pc-meta { font-size: 12.5px; color: var(--fg-mute); }
+.path-card .pc-meta b { color: var(--fg); font-size: 15px; }
+.path-card-soft { background: var(--bg); border-style: dashed; }
+.path-card-soft .pc-title { color: var(--fg-soft); font-size: 1.05rem; }
+
+/* eyebrow label above a section title */
+.hero .eyebrow {
+  margin: 0 0 6px;
+  font-size: 12px; font-weight: 700; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--fg-mute);
+}
+
+/* sidebar group headings become links */
+.sidebar h2 a { color: inherit; text-decoration: none; }
+.sidebar h2 a:hover { color: var(--accent); }
+.sidebar h2 + nav { margin-bottom: 18px; }
+
+@media (max-width: 1180px) {
+  .topbar .sections a.sec { padding: 0 8px; font-size: 12.5px; }
+}
+@media (max-width: 980px) {
+  .topbar .sections { display: none; }
+  .path-grid { grid-template-columns: 1fr; }
+}
