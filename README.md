@@ -54,6 +54,8 @@ Un pas e „gata” când: codul compilează, aplicația rulează, și poți exp
 
 ## Ordinea capitolelor
 
+### Partea I — Aplicația G1097, de la zero
+
 | # | Fișier | Ce înveți | Pași |
 |---|---|---|---|
 | 01 | [01 - Setup si schelet.md](01%20-%20Setup%20si%20schelet.md) | Proiect, Gradle, manifest, primul ecran care rulează | 1.1–1.10 |
@@ -67,6 +69,18 @@ Un pas e „gata” când: codul compilează, aplicația rulează, și poți exp
 | 09 | [09 - Modul de editare.md](09%20-%20Modul%20de%20editare.md) | `fillForm`, `position`, adăugare vs. înlocuire | 9.1–9.7 |
 | 10 | [10 - Reconstruieste de la zero.md](10%20-%20Reconstruieste%20de%20la%20zero.md) | Drill final, cronometrat, fără material | — |
 | 11 | [11 - Extensii.md](11%20-%20Extensii.md) | `RecyclerView`, `ViewHolder`, `onBindViewHolder`, atribute noi | 11.1–11.14 |
+
+### Partea II — Proiectele de curs și istoricul repo-ului
+
+| # | Fișier | Ce înveți | Pași |
+|---|---|---|---|
+| 12 | [12 - DMA06 - ListView vs RecyclerView.md](12%20-%20DMA06%20-%20ListView%20vs%20RecyclerView.md) | Cele 3 trepte pe aceleași date: `ArrayAdapter` → `BaseAdapter` → `RecyclerView` | 12.1–12.7 |
+| 13 | [13 - DMA05 - ViewBinding.md](13%20-%20DMA05%20-%20ViewBinding.md) | `ViewBinding` vs `findViewById`, toate widget-urile de input | 13.1–13.6 |
+| 14 | [14 - DMA03 - Navigare si meniuri.md](14%20-%20DMA03%20-%20Navigare%20si%20meniuri.md) | `DrawerLayout`, `NavigationView`, `PopupMenu`, Back, `AlertDialog`, `Snackbar` | 14.1–14.8 |
+| 15 | [15 - DMA02 - Application si ciclu de viata.md](15%20-%20DMA02%20-%20Application%20si%20ciclu%20de%20viata.md) | Ciclul de viață complet, clasa `Application`, `Intent` implicit | 15.1–15.6 |
+| 16 | [16 - Istoricul repo-ului.md](16%20-%20Istoricul%20repo-ului.md) | Toate cele 44 de commituri, evoluția pe sesiuni, comparația între grupe | 16.1–16.6 |
+
+> **Partea I** construiește aplicația ta. **Partea II** acoperă restul repo-ului: cele patru proiecte de curs (care conțin exact lucrurile care lipsesc din G1097 — RecyclerView, ViewBinding, meniuri, ciclu de viață) și istoricul complet.
 
 ---
 

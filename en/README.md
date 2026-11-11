@@ -54,6 +54,8 @@ A step is “done” when: the code compiles, the app runs, and you can explain 
 
 ## Chapter order
 
+### Part I — The G1097 app, from scratch
+
 | # | File | What you learn | Steps |
 |---|---|---|---|
 | 01 | [01 - Setup si schelet.md](01%20-%20Setup%20si%20schelet.md) | Project, Gradle, manifest, first running screen | 1.1–1.10 |
@@ -67,6 +69,18 @@ A step is “done” when: the code compiles, the app runs, and you can explain 
 | 09 | [09 - Modul de editare.md](09%20-%20Modul%20de%20editare.md) | `fillForm`, `position`, add vs. replace | 9.1–9.7 |
 | 10 | [10 - Reconstruieste de la zero.md](10%20-%20Reconstruieste%20de%20la%20zero.md) | Final drill, timed, without the material | — |
 | 11 | [11 - Extensii.md](11%20-%20Extensii.md) | `RecyclerView`, `ViewHolder`, `onBindViewHolder`, new attributes | 11.1–11.14 |
+
+### Part II — The course projects and the repo history
+
+| # | File | What you learn | Steps |
+|---|---|---|---|
+| 12 | [12 - DMA06 - ListView vs RecyclerView.md](12%20-%20DMA06%20-%20ListView%20vs%20RecyclerView.md) | The 3 steps on the same data: `ArrayAdapter` → `BaseAdapter` → `RecyclerView` | 12.1–12.7 |
+| 13 | [13 - DMA05 - ViewBinding.md](13%20-%20DMA05%20-%20ViewBinding.md) | `ViewBinding` vs `findViewById`, all the input widgets | 13.1–13.6 |
+| 14 | [14 - DMA03 - Navigare si meniuri.md](14%20-%20DMA03%20-%20Navigare%20si%20meniuri.md) | `DrawerLayout`, `NavigationView`, `PopupMenu`, Back, `AlertDialog`, `Snackbar` | 14.1–14.8 |
+| 15 | [15 - DMA02 - Application si ciclu de viata.md](15%20-%20DMA02%20-%20Application%20si%20ciclu%20de%20viata.md) | The full lifecycle, the `Application` class, implicit `Intent` | 15.1–15.6 |
+| 16 | [16 - Istoricul repo-ului.md](16%20-%20Istoricul%20repo-ului.md) | All 44 commits, per-session evolution, cross-group comparison | 16.1–16.6 |
+
+> **Part I** builds your app. **Part II** covers the rest of the repo: the four course projects (which contain exactly what G1097 lacks — RecyclerView, ViewBinding, menus, the lifecycle) and the complete history.
 
 ---
 
