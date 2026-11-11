@@ -1701,7 +1701,98 @@ Derulezi lista până la ultimul film, apeși FAB, salvezi: cardul nou apare la 
 
 ---
 
-## Tabelul celor 14 rețete
+## Rețeta 34.15 — Atașează un eveniment pe orice widget
+
+**Cerința, cum sună la test:** „Când apeși butonul X, să se întâmple Y" sau „când miști slider-ul, eticheta să se actualizeze."
+
+**Fișierele atinse:**
+
+| # | Fișier | Ce faci | Obligatoriu? |
+|---|---|---|---|
+| 1 | `res/layout/activity_item.xml` | widgetul, cu `android:id` | doar dacă e widget nou |
+| 2 | `activities/ItemActivity.java` | câmpul, linia din `initControls()`, listener-ul în `initListeners()` | **da** |
+
+**Pașii, în ordine:**
+
+**Pasul 1 — alege listener-ul după tipul widgetului.** Nu există un singur listener; fiecare widget are al lui. Tabelul de mai jos e tot ce ai nevoie.
+
+| Widget | Metoda de atașare | Ce primești în callback |
+|---|---|---|
+| `Button`, `MaterialButton`, orice `View` | `setOnClickListener` | `View v` — view-ul apăsat |
+| `EditText` | `addTextChangedListener` | `s`, `start`, `before`, `count` |
+| `SeekBar` | `setOnSeekBarChangeListener` | `progress`, `fromUser` |
+| `RatingBar` | `setOnRatingBarChangeListener` | `rating`, `fromUser` |
+| `Switch`, `MaterialSwitch`, `CheckBox` | `setOnCheckedChangeListener` | `buttonView`, `isChecked` |
+| `RadioGroup` | `setOnCheckedChangeListener` | `group`, `checkedId` |
+| `Spinner` | `setOnItemSelectedListener` | `parent`, `view`, `position`, `id` |
+| `ListView` | `setOnItemClickListener` | `parent`, `view`, `position`, `id` |
+| `ListView` (apăsare lungă) | `setOnItemLongClickListener` | la fel, dar întoarce `boolean` |
+
+**Pasul 2 — atașează listener-ul în `initListeners()`, nu în `onCreate()`.** În `G1097`, `onCreate()` cheamă `initControls()` apoi `initListeners()`. Ordinea contează: în `initListeners()` widgeturile sunt deja legate prin `findViewById`, deci nu riști `NullPointerException`.
+
+```java
+private void initListeners() {
+    btMovieAction.setOnClickListener(v -> saveMovie());
+    sbDuration.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            tvDurationValue.setText(progress + " min");
+        }
+        @Override public void onStartTrackingTouch(SeekBar seekBar) { }
+        @Override public void onStopTrackingTouch(SeekBar seekBar) { }
+    });
+}
+```
+
+**Pasul 3 — scrie corpul evenimentului.** Trei forme, toate corecte; alege-o pe cea care se citește mai bine:
+
+```java
+// 1. clasă anonimă — explicită, merge pentru orice interfață
+btMovieAction.setOnClickListener(new View.OnClickListener() {
+    @Override
+    public void onClick(View v) {
+        saveMovie();
+    }
+});
+
+// 2. lambda — doar pentru interfețe cu O SINGURĂ metodă (interfețe funcționale)
+btMovieAction.setOnClickListener(v -> saveMovie());
+
+// 3. referință la metodă — când metoda are exact semnătura cerută
+btMovieAction.setOnClickListener(this::onSaveClicked);
+```
+
+`View.OnClickListener` are o singură metodă (`onClick`), deci merge lambda. `SeekBar.OnSeekBarChangeListener` are trei, deci **nu** merge lambda — ai nevoie de clasa anonimă cu toate trei, chiar dacă două rămân goale.
+
+**Pasul 4 — dacă evenimentul trebuie să citească valoarea altui widget**, citește-o în interiorul callback-ului, nu în afara lui:
+
+```java
+// CORECT: citești la momentul click-ului
+btMovieAction.setOnClickListener(v ->
+        Toast.makeText(this, etTitle.getText().toString(), Toast.LENGTH_SHORT).show());
+
+// GREȘIT: citești o singură dată, la atașare — valoarea rămâne cea de atunci
+String title = etTitle.getText().toString();
+btMovieAction.setOnClickListener(v ->
+        Toast.makeText(this, title, Toast.LENGTH_SHORT).show());
+```
+
+**De ce merge așa:** un listener nu este „un eveniment" — este **un obiect pe care îl dai unui widget**, iar widgetul îl cheamă când se întâmplă ceva. Tu nu apeși niciodată `onClick()`; îl apelează Android-ul, din firul principal, după ce a primit evenimentul de la sistem. De aceea codul din callback rulează *mai târziu*, nu la atașare — și de aceea trebuie să citești starea acolo, nu înainte.
+
+**Greșeala care costă puncte:**
+
+- **Listener pus înainte de `setContentView`** → `findViewById` întoarce `null` → `NullPointerException` la prima atingere. În `G1097` ordinea e corectă; dacă adaugi cod în `onCreate`, pune-l după `initControls()`.
+- **Lambda pe o interfață cu mai multe metode** → nu compilează. `SeekBar.OnSeekBarChangeListener` are trei metode; folosește clasa anonimă.
+- **Valoare citită în afara callback-ului** → evenimentul folosește valoarea veche. Citește în interior.
+- **Listener care se auto-declanșează** → `setChecked(true)` din cod apelează `onCheckedChanged` exact ca o atingere. Dacă în callback faci iar `setChecked`, intri în buclă. Verifică `fromUser` sau un steag `boolean isBinding`.
+
+**Verificarea:** rulezi, apeși widgetul, vezi efectul. Apoi schimbi valoarea **din cod** (în `fillForm`) și verifici că listener-ul nu strică ce a pus `fillForm`.
+
+**Exersează:** [20.1](cap-20.html#ex-20-1), [18.1](cap-18.html#ex-18-1), [19.1](cap-19.html#ex-19-1)
+
+---
+
+## Tabelul celor 15 rețete
 
 | # | Rețeta | Cerința tipică | Fișiere atinse | Minute |
 |---|---|---|---|---|
@@ -1719,6 +1810,7 @@ Derulezi lista până la ultimul film, apeși FAB, salvezi: cardul nou apare la 
 | 34.12 | Antet în listă | două tipuri de rând | `adapters/MovieAdapter.java` | 15 |
 | 34.13 | Click în adaptor, cu callback | card → `ItemActivity` | `adapters/MovieAdapter.java`, `MainActivity.java` | 10 |
 | 34.14 | notifyItem* vs notifyDataSetChanged | actualizare cu animație | `MainActivity.java` | 5 |
+| 34.15 | Atașează un eveniment pe orice widget | „când apeși X, să se întâmple Y" | `ItemActivity.java` | 5 |
 
 ---
 

@@ -95,6 +95,8 @@ CHAPTERS = [
      "35 - Retete 3 - Intent si persistenta.md", "35 - Recipes 3 - Intents and persistence.md"),
     ("36", "Bancul 7 — Intent și navigare", "Bank 7 — Intents and navigation",
      "36 - Bancul 7 - Intent si navigare.md", "36 - Bank 7 - Intents and navigation.md"),
+    ("37", "Conceptele, explicate", "The concepts, explained",
+     "37 - Conceptele explicate.md", "37 - The concepts explained.md"),
 ]
 
 MD_EXT = ["extra", "codehilite", "toc", "tables", "fenced_code", "attr_list",
@@ -115,6 +117,11 @@ UI = {
         "ch_desc": "Capitolul {} din ghidul de reconstruire a aplicației G1097: {}.",
         "check_step": "Bifează pasul", "check_ex": "Am rezolvat", "check_drill": "Am terminat drill-ul",
         "check_recipe": "Am exersat rețeta", "recipes": "rețete",
+        "check_concept": "Am înțeles conceptul", "concepts": "concepte",
+        "jump_title": "Sari la un fișier sau la o metodă",
+        "jump_btn": "Metode",
+        "download": "⬇ Descarcă fișierele adnotate (ZIP)",
+        "download_note": "Aceleași fișiere, cu comentariile în ele — le deschizi în Android Studio sau în orice editor.",
         "lang_other": "EN", "lang_other_title": "Switch to English",
         "progress": "Progresul tău", "complete": "complet", "of": "din", "checks": "bife",
         "saved_local": "salvat local, fără cont",
@@ -137,6 +144,11 @@ UI = {
         "ch_desc": "Chapter {} of the G1097 rebuild guide: {}.",
         "check_step": "Mark step done", "check_ex": "Solved", "check_drill": "Drill finished",
         "check_recipe": "Practised this recipe", "recipes": "recipes",
+        "check_concept": "I understand this concept", "concepts": "concepts",
+        "jump_title": "Jump to a file or a method",
+        "jump_btn": "Methods",
+        "download": "⬇ Download the annotated files (ZIP)",
+        "download_note": "The same files, with the comments in them — open them in Android Studio or any editor.",
         "lang_other": "RO", "lang_other_title": "Switch to Romanian",
         "progress": "Your progress", "complete": "complete", "of": "of", "checks": "checks",
         "saved_local": "saved locally, no account",
@@ -168,6 +180,7 @@ def preprocess(raw: str, lang: str):
     step_word = "Step" if lang == "en" else "Pasul"
     ex_word = "Exercise" if lang == "en" else "Exercițiu"
     rc_word = "Recipe" if lang == "en" else "Rețeta"
+    cp_word = "Concept" if lang == "en" else "Conceptul"
 
     while i < len(lines):
         ln = lines[i]
@@ -215,6 +228,19 @@ def preprocess(raw: str, lang: str):
                 out.append("")
                 out.append(f'<div class="chk chk-rc" data-key="{key}">'
                            f'<span>{ui["check_recipe"]}</span></div>')
+                out.append("")
+                i += 1
+                continue
+
+            m = re.match(r"^(#{2,4})\s+(?:Conceptul|Concept)\s+(\d+\.\d+)\s*[—–-]\s*(.+)$", ln)
+            if m:
+                num, title = m.group(2), m.group(3).strip()
+                key = f"cp:{num}"
+                items.append({"key": key, "num": num, "kind": "concept", "title": title})
+                out.append(f"## {cp_word} {num} — {title} {{#concept-{num.replace('.', '-')}}}")
+                out.append("")
+                out.append(f'<div class="chk chk-cp" data-key="{key}">'
+                           f'<span>{ui["check_concept"]}</span></div>')
                 out.append("")
                 i += 1
                 continue
@@ -364,10 +390,12 @@ SECTIONS = [
      "Every possible requirement type, step by step: model, UI, bindings, adapters, "
      "Intents, persistence — plus the plan that walks you through all of it.",
      ["32", "33", "34", "35", "36"]),
-    ("cod", "Codul explicat + cheatsheet", "Explained code + cheatsheet",
-     "Fiecare fișier comentat bloc cu bloc, plus o referință densă de rețete.",
-     "Every file annotated block by block, plus a dense reference of recipes.",
-     ["21", "22"]),
+    ("cod", "Referință", "Reference",
+     "Cheatsheet-ul dens și conceptele explicate de la zero: ce sunt, de ce există, cum "
+     "funcționează, ce se rupe fără ele.",
+     "The dense cheatsheet and the concepts explained from first principles: what they are, "
+     "why they exist, how they work, what breaks without them.",
+     ["21", "37"]),
 ]
 APPENDIX = ("anexe", "Anexe — celelalte grupe și proiectele de curs",
             "Appendix — the other groups and the course projects",
@@ -375,7 +403,170 @@ APPENDIX = ("anexe", "Anexe — celelalte grupe și proiectele de curs",
             "și istoricul complet al repo-ului.",
             "The annotated code of groups G1096, G1098 and G1099, the DMA02/DMA03/DMA05/DMA06 "
             "projects and the complete repo history.",
-            ["29", "30", "31", "12", "13", "14", "15", "16", "25", "26", "27", "28"])
+            ["22", "29", "30", "31", "12", "13", "14", "15", "16", "25", "26", "27", "28"])
+
+# chapter number -> project folder under src/, for the annotated-code downloads
+ANNOTATED = {
+    "22": "G1097", "25": "DMA02", "26": "DMA03", "27": "DMA05",
+    "28": "DMA06", "29": "G1096", "30": "G1098", "31": "G1099",
+}
+
+def download_html(num: str, base: str, ui: dict) -> str:
+    return (
+        f'<div class="dl-box">'
+        f'<a class="dl-btn" href="{base}downloads/cap-{num}.zip" download>'
+        f'{htmlmod.escape(ui["download"])}</a>'
+        f'<p class="dl-note">{htmlmod.escape(ui["download_note"])}</p>'
+        f'</div>'
+    )
+
+
+# ------------------------------------------------- in-page navigation
+def _md_blocks(md: str):
+    res, cur, lang = [], None, None
+    for line in md.split("\n"):
+        if cur is None:
+            m = re.match(r"^\s*```(\w*)\s*$", line)
+            if m:
+                cur, lang = [], m.group(1)
+        else:
+            if re.match(r"^\s*```\s*$", line):
+                res.append((lang, "\n".join(cur)))
+                cur = None
+            else:
+                cur.append(line)
+    return res
+
+
+DECL_CLASS = re.compile(r"^\s*(?:public\s+)?(?:final\s+|abstract\s+)?class\s+(\w+)")
+DECL_METHOD = re.compile(
+    r"^\s*(?:public|protected|private)\s+"
+    r"(?:static\s+|final\s+|abstract\s+|synchronized\s+)*"
+    r"([\w<>\[\],.\s]*?)\s*(\w+)\s*\(")
+DECL_ID = re.compile(r'android:id="@\+id/(\w+)"')
+
+
+def _decls(code: str, kind: str):
+    """Class / method declarations (java) or android:id values (xml), first occurrence only."""
+    out, seen = [], set()
+    for i, line in enumerate(code.split("\n")):
+        if kind == "xml":
+            m = DECL_ID.search(line)
+            if m and m.group(1) not in seen:
+                seen.add(m.group(1))
+                out.append((i, m.group(1), "id"))
+            continue
+        m = DECL_CLASS.match(line)
+        if m and ("class", m.group(1)) not in seen:
+            seen.add(("class", m.group(1)))
+            out.append((i, m.group(1), "class"))
+            continue
+        m = DECL_METHOD.match(line)
+        if not m:
+            continue
+        before = line[:line.index("(")]
+        if "=" in before or ";" in before:
+            continue
+        name = m.group(2)
+        kind = "ctor" if (out and out[0][2] == "class" and name == out[0][1]) else "method"
+        if (kind, name) in seen:
+            continue
+        seen.add((kind, name))
+        out.append((i, name, kind))
+    return out
+
+
+def subnav_html(body: str, jump_html: str, ui: dict) -> str:
+    """Sticky in-page navigation built from the page's own h2/h3 headings."""
+    h2s = re.findall(r'<h2 id="([^"]*)">(.*?)</h2>', body, re.S)
+    heads = re.findall(r'<(h[23]) id="([^"]*)">(.*?)</\1>', body, re.S)
+    if len(h2s) >= 5:                       # long pages: top level only
+        heads = [h for h in heads if h[0] == "h2"]
+    links = []
+    for tag, hid, raw in heads:
+        txt = re.sub(r"<[^>]+>", "", raw)
+        txt = re.sub(r"\s+", " ", txt).strip()
+        if not txt:
+            continue
+        short = txt.split("—")[0].strip() if "—" in txt else txt
+        if len(short) > 42:
+            short = short[:40].rstrip() + "…"
+        cls = "sn" if tag == "h2" else "sn sn-sub"
+        links.append(f'<a class="{cls}" href="#{hid}">{htmlmod.escape(short)}</a>')
+    if len(links) < 2:
+        return ""
+    more = ""
+    if jump_html:
+        more = (
+            f'<button class="sn-more" id="snMore" type="button" aria-expanded="false">'
+            f'{htmlmod.escape(ui["jump_btn"])}</button>'
+            f'<div class="sn-panel" id="snPanel" hidden>{jump_html}</div>'
+        )
+    return (
+        f'<nav class="subnav" id="subnav"><div class="subnav-inner">'
+        f'{"".join(links)}{more}</div></nav>'
+    )
+
+
+def annotate_code_nav(body: str, md_text: str, num: str, ui: dict):
+    """Inject an <a id> on every declaration line and return (body, jump_nav_html)."""
+    blocks = _md_blocks(md_text)
+    pres = list(re.finditer(r"<pre>(.*?)</pre>", body, re.S))
+    if not pres or len(pres) != len(blocks):
+        return body, ""
+    h2s = [(m.start(), m.group(1), re.sub(r"<[^>]+>", "", m.group(2)).strip())
+           for m in re.finditer(r'<h2 id="([^"]*)">(.*?)</h2>', body, re.S)]
+
+    edits, groups = [], []
+    for k, (m, (tag, code)) in enumerate(zip(pres, blocks)):
+        if tag not in ("java", "xml"):
+            continue
+        found = _decls(code, tag)
+        if not found:
+            continue
+        inner = m.group(1).split("\n")
+        anchors = []
+        for i, name, kind in found:
+            if not (0 <= i < len(inner)):
+                continue
+            aid = f"m-{num}-{k}-{i}"
+            inner[i] = f'<a id="{aid}"></a>' + inner[i]
+            anchors.append((aid, name, kind))
+        edits.append((m.start(), m.end(), "<pre>" + "\n".join(inner) + "</pre>"))
+        title, hid = "", ""
+        for hp, h_id, h_txt in h2s:
+            if hp < m.start():
+                title, hid = h_txt, h_id
+        groups.append((hid, title or f"#{k}", anchors))
+
+    if not edits:
+        return body, ""
+    out, pos = [], 0
+    for start, end, new in edits:
+        out.append(body[pos:start])
+        out.append(new)
+        pos = end
+    out.append(body[pos:])
+    body = "".join(out)
+
+    items = []
+    for hid, title, anchors in groups:
+        links = "".join(
+            f'<a class="j-{kind}" href="#{aid}">{htmlmod.escape(name)}</a>'
+            for aid, name, kind in anchors
+        )
+        items.append(
+            f'<details class="jump-file"><summary>'
+            f'<a href="#{hid}">{htmlmod.escape(title)}</a>'
+            f'<span class="jump-n">{len(anchors)}</span></summary>'
+            f'<div class="jump-links">{links}</div></details>'
+        )
+    nav = (
+        f'<nav class="jump"><p class="jump-title">{htmlmod.escape(ui["jump_title"])}</p>'
+        f'{"".join(items)}</nav>'
+    )
+    return body, nav
+
 
 SECTION_OF = {}
 for slug, _, _, _, _, nums in SECTIONS + [APPENDIX]:
@@ -506,6 +697,7 @@ def chapter_card_html(num: str, lang: str, parsed, totals) -> str:
     steps = sum(1 for x in items if x["kind"] == "step")
     exs = sum(1 for x in items if x["kind"] == "exercise")
     rcs = sum(1 for x in items if x["kind"] == "recipe")
+    cps = sum(1 for x in items if x["kind"] == "concept")
     meta = []
     if steps:
         meta.append(f'{steps} {ui["steps"]}')
@@ -513,6 +705,8 @@ def chapter_card_html(num: str, lang: str, parsed, totals) -> str:
         meta.append(f'{exs} {ui["exercises"]}')
     if rcs:
         meta.append(f'{rcs} {ui["recipes"]}')
+    if cps:
+        meta.append(f'{cps} {ui["concepts"]}')
     if not meta:
         meta.append("—")
     return (
@@ -550,7 +744,7 @@ for ch in CHAPTERS:
         path = os.path.join(SRC, fname) if lang == "ro" else os.path.join(SRC, "en", fname)
         if not os.path.isfile(path):
             missing_en.append(f"{lang}/{fname}")
-            parsed[lang][num] = (None, [])
+            parsed[lang][num] = ("", [])
             continue
         raw = open(path, encoding="utf-8").read()
         md_text, items = preprocess(raw, lang)
@@ -564,8 +758,12 @@ if missing_en:
 
 for ch in CHAPTERS:
     num = ch[0]
-    if parsed["en"][num][0] is None:
-        md_text, items = preprocess(open(os.path.join(SRC, ch[3]), encoding="utf-8").read(), "en")
+    if not parsed["en"][num][0]:
+        ro_path = os.path.join(SRC, ch[3])
+        if not os.path.isfile(ro_path):
+            parsed["en"][num] = ("", [])
+            continue
+        md_text, items = preprocess(open(ro_path, encoding="utf-8").read(), "en")
         md_text = add_drill_checkpoint(md_text, num, items, "en")
         parsed["en"][num] = (md_text, items)
 
@@ -601,12 +799,14 @@ HERO = {
                "through the site, session by session."),
     },
     "cod": {
-        "ro": ("<b>Codul explicat + cheatsheet.</b> Fiecare fișier din aplicație, comentat bloc cu "
-               "bloc — ce face, de ce e acolo, ce se strică dacă îl ștergi. Plus o referință densă "
-               "de rețete pentru examen."),
-        "en": ("<b>Explained code + cheatsheet.</b> Every file in the app, annotated block by "
-               "block — what it does, why it's there, what breaks if you delete it. Plus a dense "
-               "reference of exam recipes."),
+        "ro": ("<b>Referință.</b> Două lucruri care nu se învață pe de rost, ci se înțeleg: "
+               "<b>cheatsheet-ul</b> — harta fișierelor, ID-uri, listeneri, adaptoare, intents, "
+               "erori frecvente — și <b>conceptele explicate de la zero</b>: ce este un View, un "
+               "adapter, un Intent, un ciclu de viață, de ce există fiecare și ce se rupe fără el."),
+        "en": ("<b>Reference.</b> Two things you don't memorise, you understand: the "
+               "<b>cheatsheet</b> — file map, IDs, listeners, adapters, intents, common errors — "
+               "and <b>the concepts explained from first principles</b>: what a View is, an "
+               "adapter, an Intent, a lifecycle, why each exists and what breaks without it."),
     },
     "anexe": {
         "ro": ("<b>Anexe.</b> Codul adnotat al celorlalte grupe (G1096, G1098, G1099) — aceeași "
@@ -688,6 +888,15 @@ for lang in ("ro", "en"):
         num, label = ch[0], ch[1 + lcol]
         md_text, _items = parsed[lang][num]
         body = render(md_text)
+        jump = ""
+        if num in ANNOTATED:
+            body, jump = annotate_code_nav(body, md_text, num, ui)
+            block = download_html(num, base, ui)
+            cut = body.find("<h2")
+            body = (body[:cut] + block + body[cut:]) if cut > 0 else body + block
+        sub = subnav_html(body, jump, ui)
+        if sub:
+            body = sub + body
         page = HEAD.format(
             lang=lang,
             title=ui["ch_title"].format(num, label),
@@ -929,3 +1138,89 @@ def build_code_browser():
 
 
 build_code_browser()
+
+
+# --------------------------------------------------------------- downloads
+def _norm_code(text: str, kind: str):
+    if kind == "xml":
+        text = re.sub(r"<!--.*?-->", "", text, flags=re.S)
+    else:
+        text = re.sub(r"/\*.*?\*/", "", text, flags=re.S)
+        text = re.sub(r"//[^\n]*", "", text)
+    return tuple(l.strip() for l in text.replace("\r\n", "\n").split("\n") if l.strip())
+
+
+README_TXT = """Fisierele adnotate / Annotated files
+====================================
+
+Acestea sunt fisierele sursa ale aplicatiei, cu comentariile de explicatie
+adaugate. Codul propriu-zis este identic cu cel din repo-ul
+mihaidoinea/dma2026 la commitul d719ffc - singura diferenta sunt liniile
+de comentariu.
+
+These are the app's source files with the explanatory comments added. The
+code itself is identical to mihaidoinea/dma2026 at commit d719ffc - the only
+difference is the comment lines.
+
+Cum le folosesti / How to use them
+----------------------------------
+1. Dezarhiveaza / Unzip.
+2. Structura respecta proiectul real: <Proiect>/src/main/...
+   O poti deschide direct in Android Studio (File > Open) sau copia peste
+   proiectul tau.
+3. Fisierele NU sunt un proiect complet - lipsesc build.gradle si resursele
+   care nu sunt acoperite in capitol. Sunt pentru citit si comparat.
+
+by FiredMosquito831
+"""
+
+
+def build_annotated_downloads():
+    """One ZIP per annotated chapter, with the annotated files in their real paths."""
+    import zipfile
+
+    out = os.path.join(OUT, "downloads")
+    os.makedirs(out, exist_ok=True)
+    made, skipped = 0, []
+    for num, proj in ANNOTATED.items():
+        ch = ch_by_num(num)
+        md_path = os.path.join(SRC, ch[3])
+        root = os.path.join(CODE_SRC, proj)
+        if not os.path.isfile(md_path) or not os.path.isdir(root):
+            skipped.append(num)
+            continue
+        index = {}
+        for dirpath, _, files in os.walk(root):
+            for f in files:
+                if not f.endswith((".java", ".xml")):
+                    continue
+                full = os.path.join(dirpath, f)
+                rel = os.path.relpath(full, CODE_SRC).replace("\\", "/")
+                kind = "xml" if f.endswith(".xml") else "java"
+                try:
+                    body = open(full, encoding="utf-8", errors="replace").read()
+                except OSError:
+                    continue
+                index[_norm_code(body, kind)] = rel
+        md = open(md_path, encoding="utf-8").read()
+        written = 0
+        zpath = os.path.join(out, f"cap-{num}.zip")
+        with zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED) as z:
+            z.writestr("CITESTE.txt", README_TXT)
+            for lang, body in _md_blocks(md):
+                if lang not in ("java", "xml"):
+                    continue
+                rel = index.get(_norm_code(body, lang))
+                if rel:
+                    z.writestr(rel, body.replace("\r\n", "\n").rstrip() + "\n")
+                    written += 1
+        if written:
+            made += 1
+        else:
+            os.remove(zpath)
+            skipped.append(num)
+    print(f"downloads: {made} archives" + (f" (skipped {skipped})" if skipped else ""))
+    return made
+
+
+build_annotated_downloads()

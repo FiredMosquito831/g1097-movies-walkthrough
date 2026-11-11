@@ -1701,7 +1701,98 @@ You scroll the list to the last movie, press the FAB, save: the new card appears
 
 ---
 
-## The table of the 14 recipes
+## Recipe 34.15 — Attach an event to any widget
+
+**The requirement, as it sounds in the test:** "When you press button X, Y should happen" or "when you move the slider, the label should update."
+
+**Files touched:**
+
+| # | File | What you do | Mandatory? |
+|---|---|---|---|
+| 1 | `res/layout/activity_item.xml` | the widget, with `android:id` | only if it is a new widget |
+| 2 | `activities/ItemActivity.java` | the field, the line in `initControls()`, the listener in `initListeners()` | **yes** |
+
+**The steps, in order:**
+
+**Step 1 — pick the listener by the widget's type.** There is no single listener; each widget has its own. The table below is all you need.
+
+| Widget | How to attach | What you get in the callback |
+|---|---|---|
+| `Button`, `MaterialButton`, any `View` | `setOnClickListener` | `View v` — the view that was pressed |
+| `EditText` | `addTextChangedListener` | `s`, `start`, `before`, `count` |
+| `SeekBar` | `setOnSeekBarChangeListener` | `progress`, `fromUser` |
+| `RatingBar` | `setOnRatingBarChangeListener` | `rating`, `fromUser` |
+| `Switch`, `MaterialSwitch`, `CheckBox` | `setOnCheckedChangeListener` | `buttonView`, `isChecked` |
+| `RadioGroup` | `setOnCheckedChangeListener` | `group`, `checkedId` |
+| `Spinner` | `setOnItemSelectedListener` | `parent`, `view`, `position`, `id` |
+| `ListView` | `setOnItemClickListener` | `parent`, `view`, `position`, `id` |
+| `ListView` (long press) | `setOnItemLongClickListener` | the same, but returns `boolean` |
+
+**Step 2 — attach the listener in `initListeners()`, not in `onCreate()`.** In `G1097`, `onCreate()` calls `initControls()` then `initListeners()`. The order matters: in `initListeners()` the widgets are already bound through `findViewById`, so you cannot get a `NullPointerException`.
+
+```java
+private void initListeners() {
+    btMovieAction.setOnClickListener(v -> saveMovie());
+    sbDuration.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            tvDurationValue.setText(progress + " min");
+        }
+        @Override public void onStartTrackingTouch(SeekBar seekBar) { }
+        @Override public void onStopTrackingTouch(SeekBar seekBar) { }
+    });
+}
+```
+
+**Step 3 — write the body of the event.** Three forms, all correct; pick the one that reads best:
+
+```java
+// 1. anonymous class — explicit, works for any interface
+btMovieAction.setOnClickListener(new View.OnClickListener() {
+    @Override
+    public void onClick(View v) {
+        saveMovie();
+    }
+});
+
+// 2. lambda — only for interfaces with a SINGLE method (functional interfaces)
+btMovieAction.setOnClickListener(v -> saveMovie());
+
+// 3. method reference — when the method has exactly the required signature
+btMovieAction.setOnClickListener(this::onSaveClicked);
+```
+
+`View.OnClickListener` has a single method (`onClick`), so a lambda works. `SeekBar.OnSeekBarChangeListener` has three, so a lambda does **not** work — you need the anonymous class with all three, even if two stay empty.
+
+**Step 4 — if the event has to read another widget's value**, read it inside the callback, not outside it:
+
+```java
+// CORRECT: you read at the moment of the click
+btMovieAction.setOnClickListener(v ->
+        Toast.makeText(this, etTitle.getText().toString(), Toast.LENGTH_SHORT).show());
+
+// WRONG: you read once, at attach time — the value stays frozen at that moment
+String title = etTitle.getText().toString();
+btMovieAction.setOnClickListener(v ->
+        Toast.makeText(this, title, Toast.LENGTH_SHORT).show());
+```
+
+**Why it works this way:** a listener is not "an event" — it is **an object you hand to a widget**, and the widget calls it when something happens. You never call `onClick()` yourself; Android does, on the main thread, after it receives the event from the system. That is why the code in the callback runs *later*, not at attach time — and why you must read the state inside it, not before.
+
+**The mistake that costs marks:**
+
+- **Listener attached before `setContentView`** → `findViewById` returns `null` → `NullPointerException` on the first touch. In `G1097` the order is correct; if you add code in `onCreate`, put it after `initControls()`.
+- **Lambda on an interface with several methods** → does not compile. `SeekBar.OnSeekBarChangeListener` has three methods; use the anonymous class.
+- **Value read outside the callback** → the event uses the stale value. Read inside.
+- **Self-triggering listener** → `setChecked(true)` from code calls `onCheckedChanged` exactly like a touch. If the callback calls `setChecked` again, you loop. Check `fromUser` or a `boolean isBinding` flag.
+
+**The check:** run it, press the widget, see the effect. Then change the value **from code** (in `fillForm`) and check that the listener does not undo what `fillForm` set.
+
+**Practise:** [20.1](cap-20.html#ex-20-1), [18.1](cap-18.html#ex-18-1), [19.1](cap-19.html#ex-19-1)
+
+---
+
+## The table of the 15 recipes
 
 | # | Recipe | Typical requirement | Files touched | Minutes |
 |---|---|---|---|---|
@@ -1719,6 +1810,7 @@ You scroll the list to the last movie, press the FAB, save: the new card appears
 | 34.12 | Header in the list | two row types | `adapters/MovieAdapter.java` | 15 |
 | 34.13 | Click in the adapter, with a callback | card → `ItemActivity` | `adapters/MovieAdapter.java`, `MainActivity.java` | 10 |
 | 34.14 | notifyItem* vs notifyDataSetChanged | an update with animation | `MainActivity.java` | 5 |
+| 34.15 | Attach an event to any widget | "when you press X, Y should happen" | `ItemActivity.java` | 5 |
 
 ---
 

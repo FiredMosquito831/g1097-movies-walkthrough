@@ -306,6 +306,30 @@
   }
 
   /* ---------------- boot ---------------- */
+  function initSubnav() {
+    var btn = document.getElementById("snMore");
+    var panel = document.getElementById("snPanel");
+    if (!btn || !panel) return;
+    function close() {
+      panel.hidden = true;
+      btn.setAttribute("aria-expanded", "false");
+    }
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      panel.hidden = !panel.hidden;
+      btn.setAttribute("aria-expanded", panel.hidden ? "false" : "true");
+    });
+    panel.addEventListener("click", function (e) {
+      if (e.target.tagName === "A") close();
+    });
+    document.addEventListener("click", function (e) {
+      if (!panel.hidden && !panel.contains(e.target) && e.target !== btn) close();
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") close();
+    });
+  }
+
   function boot() {
     bindCheckboxes();
     refreshCounters();
@@ -314,6 +338,7 @@
     initThemeToggle();
     initDetailsBtns();
     initKeys();
+    initSubnav();
 
     var ex = document.getElementById("exportBtn");
     var im = document.getElementById("importBtn");

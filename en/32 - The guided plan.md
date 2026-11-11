@@ -615,6 +615,45 @@ The diagnostic table. You look at the symptom, not at the code — you read the 
 
 ---
 
+## 32.13 The ten basic operations
+
+The test does not ask you to "add an attribute" in the abstract. It asks for a **concrete operation**: "add the director", "put a delete button", "make the duration show under the slider". All of them reduce to ten operations. If you know these, you know everything that can come up.
+
+| # | The operation | How it sounds in the test | Recipe | Session | Practise |
+|---|---|---|---|---|---|
+| 1 | **Add a field to the movie** | "add the director / the year / the genre / a list of actors" | [33.1](cap-33.html#reteta-33-1)–[33.6](cap-33.html#reteta-33-6) | 2 | [17.1](cap-17.html#ex-17-1), [17.3](cap-17.html#ex-17-3), [17.5](cap-17.html#ex-17-5) |
+| 2 | **Add a composed field** | "add a list of actors, each with a name and a role" | [33.7](cap-33.html#reteta-33-7) | 2 | [17.9](cap-17.html#ex-17-9) |
+| 3 | **Add a button** | "put a Clear form button under Save" | [33.13](cap-33.html#reteta-33-13) | 3 | [20.1](cap-20.html#ex-20-1) |
+| 4 | **Attach an event** | "when the button is pressed, X should happen" | [34.15](cap-34.html#reteta-34-15) | 3–4 | [20.1](cap-20.html#ex-20-1), [18.1](cap-18.html#ex-18-1) |
+| 5 | **Delete a movie** | "a Delete button in the detail screen" | [35.6](cap-35.html#reteta-35-6) | 7 | [36.5](cap-36.html#ex-36-5) |
+| 6 | **Bind a value to a label** | "the duration should show under the slider, live" | [34.1](cap-34.html#reteta-34-1) | 4 | [18.1](cap-18.html#ex-18-1), [19.1](cap-19.html#ex-19-1) |
+| 7 | **Swap a widget** | "the budget from EditText to SeekBar" | [33.15](cap-33.html#reteta-33-15) | 3 | [18.2](cap-18.html#ex-18-2) |
+| 8 | **Migrate to RecyclerView** | "the list from ListView to RecyclerView" | [34.10](cap-34.html#reteta-34-10) | 6 | [18.5](cap-18.html#ex-18-5) |
+| 9 | **Send data through an Intent** | "send the movie to the detail screen" | [35.2](cap-35.html#reteta-35-2), [35.3](cap-35.html#reteta-35-3) | 7 | [36.1](cap-36.html#ex-36-1), [36.7](cap-36.html#ex-36-7) |
+| 10 | **Persist the list** | "the data should survive closing the app" | [35.10](cap-35.html#reteta-35-10) | 8 | [24.6](cap-24.html#ex-24-6) |
+
+### How to practise them: in pairs, the way they come in the test
+
+The test gives you **two** requirements. That is why you do not practise the operations separately, but in pairs — exactly the combinations that show up:
+
+1. **Field + display** — operations 1 and 6. "Add the director and show it in the list."
+2. **Button + event** — 3 and 4. "Put a button that clears the form."
+3. **Button + delete** — 3 and 5. "Put a button that deletes the movie."
+4. **Field + Intent** — 1 and 9. "Add a field and send it to the detail screen."
+5. **Migration + display** — 8 and 6. "Move to RecyclerView and show the duration in the row."
+
+Each pair is done in **30 minutes, on a timer, with the solution closed**. Five pairs, five simulations — and you have covered everything that can come up.
+
+### What you do in the first 5 minutes of the test
+
+1. Read both requirements once, in full, before opening any file.
+2. Write down on paper the **files** each requirement touches. If you come up with more than three per requirement, you have not understood it — read it again.
+3. Start with the requirement that touches the **model** (`Movie.java`), because the second one may use it.
+4. If one of the requirements is "migrate to RecyclerView", start with **the other one**: the migration eats 20 of the 30 minutes.
+5. Leave 3 minutes at the end for: running the app, adding a movie, editing a movie.
+
+---
+
 ## Chapter 32 summary
 
 **What you have covered:** ten sessions, 18 hours, from "I know what files the app has" to "I take the test in 30 minutes".

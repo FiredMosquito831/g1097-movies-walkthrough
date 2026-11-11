@@ -615,6 +615,45 @@ Tabelul de diagnostic. Te uiți la simptom, nu la cod — codul îl citești dup
 
 ---
 
+## 32.13 Cele 10 operații de bază
+
+La test nu ți se cere „adaugă un atribut" în abstract. Ți se cere o **operație concretă**: „adaugă regizorul", „pune un buton de ștergere", „fă ca durata să se vadă sub slider". Toate se reduc însă la zece operații. Dacă le știi pe acestea, știi tot ce poate pica.
+
+| # | Operația | Cum sună la test | Rețeta | Sesiunea | Exersează |
+|---|---|---|---|---|---|
+| 1 | **Adaugă un câmp filmului** | „adaugă regizorul / anul / genul / o listă de actori" | [33.1](cap-33.html#reteta-33-1)–[33.6](cap-33.html#reteta-33-6) | 2 | [17.1](cap-17.html#ex-17-1), [17.3](cap-17.html#ex-17-3), [17.5](cap-17.html#ex-17-5) |
+| 2 | **Adaugă un câmp compus** | „adaugă o listă de actori, fiecare cu nume și rol" | [33.7](cap-33.html#reteta-33-7) | 2 | [17.9](cap-17.html#ex-17-9) |
+| 3 | **Adaugă un buton** | „pune un buton Clear form sub Save" | [33.13](cap-33.html#reteta-33-13) | 3 | [20.1](cap-20.html#ex-20-1) |
+| 4 | **Atașează un eveniment** | „când apeși butonul, să se întâmple X" | [34.15](cap-34.html#reteta-34-15) | 3–4 | [20.1](cap-20.html#ex-20-1), [18.1](cap-18.html#ex-18-1) |
+| 5 | **Șterge un film** | „buton Delete în ecranul de detalii" | [35.6](cap-35.html#reteta-35-6) | 7 | [36.5](cap-36.html#ex-36-5) |
+| 6 | **Leagă o valoare de o etichetă** | „durata să apară sub slider, în timp real" | [34.1](cap-34.html#reteta-34-1) | 4 | [18.1](cap-18.html#ex-18-1), [19.1](cap-19.html#ex-19-1) |
+| 7 | **Schimbă un widget** | „bugetul din EditText în SeekBar" | [33.15](cap-33.html#reteta-33-15) | 3 | [18.2](cap-18.html#ex-18-2) |
+| 8 | **Migrează la RecyclerView** | „lista din ListView în RecyclerView" | [34.10](cap-34.html#reteta-34-10) | 6 | [18.5](cap-18.html#ex-18-5) |
+| 9 | **Trimite date prin Intent** | „trimite filmul în ecranul de detalii" | [35.2](cap-35.html#reteta-35-2), [35.3](cap-35.html#reteta-35-3) | 7 | [36.1](cap-36.html#ex-36-1), [36.7](cap-36.html#ex-36-7) |
+| 10 | **Persistă lista** | „datele să se salveze după închidere" | [35.10](cap-35.html#reteta-35-10) | 8 | [24.6](cap-24.html#ex-24-6) |
+
+### Cum le exersezi: pe perechi, cum vin la test
+
+Testul dă **două** cerințe. De aceea nu exersezi operațiile separat, ci în perechi — exact combinațiile care apar:
+
+1. **Câmp + afișare** — operațiile 1 și 6. „Adaugă regizorul și arată-l în listă."
+2. **Buton + eveniment** — 3 și 4. „Pune un buton care golește formularul."
+3. **Buton + ștergere** — 3 și 5. „Pune un buton care șterge filmul."
+4. **Câmp + Intent** — 1 și 9. „Adaugă un câmp și trimite-l în ecranul de detalii."
+5. **Migrare + afișare** — 8 și 6. „Treci pe RecyclerView și arată durata în rând."
+
+Fiecare pereche se face în **30 de minute, cu cronometru, fără soluție**. Cinci perechi, cinci simulări — și ai acoperit tot ce poate pica.
+
+### Ce faci în primele 5 minute din test
+
+1. Citește ambele cerințe o dată, complet, înainte să deschizi vreun fișier.
+2. Notează pe hârtie **fișierele** atinse de fiecare cerință. Dacă îți ies mai mult de trei pe cerință, n-ai înțeles cerința — recitește.
+3. Începe cu cerința care atinge **modelul** (`Movie.java`), pentru că a doua o poate folosi.
+4. Dacă una dintre cerințe e „migrare la RecyclerView", începe cu **cealaltă**: migrarea mănâncă 20 din cele 30 de minute.
+5. Lasă 3 minute la final pentru: rulat aplicația, adăugat un film, editat un film.
+
+---
+
 ## Rezumat capitol 32
 
 **Ce ai parcurs:** zece sesiuni, 18 ore, de la „știu ce fișiere are aplicația" la „dau testul în 30 de minute".
