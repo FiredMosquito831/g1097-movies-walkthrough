@@ -1872,7 +1872,6 @@ public class ItemActivity extends AppCompatActivity {
                 // `setTime(Date)` copies the milliseconds into the Calendar.
                 if (parsed != null)
                     releaseCal.setTime(parsed);
-            }
 
             // An EMPTY `catch`, named `ignored`.
             // ==========================================================================

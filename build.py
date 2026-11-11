@@ -79,6 +79,12 @@ CHAPTERS = [
      "27 - Codul DMA05 adnotat.md", "27 - DMA05 code annotated.md"),
     ("28", "Codul DMA06 adnotat", "DMA06 code annotated",
      "28 - Codul DMA06 adnotat.md", "28 - DMA06 code annotated.md"),
+    ("29", "Codul G1096 adnotat", "G1096 code annotated",
+     "29 - Codul G1096 adnotat.md", "29 - G1096 code annotated.md"),
+    ("30", "Codul G1098 adnotat", "G1098 code annotated",
+     "30 - Codul G1098 adnotat.md", "30 - G1098 code annotated.md"),
+    ("31", "Codul G1099 adnotat", "G1099 code annotated",
+     "31 - Codul G1099 adnotat.md", "31 - G1099 code annotated.md"),
 ]
 
 MD_EXT = ["extra", "codehilite", "toc", "tables", "fenced_code", "attr_list",
@@ -119,7 +125,7 @@ UI = {
         "ch_title": "Chapter {} — {} · Test 1 — G1097",
         "ch_desc": "Chapter {} of the G1097 rebuild guide: {}.",
         "check_step": "Mark step done", "check_ex": "Solved", "check_drill": "Drill finished",
-        "lang_other": "RO", "lang_other_title": "Comută pe română",
+        "lang_other": "RO", "lang_other_title": "Switch to Romanian",
         "progress": "Your progress", "complete": "complete", "of": "of", "checks": "checks",
         "saved_local": "saved locally, no account",
         "export": "⬇ Export progress", "import": "⬆ Import progress", "reset": "Reset progress",
@@ -268,6 +274,11 @@ def add_drill_checkpoint(md_text: str, num: str, items: list, lang: str) -> str:
         title = "Annotated code read"
         marker = "## 22.2" if lang == "en" else "## 22.2"
         label = "Am citit codul adnotat" if lang != "en" else "I read the annotated code"
+    elif num in ("29", "30", "31"):
+        key = f"read:{num}"
+        title = "Annotated code read"
+        marker = f"## {num}.1"
+        label = "Am citit codul adnotat" if lang != "en" else "I read the annotated code"
     else:
         return md_text
     items.append({"key": key, "num": num, "kind": "drill", "title": title})
@@ -326,10 +337,13 @@ SECTIONS = [
      "Every file annotated block by block, plus a dense reference of recipes.",
      ["21", "22"]),
 ]
-APPENDIX = ("anexe", "Anexe — proiectele de curs", "Appendix — the course projects",
-            "Proiectele DMA02/DMA03/DMA05/DMA06 și istoricul complet al repo-ului.",
-            "The DMA02/DMA03/DMA05/DMA06 projects and the complete repo history.",
-            ["12", "13", "14", "15", "16", "25", "26", "27", "28"])
+APPENDIX = ("anexe", "Anexe — celelalte grupe și proiectele de curs",
+            "Appendix — the other groups and the course projects",
+            "Codul adnotat al grupelor G1096, G1098 și G1099, proiectele DMA02/DMA03/DMA05/DMA06 "
+            "și istoricul complet al repo-ului.",
+            "The annotated code of groups G1096, G1098 and G1099, the DMA02/DMA03/DMA05/DMA06 "
+            "projects and the complete repo history.",
+            ["29", "30", "31", "12", "13", "14", "15", "16", "25", "26", "27", "28"])
 
 SECTION_OF = {}
 for slug, _, _, _, _, nums in SECTIONS + [APPENDIX]:
@@ -550,12 +564,15 @@ HERO = {
                "reference of exam recipes."),
     },
     "anexe": {
-        "ro": ("<b>Anexe.</b> Proiectele de curs (DMA02, DMA03, DMA05, DMA06) — exact lucrurile "
-               "care lipsesc din G1097: RecyclerView, ViewBinding, meniuri, ciclu de viață — și "
-               "istoricul complet al repo-ului."),
-        "en": ("<b>Appendix.</b> The course projects (DMA02, DMA03, DMA05, DMA06) — exactly what "
-               "G1097 lacks: RecyclerView, ViewBinding, menus, the lifecycle — and the complete "
-               "repo history."),
+        "ro": ("<b>Anexe.</b> Codul adnotat al celorlalte grupe (G1096, G1098, G1099) — aceeași "
+               "aplicație, altă variantă, cu diferențele față de 1097 scoase în evidență — plus "
+               "proiectele de curs (DMA02, DMA03, DMA05, DMA06), adică exact lucrurile care lipsesc "
+               "din G1097: RecyclerView, ViewBinding, meniuri, ciclu de viață. Și istoricul complet "
+               "al repo-ului."),
+        "en": ("<b>Appendix.</b> The annotated code of the other groups (G1096, G1098, G1099) — the "
+               "same app, a different variant, with the differences from 1097 spelled out — plus the "
+               "course projects (DMA02, DMA03, DMA05, DMA06), which is exactly what G1097 lacks: "
+               "RecyclerView, ViewBinding, menus, the lifecycle. And the complete repo history."),
     },
 }
 
@@ -674,7 +691,7 @@ for lang in ("ro", "en"):
         f'<a class="path-card path-card-soft" href="anexe.html">'
         f'<div class="pc-title">{htmlmod.escape(APPENDIX[2] if lang == "en" else APPENDIX[1])}</div>'
         f'<div class="pc-sub">{htmlmod.escape(APPENDIX[4] if lang == "en" else APPENDIX[3])}</div>'
-        f'<div class="pc-meta"><b>5</b> '
+        f'<div class="pc-meta"><b>{len(APPENDIX[5])}</b> '
         + ("capitole" if lang != "en" else "chapters")
         + f' · <b>{atotal}</b> '
         + ("bife" if lang != "en" else "checks")

@@ -70,10 +70,13 @@ Un pas e „gata” când: codul compilează, aplicația rulează, și poți exp
 | 10 | [10 - Reconstruieste de la zero.md](10%20-%20Reconstruieste%20de%20la%20zero.md) | Drill final, cronometrat, fără material | — |
 | 11 | [11 - Extensii.md](11%20-%20Extensii.md) | `RecyclerView`, `ViewHolder`, `onBindViewHolder`, atribute noi | 11.1–11.14 |
 
-### Anexe — Proiectele de curs și istoricul repo-ului
+### Anexe — celelalte grupe, proiectele de curs și istoricul repo-ului
 
 | # | Fișier | Ce înveți | Pași |
 |---|---|---|---|
+| 29 | [29 - Codul G1096 adnotat.md](29%20-%20Codul%20G1096%20adnotat.md) | Codul G1096 bloc cu bloc, plus diferențele față de G1097 (`posterUrl`, importuri moarte, constructorul gol) | 29.1–29.9 |
+| 30 | [30 - Codul G1098 adnotat.md](30%20-%20Codul%20G1098%20adnotat.md) | Codul G1098 bloc cu bloc — singura grupă cu `toString()` complet și cu alt drawable la FAB | 30.1–30.9 |
+| 31 | [31 - Codul G1099 adnotat.md](31%20-%20Codul%20G1099%20adnotat.md) | Codul G1099 bloc cu bloc, inclusiv importul-mort `android.media.Rating` | 31.1–31.9 |
 | 12 | [12 - DMA06 - ListView vs RecyclerView.md](12%20-%20DMA06%20-%20ListView%20vs%20RecyclerView.md) | Cele 3 trepte pe aceleași date: `ArrayAdapter` → `BaseAdapter` → `RecyclerView` | 12.1–12.7 |
 | 13 | [13 - DMA05 - ViewBinding.md](13%20-%20DMA05%20-%20ViewBinding.md) | `ViewBinding` vs `findViewById`, toate widget-urile de input | 13.1–13.6 |
 | 14 | [14 - DMA03 - Navigare si meniuri.md](14%20-%20DMA03%20-%20Navigare%20si%20meniuri.md) | `DrawerLayout`, `NavigationView`, `PopupMenu`, Back, `AlertDialog`, `Snackbar` | 14.1–14.8 |
@@ -84,7 +87,7 @@ Un pas e „gata” când: codul compilează, aplicația rulează, și poți exp
 | 27 | [27 - Codul DMA05 adnotat.md](27%20-%20Codul%20DMA05%20adnotat.md) | Codul DMA05 bloc cu bloc: `ViewBinding`, toate widget-urile | 27.1–27.6 |
 | 28 | [28 - Codul DMA06 adnotat.md](28%20-%20Codul%20DMA06%20adnotat.md) | Codul DMA06 bloc cu bloc: cele trei trepte de listă | 28.1–28.10 |
 
-> **Partea I** construiește aplicația ta. **Partea II** acoperă restul repo-ului: cele patru proiecte de curs (care conțin exact lucrurile care lipsesc din G1097 — RecyclerView, ViewBinding, meniuri, ciclu de viață) și istoricul complet.
+> **Partea I** construiește aplicația ta. **Partea II** acoperă restul repo-ului: codul adnotat al celorlalte trei grupe (29–31 — aceeași aplicație, altă variantă, cu diferențele față de 1097 explicate), cele patru proiecte de curs (care conțin exact lucrurile care lipsesc din G1097 — RecyclerView, ViewBinding, meniuri, ciclu de viață) și istoricul complet.
 
 ### Calea 2 — Exerciții tip test: 60 de cerințe de examen
 

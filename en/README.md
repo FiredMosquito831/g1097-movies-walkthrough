@@ -58,33 +58,36 @@ A step is “done” when: the code compiles, the app runs, and you can explain 
 
 | # | File | What you learn | Steps |
 |---|---|---|---|
-| 01 | [01 - Setup si schelet.md](01%20-%20Setup%20si%20schelet.md) | Project, Gradle, manifest, first running screen | 1.1–1.10 |
-| 02 | [02 - Modelul Movie.md](02%20-%20Modelul%20Movie.md) | Model class, types, `Serializable`, constructors, getters | 2.1–2.9 |
-| 03 | [03 - Ecranul principal - layout.md](03%20-%20Ecranul%20principal%20-%20layout.md) | `FrameLayout`, `ListView`, `FloatingActionButton`, vector drawable | 3.1–3.7 |
-| 04 | [04 - MainActivity - lista.md](04%20-%20MainActivity%20-%20lista.md) | `onCreate`, `ArrayAdapter`, demo data, `Calendar`, insets | 4.1–4.10 |
-| 05 | [05 - Formularul - partea 1.md](05%20-%20Formularul%20-%20partea%201.md) | `ScrollView`, `MaterialCardView`, `TextInputLayout`, `Spinner` | 5.1–5.11 |
-| 06 | [06 - Formularul - partea 2.md](06%20-%20Formularul%20-%20partea%202.md) | `SeekBar`, `RatingBar`, `MaterialSwitch`, `CheckBox`, `RadioGroup`, `MaterialButton` | 6.1–6.12 |
-| 07 | [07 - ItemActivity - citire si scriere.md](07%20-%20ItemActivity%20-%20citire%20si%20scriere.md) | `findViewById`, listeners, `DatePickerDialog`, `saveMovie` | 7.1–7.11 |
-| 08 | [08 - Navigarea si rezultatul.md](08%20-%20Navigarea%20si%20rezultatul.md) | `Intent`, `ActivityResultLauncher`, `Serializable`, `RESULT_OK` | 8.1–8.9 |
-| 09 | [09 - Modul de editare.md](09%20-%20Modul%20de%20editare.md) | `fillForm`, `position`, add vs. replace | 9.1–9.7 |
-| 10 | [10 - Reconstruieste de la zero.md](10%20-%20Reconstruieste%20de%20la%20zero.md) | Final drill, timed, without the material | — |
-| 11 | [11 - Extensii.md](11%20-%20Extensii.md) | `RecyclerView`, `ViewHolder`, `onBindViewHolder`, new attributes | 11.1–11.14 |
+| 01 | [01 - Setup and skeleton.md](01%20-%20Setup%20and%20skeleton.md) | Project, Gradle, manifest, first running screen | 1.1–1.10 |
+| 02 | [02 - The Movie model.md](02%20-%20The%20Movie%20model.md) | Model class, types, `Serializable`, constructors, getters | 2.1–2.9 |
+| 03 | [03 - Main screen - layout.md](03%20-%20Main%20screen%20-%20layout.md) | `FrameLayout`, `ListView`, `FloatingActionButton`, vector drawable | 3.1–3.7 |
+| 04 | [04 - MainActivity - the list.md](04%20-%20MainActivity%20-%20the%20list.md) | `onCreate`, `ArrayAdapter`, demo data, `Calendar`, insets | 4.1–4.10 |
+| 05 | [05 - The form - part 1.md](05%20-%20The%20form%20-%20part%201.md) | `ScrollView`, `MaterialCardView`, `TextInputLayout`, `Spinner` | 5.1–5.11 |
+| 06 | [06 - The form - part 2.md](06%20-%20The%20form%20-%20part%202.md) | `SeekBar`, `RatingBar`, `MaterialSwitch`, `CheckBox`, `RadioGroup`, `MaterialButton` | 6.1–6.12 |
+| 07 | [07 - ItemActivity - reading and writing.md](07%20-%20ItemActivity%20-%20reading%20and%20writing.md) | `findViewById`, listeners, `DatePickerDialog`, `saveMovie` | 7.1–7.11 |
+| 08 | [08 - Navigation and the result.md](08%20-%20Navigation%20and%20the%20result.md) | `Intent`, `ActivityResultLauncher`, `Serializable`, `RESULT_OK` | 8.1–8.9 |
+| 09 | [09 - Edit mode.md](09%20-%20Edit%20mode.md) | `fillForm`, `position`, add vs. replace | 9.1–9.7 |
+| 10 | [10 - Rebuild from scratch.md](10%20-%20Rebuild%20from%20scratch.md) | Final drill, timed, without the material | — |
+| 11 | [11 - Extensions.md](11%20-%20Extensions.md) | `RecyclerView`, `ViewHolder`, `onBindViewHolder`, new attributes | 11.1–11.14 |
 
-### Appendix — The course projects and the repo history
+### Appendix — the other groups, the course projects and the repo history
 
 | # | File | What you learn | Steps |
 |---|---|---|---|
+| 29 | [29 - G1096 code annotated.md](29%20-%20G1096%20code%20annotated.md) | G1096 code block by block, plus the differences from G1097 (`posterUrl`, dead imports, the empty constructor) | 29.1–29.9 |
+| 30 | [30 - G1098 code annotated.md](30%20-%20G1098%20code%20annotated.md) | G1098 code block by block — the only group with a complete `toString()` and a different FAB drawable | 30.1–30.9 |
+| 31 | [31 - G1099 code annotated.md](31%20-%20G1099%20code%20annotated.md) | G1099 code block by block, including the dead `android.media.Rating` import | 31.1–31.9 |
 | 12 | [12 - DMA06 - ListView vs RecyclerView.md](12%20-%20DMA06%20-%20ListView%20vs%20RecyclerView.md) | The 3 steps on the same data: `ArrayAdapter` → `BaseAdapter` → `RecyclerView` | 12.1–12.7 |
 | 13 | [13 - DMA05 - ViewBinding.md](13%20-%20DMA05%20-%20ViewBinding.md) | `ViewBinding` vs `findViewById`, all the input widgets | 13.1–13.6 |
-| 14 | [14 - DMA03 - Navigare si meniuri.md](14%20-%20DMA03%20-%20Navigare%20si%20meniuri.md) | `DrawerLayout`, `NavigationView`, `PopupMenu`, Back, `AlertDialog`, `Snackbar` | 14.1–14.8 |
-| 15 | [15 - DMA02 - Application si ciclu de viata.md](15%20-%20DMA02%20-%20Application%20si%20ciclu%20de%20viata.md) | The full lifecycle, the `Application` class, implicit `Intent` | 15.1–15.6 |
-| 16 | [16 - Istoricul repo-ului.md](16%20-%20Istoricul%20repo-ului.md) | All 44 commits, per-session evolution, cross-group comparison | 16.1–16.6 |
-| 25 | [25 - Codul DMA02 adnotat.md](25%20-%20Codul%20DMA02%20adnotat.md) | DMA02 code block by block: `Application`, lifecycle, implicit `Intent` | 25.1–25.6 |
-| 26 | [26 - Codul DMA03 adnotat.md](26%20-%20Codul%20DMA03%20adnotat.md) | DMA03 code block by block: drawer, toolbar, menus, dialogs | 26.1–26.8 |
-| 27 | [27 - Codul DMA05 adnotat.md](27%20-%20Codul%20DMA05%20adnotat.md) | DMA05 code block by block: `ViewBinding`, every widget | 27.1–27.6 |
-| 28 | [28 - Codul DMA06 adnotat.md](28%20-%20Codul%20DMA06%20adnotat.md) | DMA06 code block by block: the three list steps | 28.1–28.10 |
+| 14 | [14 - DMA03 - Navigation and menus.md](14%20-%20DMA03%20-%20Navigation%20and%20menus.md) | `DrawerLayout`, `NavigationView`, `PopupMenu`, Back, `AlertDialog`, `Snackbar` | 14.1–14.8 |
+| 15 | [15 - DMA02 - Application and lifecycle.md](15%20-%20DMA02%20-%20Application%20and%20lifecycle.md) | The full lifecycle, the `Application` class, implicit `Intent` | 15.1–15.6 |
+| 16 | [16 - Repository history.md](16%20-%20Repository%20history.md) | All 44 commits, per-session evolution, cross-group comparison | 16.1–16.6 |
+| 25 | [25 - DMA02 code annotated.md](25%20-%20DMA02%20code%20annotated.md) | DMA02 code block by block: `Application`, lifecycle, implicit `Intent` | 25.1–25.6 |
+| 26 | [26 - DMA03 code annotated.md](26%20-%20DMA03%20code%20annotated.md) | DMA03 code block by block: drawer, toolbar, menus, dialogs | 26.1–26.8 |
+| 27 | [27 - DMA05 code annotated.md](27%20-%20DMA05%20code%20annotated.md) | DMA05 code block by block: `ViewBinding`, every widget | 27.1–27.6 |
+| 28 | [28 - DMA06 code annotated.md](28%20-%20DMA06%20code%20annotated.md) | DMA06 code block by block: the three list steps | 28.1–28.10 |
 
-> **Part I** builds your app. **Part II** covers the rest of the repo: the four course projects (which contain exactly what G1097 lacks — RecyclerView, ViewBinding, menus, the lifecycle) and the complete history.
+> **Part I** builds your app. **Part II** covers the rest of the repo: the annotated code of the other three groups (29–31 — the same app, a different variant, with the differences from 1097 spelled out), the four course projects (which contain exactly what G1097 lacks — RecyclerView, ViewBinding, menus, the lifecycle) and the complete history.
 
 ### Path 2 — Exam exercises: 60 requirements
 
@@ -92,19 +95,19 @@ Every requirement has: the prompt, files touched, **"How you approach it — you
 
 | # | File | Requirement type | Exercises |
 |---|---|---|---|
-| 17 | [17 - Bancul 1 - Atribute noi.md](17%20-%20Bancul%201%20-%20Atribute%20noi.md) | Add an attribute (`String`, `Integer`, `boolean`, `float`, `ArrayList`, new class) | 17.1–17.10 |
-| 18 | [18 - Bancul 2 - Bindinguri si adaptoare.md](18%20-%20Bancul%202%20-%20Bindinguri%20si%20adaptoare.md) | Bind values, change a widget, build an adapter | 18.1–18.10 |
-| 19 | [19 - Bancul 3 - Valori in UI si persistenta.md](19%20-%20Bancul%203%20-%20Valori%20in%20UI%20si%20persistenta.md) | Value → label, widget → model, list → screen, rotation | 19.1–19.10 |
-| 20 | [20 - Bancul 4 - Controale noi.md](20%20-%20Bancul%204%20-%20Controale%20noi.md) | Add a button, switch, chip, FAB, spinner | 20.1–20.10 |
-| 23 | [23 - Bancul 5 - Migrare ListView la RecyclerView.md](23%20-%20Bancul%205%20-%20Migrare%20ListView%20la%20RecyclerView.md) | The complete migration, in 10 steps that each compile | 23.1–23.10 |
-| 24 | [24 - Bancul 6 - Persistenta si verificare.md](24%20-%20Bancul%206%20-%20Persistenta%20si%20verificare.md) | Does the data save? Verification, debugging, `SharedPreferences` | 24.1–24.10 |
+| 17 | [17 - Bank 1 - New attributes.md](17%20-%20Bank%201%20-%20New%20attributes.md) | Add an attribute (`String`, `Integer`, `boolean`, `float`, `ArrayList`, new class) | 17.1–17.10 |
+| 18 | [18 - Bank 2 - Bindings and adapters.md](18%20-%20Bank%202%20-%20Bindings%20and%20adapters.md) | Bind values, change a widget, build an adapter | 18.1–18.10 |
+| 19 | [19 - Bank 3 - Values in UI and state.md](19%20-%20Bank%203%20-%20Values%20in%20UI%20and%20state.md) | Value → label, widget → model, list → screen, rotation | 19.1–19.10 |
+| 20 | [20 - Bank 4 - New controls.md](20%20-%20Bank%204%20-%20New%20controls.md) | Add a button, switch, chip, FAB, spinner | 20.1–20.10 |
+| 23 | [23 - Bank 5 - ListView to RecyclerView.md](23%20-%20Bank%205%20-%20ListView%20to%20RecyclerView.md) | The complete migration, in 10 steps that each compile | 23.1–23.10 |
+| 24 | [24 - Bank 6 - Persistence and verification.md](24%20-%20Bank%206%20-%20Persistence%20and%20verification.md) | Does the data save? Verification, debugging, `SharedPreferences` | 24.1–24.10 |
 
 ### Path 3 — Explained code + cheatsheet
 
 | # | File | What it contains |
 |---|---|---|
 | 21 | [21 - Cheatsheet.md](21%20-%20Cheatsheet.md) | File map, model, IDs, ViewBinding, the listener table, the adapter decision tree, intents, lifecycle, common errors, exam recipes |
-| 22 | [22 - Codul adnotat.md](22%20-%20Codul%20adnotat.md) | All six G1097 files explained block by block, plus the complete flow |
+| 22 | [22 - Annotated code.md](22%20-%20Annotated%20code.md) | All six G1097 files explained block by block, plus the complete flow |
 
 ---
 

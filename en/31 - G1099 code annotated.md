@@ -1,0 +1,3063 @@
+# Chapter 31 — The G1099 code, annotated
+
+**Objective:** to read every line of the G1099 app with the explanation glued to it — what it does, why it is there, what breaks if you remove it.
+
+**Estimated time:** 90–120 min (active reading, with the project open alongside).
+
+**Source:** `cod-final`, commit `d719ffc` — `Movie.java`, `MainActivity.java`, `ItemActivity.java`, `AndroidManifest.xml`, `activity_main.xml`, `activity_item.xml`.
+
+**Rule:** the code is **unmodified, byte for byte**. Everything that appears with `//` or `<!-- -->` beyond the source is annotation.
+
+---
+
+## 31.0 What differs from G1097
+
+The G1099 app is **the same app** as G1097: the same two activities, the same model, the same two layouts, the same flow. I compared the files line by line, and the differences are few. They are not accidental, though: each one shows a code decision you can get as a question.
+
+| Aspect | G1099 | G1097 (reference) |
+|---|---|---|
+| The poster field in `Movie.java` | `private String posterUrl;` | `private String poster = null;` |
+| Field initializer | none | `= null` |
+| Position of the no-argument constructor | **first**, before the one with parameters (line 18) | last, after the setters (line 127) |
+| Does `toString()` include the poster? | **NO** | yes (`poster`) |
+| `MainActivity.java` — unused imports | `android.widget.Toast` and `java.util.Date` | the same two |
+| `ItemActivity.java` — unused imports | `android.media.Rating`, `android.widget.Switch`, `com.google.android.material.snackbar.Snackbar` | `Switch`, `Toast`, `Snackbar`, `ActivityItemBinding` |
+| `ItemActivity.java` — `android.media.Rating` import | **present, unused** | absent |
+| `ItemActivity.java` — imports `Toast`/`ActivityItemBinding`? | **no** | yes (unused) |
+| `activity_main.xml` | identical to G1097 | — |
+| `activity_item.xml` | identical to G1097 | — |
+| `AndroidManifest.xml` | identical to G1097 (only the theme differs: `Theme.G1099`) | `Theme.G1097` |
+| `movie_item.xml` | **does not exist** | exists (prepared for S07, used by no code) |
+
+### 31.0.1 `posterUrl` instead of `poster`
+
+The field has a different name, so **both the getter and the setter have different names**: `getPosterUrl()` / `setPosterUrl()`. This is not a cosmetic difference — it is the only difference visible from outside the class.
+
+`ItemActivity` calls exactly these names, in two places:
+
+- `etPoster.setText(existing.getPosterUrl());` — in `fillForm`
+- `movie.setPosterUrl(etPoster.getText().toString());` — in `saveMovie`
+
+**What you learn:** the name of a `private` field is not visible from the outside, but the name of the getter **is** the contract. You can rename the field without breaking anything, as long as the getter stays the same. If you rename the getter without updating the calls, the code **no longer compiles** — and that is the good version: the compiler catches you.
+
+**Why `Url`:** the suffix says what kind of text it is. A poster could also be a local path, a `byte[]` or a `Drawable`. Here it is a link, and the name declares it.
+
+### 31.0.2 No `= null`
+
+In G1097, the field ended with `= null`. In G1099 it ends with `;`. For the compiler, the two variants are **identical**: a reference-type field, not explicitly initialized, receives `null`.
+
+**What you learn:** the explicit initializer does not change the behaviour, it changes **what the next programmer reads**. `= null` is a comment written in code: "this field may be missing". Its absence does not mean the field is mandatory — it only means the author did not feel the need to say so.
+
+**RISK, identical in both variants:** `null` reaches `etPoster.setText(null)`. The call is legal and shows an empty field. If, however, you called `posterUrl.length()` on it, you would get a `NullPointerException`. The model does not protect you in either of the two groups.
+
+### 31.0.3 The no-argument constructor comes first
+
+In G1097, the empty constructor sits at **line 127**, after all the getters and setters. In G1099 it sits at **line 18**, right after the fields and before the constructor with 10 parameters.
+
+For the compiler, the position does not matter at all. For the reader, it matters a lot:
+
+- you see immediately that an empty constructor exists, so `new Movie()` is legal;
+- you see immediately the pair of constructors, one next to the other;
+- you do not reach the end of the file to find out whether `saveMovie()` has something to build the object with.
+
+**What you learn:** the order of the members in a class is a **reading decision**, not a semantic one. Java has no "mandatory order of members" — but it does have a useful order: fields, constructors, methods.
+
+**Why it matters for the exam:** if you are asked "write the no-argument constructor", you can put it anywhere. If you are asked "explain why it exists", the answer is the same regardless of position: a constructor with parameters **suppresses** the implicit constructor generated by the compiler.
+
+### 31.0.4 `toString()` does not include the poster
+
+`toString()` is the display contract in the list. `ArrayAdapter` with `android.R.layout.simple_list_item_1` fills a `TextView` with `item.toString()`. Everything that does not appear in `toString()` is **invisible on screen**.
+
+In G1099, the poster is missing from `toString()`. In G1097, it appears as `", poster='" + poster + '\''`.
+
+**What you learn:** `toString()` does not update itself. It was generated once by IntelliJ, and the field added later is missing. It is the most common place where a field "disappears" from the interface without anyone having deleted anything.
+
+**The practical consequence:** two movies that differ **only** by the poster URL look identical in the `ListView`. The row is shorter and more readable, but the list no longer distinguishes the two entries.
+
+### 31.0.5 `android.media.Rating` — the import that looks like something else
+
+This is the most interesting difference in the chapter and it deserves to be read slowly.
+
+`import android.media.Rating;` is **present in G1099 and absent in G1097**. And it is **unused**.
+
+What `android.media.Rating` is: a real class from the framework, available since **API 21**, which describes the rating of media content. It has methods like `newStarRating(int maxStars, float starRating)`, `getStarRating()` or `isRated()`. It is a **value object**, not a widget: it is not drawn, it is not attached to a layout, it has no `OnRatingBarChangeListener`.
+
+What the widget in the form is: `RatingBar`, that is `android.widget.RatingBar`. A star bar drawn on screen, with `getRating()` returning a `float` and `setRating(float)`.
+
+The two classes:
+
+- have names that start the same;
+- have no inheritance relationship between them;
+- live in different packages (`android.media` vs `android.widget`);
+- cannot replace one another.
+
+**RISK:** a student who reads only the import block may believe the form uses the media rating API. It does not. `rbRating` is declared `RatingBar`, and `getRating()` is its method.
+
+**What you learn:** an import **does not prove** that the type is used. The proof is an occurrence of the name outside the import line. Here, `Rating` appears exactly once in the whole file — in the import itself.
+
+### 31.0.6 The dead imports, per file
+
+| File | Dead import | Why it is dead |
+|---|---|---|
+| `MainActivity.java` | `android.widget.Toast` | there is no `Toast.makeText(...)` anywhere in the file |
+| `MainActivity.java` | `java.util.Date` | the type `Date` is written nowhere; `getTime()` returns a `Date`, but the type is inferred |
+| `ItemActivity.java` | `android.media.Rating` | see 31.0.5 |
+| `ItemActivity.java` | `android.widget.Switch` | the field `swWatched` is `MaterialSwitch`, not `Switch` |
+| `ItemActivity.java` | `com.google.android.material.snackbar.Snackbar` | there is no `Snackbar.make(...)` anywhere in the file |
+
+`android.widget.Switch` is a special case: **all the groups** declare `private MaterialSwitch swWatched;`, and `MaterialSwitch` extends `SwitchCompat`, not `Switch`. So wherever the `android.widget.Switch` import appears, it is dead. In G1099 it appears.
+
+**What you learn:** the compiler **does not** complain about unused imports. Only the lint in Android Studio marks them, with a yellow warning, and the warning does not block the build. That is why they stay in the file for years.
+
+**Why it matters for the exam:** "which imports are unused?" is a question with an exact, verifiable answer. You must be able to count the occurrences of the name, not guess by the name.
+
+### 31.0.7 `movie_item.xml` does not exist
+
+G1097 has a seventh file, `movie_item.xml` — a list card prepared for the next lab (RecyclerView), but **used by no code**. G1099 does not have it at all.
+
+**What you learn:** the app does not depend on it. Its absence changes nothing at runtime, because no `findViewById`, no adapter and no `LayoutInflater` refers to it. It is a "prepared" file, not a "used" file.
+
+**Consequence for the chapter:** G1099 has **six** files to annotate, not seven. Sections 31.2–31.7 cover all the code that runs.
+
+### 31.0.8 The layouts and the manifest are identical
+
+`activity_main.xml` and `activity_item.xml` are identical to the ones in G1097. `AndroidManifest.xml` differs only in the theme name: `@style/Theme.G1099` instead of `@style/Theme.G1097`. The full package name does not appear in the manifest — it comes from the `namespace` declared in `build.gradle`, and here all the class names are relative (`.activities.MainActivity`).
+
+**What you learn:** the differences between groups are in the **code**, not in the layout. The interface is common; the logic is what varies. That is exactly what you should compare when you have two variants of the same theme.
+
+---
+
+## 31.1 How to read this chapter
+
+This is not a chapter of exercises. It is a chapter of **reading with a magnifying glass**: you take each file of the app and go through it line by line, with the explanation right above.
+
+- **Read the code first, the comment second.** Cover the comment block with your hand, say what the line does, then check. If you read the comment first, you have the impression you knew — but you recognized, you did not reconstruct.
+- **The `THEORY` blocks** appear before each class and explain *why* the structure exists, not *how* it works. They are the part that is forgotten fastest; they are also the part that is asked in the exam.
+- **The numbered blocks** ("1. Validation", "2. Cleanup") describe the steps of a method in execution order. The order is part of the lesson: reversed, the method behaves differently.
+- **The `RISK:`, `BUG:` and `DANGER!` markers** signal the places where the code works today, but can break, or where it already breaks. They are the only places in the chapter where I do not describe, but warn.
+- **The ASCII diagrams** show what is not visible in the code: the object that travels between activities, the view tree, the execution order in `onCreate`.
+- **Compare with chapter 22.** Each section has a counterpart in the G1097 code. The differences are in 31.0; the rest is common. If you have already read chapter 22, read this chapter as a **check**: where you think you already know, stop and say out loud why the line is there.
+- **Do not memorize.** The goal is to be able to rebuild the file starting from a diagram. If you can draw the flow FAB → `ItemActivity` → `Intent` → list, you write the code yourself.
+
+---
+
+## 31.2 `Movie.java` — the data model
+
+The first file and the only one that does not touch Android. Everything that follows in the chapter depends on it.
+
+```java
+/*
+ * ======================================================================================
+ * FILE: Movie.java — THE DATA MODEL OF THE APP
+ * ======================================================================================
+ * WHAT THIS FILE IS:
+ *   A POJO class (Plain Old Java Object): 10 private fields, one no-argument
+ *   constructor, one constructor with 10 parameters, one `toString()` override and
+ *   20 getters/setters. Zero business logic, zero references to Android.
+ *
+ * WHY IT EXISTS:
+ *   So it can carry the data of a movie from one screen to another without depending on the UI.
+ *   `MainActivity` holds `List<Movie>`; `ItemActivity` builds a `Movie`.
+ *
+ * WHAT IT DEPENDS ON:
+ *   Only on `java.io.Serializable` and `java.util.Date`. Nothing from `android.*`.
+ *   That is why the class can be tested on the JVM, without an emulator.
+ *
+ * WHO DEPENDS ON IT:
+ *   `MainActivity` (the list, the adapter, the 3 demo movies), `ItemActivity`
+ *   (`fillForm` reads, `saveMovie` writes), `ArrayAdapter` (calls `toString()`).
+ *
+ * WHAT IT DOES NOT DO:
+ *   It validates nothing. It does not know what an `EditText`, an `Intent` or a `ListView` is.
+ *   It has no `id`: the identity of the movie in the list is the POSITION, not a field.
+ *
+ * WHAT BREAKS WITHOUT IT:
+ *   The whole data flow. `Intent.putExtra` would have nothing to serialize, `ArrayAdapter`
+ *   would have nothing to display, and `ItemActivity` would have to send 10 separate
+ *   extras and recompose them manually in `MainActivity`.
+ * ======================================================================================
+ */
+
+// THE PACKAGE: `model` — the data layer, separate from `activities`.
+// WHY IT MATTERS: `ItemActivity` imports `ro.ase.ie.g1099.model.Movie`, never the other way round.
+//   The model does not know who uses it. It is the only architecture rule in the app.
+package ro.ase.ie.g1099.model;
+
+// ======================================================================================
+// IMPORT 1: java.io.Serializable
+// ======================================================================================
+// WHAT IT IS: a MARKER interface — it has no method to implement.
+// WHY HERE: `Intent.putExtra(String, Serializable)` is the simplest way to
+//   send a whole object to another activity. Without `implements Serializable`,
+//   the call `intent.putExtra(MOVIE_EXTRA, movie)` finds no matching
+//   override and the file DOES NOT COMPILE.
+// WHAT HAPPENS AT RUNTIME: the JVM serializes the object graph into bytes, puts it
+//   in the `Bundle`, and the receiving activity gets a deserialized COPY.
+// RISK: without a declared `serialVersionUID`, the JVM computes one from the class structure.
+//   If you add a field between writing and reading (different processes), you get
+//   `InvalidClassException`. Here the writing and the reading happen in the SAME process,
+//   a few milliseconds apart, so the risk is theoretical.
+// ======================================================================================
+import java.io.Serializable;
+
+// ======================================================================================
+// IMPORT 2: java.util.Date
+// ======================================================================================
+// WHAT IT IS: a moment in time, stored internally as a number of milliseconds since 1 January 1970.
+// WHY HERE: the release date must be a DATE, not a text. As a `Date` you can
+//   sort, compare and format with `SimpleDateFormat`.
+// WHY NOT `String`: you would store "16/07/2010" and lose the ability to compute.
+//   `fillForm` would have to parse on every display, and `saveMovie` would have to
+//   format on every save — two places where you can get the format wrong.
+// WHY NOT `java.time.LocalDate`: it is newer and cleaner, but `Date` is
+//   `Serializable` out of the box and is the type used throughout the project.
+// RISK: `Date` is MUTABLE. `getRelease()` returns the internal reference, not a copy,
+//   so a careless caller can modify the date in the object without going through the setter.
+// ======================================================================================
+import java.util.Date;
+
+/*
+ * ======================================================================================
+ * THEORY BLOCK: WHY A SEPARATE MODEL (POJO)
+ * ======================================================================================
+ *
+ * 1. **Single Responsibility** — the class has a single reason to change: the
+ *    structure of a movie's data changes. It does not change when a layout, a button
+ *    or a colour changes. If you put `getText().toString()` here, the class would depend on
+ *    `android.widget.EditText` and would have two reasons to change.
+ *
+ * 2. **Serializability** — being `Serializable` and without references to `Context`,
+ *    the object can cross the boundary between two activities. A `Movie` that held
+ *    an `EditText` could not be serialized: `View` is not `Serializable`.
+ *
+ * 3. **Testability** — you can write a simple JVM test that creates a `Movie` and
+ *    checks `getTitle()`. No emulator, no Android. This happens because
+ *    the file contains no `import android.*`.
+ *
+ * 4. **No `id` field** — the identity of the movie in the list is the POSITION, not an ID.
+ *    From this comes the whole `POSITION_EXTRA` mechanism in the other two files.
+ *    It is a didactic simplification: a real database would have a stable `id`.
+ *
+ * 5. **Ten fields, not nine** — the poster is the tenth. It does not appear in `toString()`
+ *    (see 31.0.4), but it exists in the model, it has a getter and a setter, and it is read by
+ *    `ItemActivity` on edit. A field can exist without being displayed.
+ *
+ * VISUAL: the object that crosses the boundary between activities
+ *
+ *   [MainActivity]                    [Intent / Bundle]                [ItemActivity]
+ *   movies: List<Movie>
+ *     [0] Movie@A  ------------------+
+ *                                    |
+ *                      putExtra("movie", Movie@A)
+ *                                    |
+ *                          serialize -> bytes
+ *                                    |
+ *                          Bundle { "movie" -> bytes }
+ *                                    |
+ *                          startActivityForResult
+ *                                    |
+ *                          deserialize -> Movie@A'
+ *                                    |
+ *                          (NEW object, new address)
+ *
+ *   Movie@A stays in the list in MainActivity. A change to Movie@A' is not visible
+ *   in the list. That is why MainActivity does `movies.set(position, movie)` at the end.
+ * ======================================================================================
+ */
+public class Movie implements Serializable {
+
+    // ==================================================================================
+    // FIELD 1: title
+    // ==================================================================================
+    // TYPE: String — free text, of arbitrary length.
+    // SOURCE WIDGET: `etTitle` (TextInputEditText) -> `getText().toString()`.
+    // WHY String: the title is text, it has no numeric or date operations.
+    // WHAT BREAKS IF IT IS WRONG: if it were `int`, "Inception" would not fit;
+    //   if it were `char[]`, `ArrayAdapter` would display the array's address.
+    // ==================================================================================
+    private String title; //EditText
+
+    // ==================================================================================
+    // FIELD 2: release
+    // ==================================================================================
+    // TYPE: Date — a moment in time (here, only the day matters).
+    // SOURCE WIDGET: `etRelease` + `DatePickerDialog`; it reaches the model from
+    //   `releaseCal.getTime()`, NOT from the text in the EditText.
+    // WHY Date: it allows formatting with `SimpleDateFormat` and comparison.
+    // WHAT BREAKS IF IT IS WRONG: if it were `String`, `fillForm` would have to parse
+    //   on every display, and a mistyped text would reach the model as it is.
+    // ==================================================================================
+    private Date release; //EditText date
+
+    // ==================================================================================
+    // FIELD 3: genre
+    // ==================================================================================
+    // TYPE: String — the text selected from the list ("Sci-Fi", "Animation", "Action").
+    // SOURCE WIDGET: `spGenre` (Spinner) -> `getSelectedItem().toString()`.
+    // WHY String and not `enum`: the genres come from `@array/movie_genre`, that is, from XML.
+    //   With an `enum`, adding a genre would require changing the Java code.
+    // WHAT BREAKS IF IT IS WRONG: if you stored the position (`int`), changing the order
+    //   in `arrays.xml` would retroactively change the genre of all the saved movies.
+    // ==================================================================================
+    private String genre; //Spinner
+
+    // ==================================================================================
+    // FIELD 4: budget
+    // ==================================================================================
+    // TYPE: double — a number with decimals, precision of ~15–16 significant digits.
+    // SOURCE WIDGET: `etBudget` (inputType=numberDecimal) -> `Double.parseDouble(...)`.
+    // WHY double and not float: `float` has ~7 significant digits. For 160 000 000
+    //   both are exact, but 160 000 001 would not be exactly representable in `float`.
+    //   In addition, `Double.parseDouble` returns a `double` — a `float` field would require a cast.
+    // WHAT BREAKS IF IT IS WRONG: if it were `int`, the decimals would be truncated;
+    //   if it were `String`, you could not compare budgets.
+    // ==================================================================================
+    private double budget; //EditText number
+
+    // ==================================================================================
+    // FIELD 5: duration
+    // ==================================================================================
+    // TYPE: int — a whole number of minutes, 0..300.
+    // SOURCE WIDGET: `sbDuration` (SeekBar) -> `getProgress()`.
+    // WHY int: `SeekBar.getProgress()` returns an `int`. Any other type would require a cast.
+    // WHAT BREAKS IF IT IS WRONG: if it were `String`, `setProgress` would require parsing
+    //   and you could save "abc" as a duration.
+    // ==================================================================================
+    private int duration; //SeekBar
+
+    // ==================================================================================
+    // FIELD 6: rating
+    // ==================================================================================
+    // TYPE: float — the score in half stars (0.0, 0.5, ..., 5.0).
+    // SOURCE WIDGET: `rbRating` (RatingBar) -> `getRating()`.
+    // WHY float: `RatingBar.getRating()` and `setRating(float)` work with `float`.
+    //   A `double` field would make `setRating(existing.getRating())` NOT compile
+    //   without an explicit cast.
+    // WATCH OUT: the type is `float`, not `android.media.Rating`. See 31.0.5 — that
+    //   import is dead, and the widget is `RatingBar`.
+    // WHAT BREAKS IF IT IS WRONG: if it were `int`, you would lose the half stars;
+    //   if it were `String` ("4.5"), the comparisons would be lexicographic.
+    // ==================================================================================
+    private float rating; //RatingBar
+
+    // ==================================================================================
+    // FIELD 7: watched
+    // ==================================================================================
+    // TYPE: boolean — true/false.
+    // SOURCE WIDGET: `swWatched` (MaterialSwitch) -> `isChecked()`.
+    // WHY boolean: the state of a switch is binary. `isChecked()` returns exactly that.
+    // WHAT BREAKS IF IT IS WRONG: if it were `String` ("Yes"/"No"), every `if` would require
+    //   a text comparison, and a lowercase "yes" would be treated as false.
+    // NOTE: the comment in the source says "Switch", but the real type of the widget
+    //   is `MaterialSwitch`. Comments do not update themselves.
+    // ==================================================================================
+    private boolean watched; //Switch
+
+    // ==================================================================================
+    // FIELD 8: approval
+    // ==================================================================================
+    // TYPE: String — the TEXT of the selected radio button ("G", "PG", "PG-13", "R", "NC-17").
+    // SOURCE WIDGET: `rgApproval` (RadioGroup) -> loop over the children + `getText()`.
+    // WHY the text and not the resource ID: the text survives the reordering of the buttons
+    //   in XML. The ID is a value generated in `R.java`, stable only as long as
+    //   you do not rename the button.
+    // RISK: if you change the label in XML ("PG13" instead of "PG-13"), `fillForm`
+    //   no longer finds a match and checks nothing — silently.
+    // WHAT BREAKS IF IT IS WRONG: if you stored the index (0..4), adding a button
+    //   at the beginning of the group would change the meaning of all the saved values.
+    // ==================================================================================
+    private String approval; //RadioGroup | RadioButtons
+
+    // ==================================================================================
+    // FIELD 9: onWatchlist
+    // ==================================================================================
+    // TYPE: boolean — true/false.
+    // SOURCE WIDGET: `cbonWatchList` (MaterialCheckBox) -> `isChecked()`.
+    // WHY boolean: a check mark is binary. Independent of `watched`: you can have seen
+    //   the movie AND keep it on the rewatch list.
+    // WHAT BREAKS IF IT IS WRONG: if you reused `watched` for both, the two
+    //   controls would contradict each other on save.
+    // ==================================================================================
+    private boolean onWatchlist; //Checkbox
+
+    // ==================================================================================
+    // FIELD 10: posterUrl
+    // ==================================================================================
+    // TYPE: String — a URL (or any text) to the movie poster.
+    // SOURCE WIDGET: `etPoster` (inputType=textUri) -> `getText().toString()`.
+    // WHY it has NO explicit `= null` (the difference from G1097): `String` is
+    //   `null` by default anyway. The absence of the initializer does not change the behaviour, only
+    //   the documentation note. See 31.0.2.
+    // WHY it is called `posterUrl` and not `poster`: the suffix declares that the value is
+    //   a LINK, not an image. The getter is called, consequently, `getPosterUrl()`.
+    // RISK: `null` reaches `etPoster.setText(null)` on edit — legal, but it displays
+    //   an empty field. If you called `.length()` on it, you would get a `NullPointerException`.
+    // ==================================================================================
+    private String posterUrl;
+
+    // ==================================================================================
+    // THE NO-ARGUMENT CONSTRUCTOR — THE FIRST IN THE FILE
+    // ==================================================================================
+    // WHY IT IS MANDATORY TO WRITE IT EXPLICITLY:
+    //   Java rule: if you define ANY constructor with parameters, the compiler
+    //   NO LONGER generates the no-argument constructor automatically.
+    //   `saveMovie()` in ItemActivity does `Movie movie = new Movie();`.
+    //   Without this constructor, the file DOES NOT COMPILE.
+    //
+    // WHY THE BODY IS EMPTY: all the fields receive the default values
+    //   (null / 0 / 0.0 / false). The object is filled immediately with setters.
+    //
+    // WHY IT IS FIRST (the difference from G1097, where it is last):
+    //   the position does not matter to the compiler, but here the reader sees immediately that
+    //   `new Movie()` is legal. See 31.0.3.
+    // ==================================================================================
+    public Movie() {
+    }
+
+    // ==================================================================================
+    // THE CONSTRUCTOR WITH 10 PARAMETERS
+    // ==================================================================================
+    // WHY IT EXISTS: `addSampleMovies()` in MainActivity creates the 3 demo movies
+    //   in a single expression. Without it, there would be 10 setter calls per movie.
+    //
+    // THE TRAP: the order of the parameters is POSITIONAL. The names in the signature do not help
+    //   at the call — the compiler looks only at the types and the position.
+    //
+    //   POSITION  TYPE      NAME           WIDGET THAT PRODUCES THE VALUE
+    //   ---------------------------------------------------------------------------
+    //      1      String    title          TextInputEditText etTitle
+    //      2      Date      release        etRelease + DatePickerDialog
+    //      3      String    genre          Spinner spGenre
+    //      4      double    budget         etBudget (numberDecimal)
+    //      5      int       duration       SeekBar sbDuration
+    //      6      float     rating         RatingBar rbRating
+    //      7      boolean   watched        MaterialSwitch swWatched
+    //      8      String    approval       RadioGroup rgApproval
+    //      9      boolean   onWatchlist    MaterialCheckBox cbOnWatchList
+    //     10      String    posterUrl      etPoster (textUri)
+    //
+    //   If you swap positions 1 and 3 (both String) or 7 and 9 (both boolean),
+    //   the code COMPILES. The movie is created. Only that `title` receives the genre and
+    //   `genre` receives the title. The compiler cannot help you here.
+    // ==================================================================================
+    public Movie(String title, Date release, String genre, double budget, int duration, float rating, boolean watched, String approval, boolean onWatchlist, String posterUrl) {
+
+        // `this.title` = the class field; `title` = the parameter.
+        // Without `this.`, the line would be `title = title` — self-assignment, the field stays null.
+        this.title = title;
+
+        // The same pattern for each of the 10 fields. All 10 lines
+        // are structurally identical; if one is missing, the field keeps its default
+        // value (null / 0 / 0.0 / false) and the bug appears only on display.
+        this.release = release;
+        this.genre = genre;
+        this.budget = budget;
+        this.duration = duration;
+        this.rating = rating;
+        this.watched = watched;
+        this.approval = approval;
+        this.onWatchlist = onWatchlist;
+
+        // The last field: here you also see the naming difference from G1097.
+        // `this.posterUrl` is the field; `posterUrl` is the parameter. Both have the same name.
+        this.posterUrl = posterUrl;
+    }
+
+    // ==================================================================================
+    // toString() — THE DISPLAY CONTRACT IN THE LIST
+    // ==================================================================================
+    // WHY IT IS MANDATORY HERE:
+    //   `ArrayAdapter` with `android.R.layout.simple_list_item_1` receives a `TextView`
+    //   and fills it with `item.toString()`. Without the override, `Object.toString()` would
+    //   return `ro.ase.ie.g1099.model.Movie@a1b2c3d` — the memory address.
+    //
+    // THE EXACT FLOW:
+    //   ListView.getView(position) -> ArrayAdapter.getView(...) -> TextView.setText(
+    //   movies.get(position).toString())
+    //
+    // WHY `@Override`: the compiler checks the signature. If you write `tostring()`
+    //   with a lowercase letter, without the annotation you get no error — only your method
+    //   is never called.
+    //
+    // THE DIFFERENCE FROM G1097: the poster does NOT appear here. Nine fields, not ten.
+    //   See 31.0.4 — a field can exist in the model without being displayed.
+    // ==================================================================================
+    @Override
+    public String toString() {
+
+        // String concatenation with `+`. Each `+` creates a new object in memory.
+        // For 9 fields, the difference is negligible; for large loops you would use
+        // `StringBuilder`.
+        return "Movie{" +
+
+                // The text fields are wrapped in single quotes, so the boundaries of the
+                // value are visible: `title='Inception'`. Without them, `title=''` and `genre=''`
+                // would be indistinguishable from an empty field.
+                "title='" + title + '\'' +
+
+                // `Date` is not wrapped in single quotes: its `toString()` already produces
+                // a readable format (`Sat Jul 16 00:00:00 GMT+03:00 2010`).
+                ", release=" + release +
+
+                // The comma at the beginning, not at the end: the last field does not need
+                // a separator, and `}` is glued on correctly.
+                ", genre='" + genre + '\'' +
+                ", budget=" + budget +
+                ", duration=" + duration +
+                ", rating=" + rating +
+                ", watched=" + watched +
+                ", approval='" + approval + '\'' +
+                ", onWatchlist=" + onWatchlist +
+
+                // The closing brace of the object, as text.
+                // THE POSTER WOULD BE DISPLAYED HERE, in G1097: ", poster='" + poster + '\''.
+                // In G1099 it is missing, and the row in the list ends after onWatchlist.
+                '}';
+    }
+
+    // ==================================================================================
+    // GETTERS AND SETTERS — 20 METHODS, ALL MECHANICAL
+    // ==================================================================================
+    // WHY THEY EXIST: the fields are `private`. Code from other packages (and even from
+    //   `activities`) cannot read or write them directly. The getters and setters
+    //   are the only interface.
+    //
+    // WHY SO MANY: 10 fields x 2 = 20. They are generated automatically by IntelliJ
+    //   (Alt+Insert -> Getter and Setter). They are not written by hand in the exam.
+    //
+    // THE NAMING CONVENTION:
+    //   - `getX()` for objects and primitives, EXCEPT for boolean;
+    //   - `isX()` for boolean — the JavaBeans convention.
+    // ==================================================================================
+
+    // GETTER: returns the reference to the String. String is immutable, so there is no
+    // risk of modification from the outside.
+    public String getTitle() {
+        return title;
+    }
+
+    // SETTER: `this.title` = the field, `title` = the parameter. The same trap as in
+    // the constructor with 10 parameters.
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    // GETTER for Date. WATCH OUT: it returns the REFERENCE, not a copy.
+    // RISK: `movie.getRelease().setTime(0)` would modify the date in the object without the setter.
+    //   A correct variant would be `return new Date(release.getTime());`.
+    public Date getRelease() {
+        return release;
+    }
+
+    // SETTER for Date. It does not validate `null` — a `Movie` with a null date is accepted
+    // by the model and crashes only in `fillForm`, at `dateFormat.format(null)`.
+    public void setRelease(Date release) {
+        this.release = release;
+    }
+
+    // GETTER for the genre. The value comes from the Spinner, but the model does not know that.
+    public String getGenre() {
+        return genre;
+    }
+
+    // SETTER for the genre. It does not check whether the value exists in `@array/movie_genre`.
+    // Validation is the responsibility of the UI, not of the model.
+    public void setGenre(String genre) {
+        this.genre = genre;
+    }
+
+    // GETTER for the budget. `double` is copied by value — there are no aliasing
+    // problems as with Date.
+    public double getBudget() {
+        return budget;
+    }
+
+    // SETTER for the budget. It does not reject negative values: a budget of -5 would be accepted.
+    // Validation should be done in `saveMovie`, before the call.
+    public void setBudget(double budget) {
+        this.budget = budget;
+    }
+
+    // GETTER for the duration, in minutes.
+    public int getDuration() {
+        return duration;
+    }
+
+    // SETTER for the duration. It does not limit to 0..300 — the limit exists only in XML
+    // (`android:max="300"`), that is, only in the UI.
+    public void setDuration(int duration) {
+        this.duration = duration;
+    }
+
+    // GETTER for the rating. `float` — the score in half stars.
+    public float getRating() {
+        return rating;
+    }
+
+    // SETTER for the rating. The parameter is `float`, exactly the type required by
+    // `RatingBar.setRating(float)`.
+    public void setRating(float rating) {
+        this.rating = rating;
+    }
+
+    // ==================================================================================
+    // WHY `isWatched()` AND NOT `getWatched()`
+    // ==================================================================================
+    // 1. THE JAVABEANS CONVENTION: for `boolean`, the getter is called `isX()`, not `getX()`.
+    //    Reflection (and the frameworks that read properties) look for the `is` prefix.
+    // 2. CONSISTENCY: `isOnWatchlist()` follows the same rule. If one were
+    //    `getWatched()` and the other `isOnWatchlist()`, the code would be hard to read.
+    // 3. THE CODE DEPENDS ON THE NAME: `fillForm` calls `existing.isWatched()`. If you
+    //    wrote `getWatched()`, the call does not compile — and it must be changed in two places.
+    // ==================================================================================
+    public boolean isWatched() {
+        return watched;
+    }
+
+    // The setter remains `setWatched` — the `set` prefix is the same for all types.
+    public void setWatched(boolean watched) {
+        this.watched = watched;
+    }
+
+    // GETTER for the parental guidance ("PG-13" etc.).
+    public String getApproval() {
+        return approval;
+    }
+
+    // SETTER for the guidance. The value is the text of the radio button, not its ID.
+    public void setApproval(String approval) {
+        this.approval = approval;
+    }
+
+    // GETTER for the "Watchlist" check mark. Prefix `is` — again the JavaBeans convention.
+    public boolean isOnWatchlist() {
+        return onWatchlist;
+    }
+
+    // SETTER for the check mark.
+    public void setOnWatchlist(boolean onWatchlist) {
+        this.onWatchlist = onWatchlist;
+    }
+
+    // GETTER for the poster URL. It can return `null`.
+    // THE NAME: `getPosterUrl`, not `getPoster` — the difference from G1097.
+    //   `ItemActivity.fillForm` calls exactly this name.
+    public String getPosterUrl() {
+        return posterUrl;
+    }
+
+    // SETTER for the poster. It accepts `null` without complaining.
+    // `ItemActivity.saveMovie` calls exactly this name.
+    public void setPosterUrl(String posterUrl) {
+        this.posterUrl = posterUrl;
+    }
+}
+```
+
+**Reference table for the fields in `Movie.java`:**
+
+| # | Field | Type | Source widget | Appears in `toString()`? |
+|---|---|---|---|---|
+| 1 | `title` | `String` | `etTitle` | yes |
+| 2 | `release` | `Date` | `etRelease` + dialog | yes |
+| 3 | `genre` | `String` | `spGenre` | yes |
+| 4 | `budget` | `double` | `etBudget` | yes |
+| 5 | `duration` | `int` | `sbDuration` | yes |
+| 6 | `rating` | `float` | `rbRating` | yes |
+| 7 | `watched` | `boolean` | `swWatched` | yes |
+| 8 | `approval` | `String` | `rgApproval` | yes |
+| 9 | `onWatchlist` | `boolean` | `cbonWatchList` | yes |
+| 10 | `posterUrl` | `String` | `etPoster` | **no** |
+
+---
+## 31.3 `MainActivity.java` — the list and the navigation
+
+The second file and the only one that holds the **state** of the app. Everything you see on the start screen goes through it.
+
+```java
+/*
+ * ======================================================================================
+ * FILE: MainActivity.java — THE LIST SCREEN
+ * ======================================================================================
+ * WHAT IT IS: the start activity. It holds the list of movies, displays it with an `ArrayAdapter`
+ *   in a `ListView` and starts `ItemActivity` for insert or edit.
+ *
+ * WHY IT EXISTS: it is the only place that holds the STATE of the app (the `movies` list).
+ *   `ItemActivity` is just a form that produces a `Movie` and sends it back.
+ *
+ * WHAT IT DEPENDS ON: `ListView`, `ArrayAdapter`, `Intent`, the Activity Result API
+ *   and the `Movie` model. It does not depend on any form widget.
+ *
+ * WHO DEPENDS ON IT: `ItemActivity`, which reads `MainActivity.MOVIE_EXTRA` and
+ *   `MainActivity.POSITION_EXTRA` — the two constants are the contract between the screens.
+ *
+ * WHAT IT DOES NOT DO: it validates no data, it draws no custom rows, it saves
+ *   nothing to disk. The list lives as long as the process.
+ *
+ * WHAT BREAKS WITHOUT IT: the app would start directly in a form without a list,
+ *   and the saved result would have nowhere to return to.
+ * ======================================================================================
+ */
+
+// THE PACKAGE: `activities` — the UI layer. The model sits in `model`, not here.
+package ro.ase.ie.g1099.activities;
+
+// ======================================================================================
+// IMPORTS — GROUPED BY SOURCE
+// ======================================================================================
+// android.*        — framework classes (Intent, Bundle, View, widgets)
+// androidx.*       — Jetpack libraries (AppCompat, EdgeToEdge, insets, activity result)
+// com.google.*     — Material Components (FloatingActionButton)
+// java.util.*      — collections and dates
+// ro.ase.ie.g1099  — the model and the generated R class
+//
+// READING RULE: every import must have a consumer in the file.
+//   Two do not have one — `Toast` and `Date`. They are marked below. See 31.0.6.
+// ======================================================================================
+
+// Intent: the object that describes "which activity you start" and what data it carries.
+import android.content.Intent;
+
+// Bundle: the state bag saved by the system (used here only in the onCreate signature).
+import android.os.Bundle;
+
+// View: the base class for any UI element. It appears in the listener signatures.
+import android.view.View;
+
+// AdapterView: the base class for ListView/Spinner. Here only for OnItemClickListener.
+import android.widget.AdapterView;
+
+// ArrayAdapter: the bridge between `List<Movie>` and the rows in the ListView.
+import android.widget.ArrayAdapter;
+
+// ListView: the widget that displays the scrollable list.
+import android.widget.ListView;
+
+// Toast: short messages. Imported in the source, but UNUSED in this file.
+//   There is no `Toast.makeText(...)` anywhere in the file. Dead import.
+import android.widget.Toast;
+
+// EdgeToEdge: enables drawing under the system bars (status + navigation).
+import androidx.activity.EdgeToEdge;
+
+// ActivityResult: the result returned by the secondary activity (code + Intent).
+import androidx.activity.result.ActivityResult;
+
+// ActivityResultCallback: the single-method interface, called on return.
+import androidx.activity.result.ActivityResultCallback;
+
+// ActivityResultLauncher: the object that starts the activity and keeps the link to the callback.
+import androidx.activity.result.ActivityResultLauncher;
+
+// ActivityResultContracts: the predefined contracts (here, StartActivityForResult).
+import androidx.activity.result.contract.ActivityResultContracts;
+
+// AppCompatActivity: the base activity with support for Material themes and ActionBar.
+import androidx.appcompat.app.AppCompatActivity;
+
+// Insets: the pixel values of the bars that cover the content.
+import androidx.core.graphics.Insets;
+
+// ViewCompat: the compatible version of the View APIs (insets on any API).
+import androidx.core.view.ViewCompat;
+
+// WindowInsetsCompat: the description of the insets, independent of the Android version.
+import androidx.core.view.WindowInsetsCompat;
+
+// FloatingActionButton: the round button in the bottom-right corner.
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+// ArrayList: the concrete implementation of the list.
+import java.util.ArrayList;
+
+// Calendar: the date fields (YEAR, MONTH, DAY_OF_MONTH) and the month constants.
+import java.util.Calendar;
+
+// Date: the type stored in the model for the release date.
+//   WATCH OUT: the name `Date` is written nowhere in the body of the file. `getTime()`
+//   returns a `Date`, but the type is inferred, not declared. Dead import.
+import java.util.Date;
+
+// GregorianCalendar: the (year, month, day) constructor used for the demo movies.
+import java.util.GregorianCalendar;
+
+// List: the DECLARED type of the list. The interface, not the implementation.
+import java.util.List;
+
+// R: the class generated from resources. Without it, `R.layout.activity_main` does not exist.
+import ro.ase.ie.g1099.R;
+
+// Movie: the data model.
+import ro.ase.ie.g1099.model.Movie;
+
+/*
+ * ======================================================================================
+ * THEORY BLOCK: WHO HOLDS THE STATE
+ * ======================================================================================
+ *
+ * 1. **A single source of truth.** `movies` is `final` and lives as long as the activity.
+ *    `ItemActivity` is not allowed to modify the list directly: it receives a COPY of a
+ *    movie and sends back a NEW `Movie`. MainActivity decides what to do with it.
+ *
+ * 2. **The adapter holds the REFERENCE, not a copy.** `new ArrayAdapter<>(..., movies)`
+ *    receives the list, not its content. That is why `movies.add(...)` is visible in the adapter
+ *    as soon as you call `notifyDataSetChanged()`. If you wrote
+ *    `new ArrayList<>(movies)`, the changes would no longer be visible.
+ *
+ * 3. **The Activity Result API replaces `startActivityForResult`.** There is no longer an
+ *    `onActivityResult` overridden in the activity. There is a `launcher` with a
+ *    callback registered once, in `onCreate`.
+ *
+ * 4. **The order in `onCreate` is semantic.** `initListeners()` is called BEFORE
+ *    `launcher` is assigned. It works because the listener reads
+ *    the FIELD `launcher` at the moment of the click, not at the moment of attachment.
+ *
+ * VISUAL: two entries, a single exit
+ *
+ *   FAB pressed  ---------------------+
+ *                                     |
+ *   row pressed ---+                  |
+ *                  |                  v
+ *                  |        new Intent(MainActivity.this, ItemActivity.class)
+ *                  |                  |
+ *                  |        (FAB: no extras  -> insert)
+ *                  |        (row: MOVIE + POSITION -> edit)
+ *                  |                  |
+ *                  +------------------+--> launcher.launch(intent)
+ *                                             |
+ *                                             v
+ *                                     ItemActivity
+ *                                             |
+ *                                   setResult(RESULT_OK, intent)
+ *                                             |
+ *                                             v
+ *                              callback: RESULT_OK?
+ *                                  position == -1 -> movies.add(movie)
+ *                                  position >= 0  -> movies.set(position, movie)
+ *                                             |
+ *                                             v
+ *                                  movieAdapter.notifyDataSetChanged()
+ * ======================================================================================
+ */
+public class MainActivity extends AppCompatActivity {
+
+    // ==================================================================================
+    // THE TWO CONSTANTS — THE CONTRACT BETWEEN THE TWO SCREENS
+    // ==================================================================================
+    // The KEY under which the movie travels in the Intent. "movie" is an arbitrary String;
+    //   what matters is that it is the SAME value when sending and when reading.
+    // WHY `protected` and not `private`: `ItemActivity` is in the same package
+    //   (`ro.ase.ie.g1099.activities`) and reads them as `MainActivity.MOVIE_EXTRA`.
+    //   `protected` also covers the subclasses, but here the package is the real reason.
+    // WHY `static final`: they are CLASS constants, not instance ones. They do not depend on
+    //   any MainActivity object.
+    // RISK: a typo in one of the two places produces `null`
+    //   on read, with no exception and no compilation error.
+    // ==================================================================================
+    protected static final String POSITION_EXTRA = "position";
+    protected static final String MOVIE_EXTRA = "movie";
+
+    // The "+" button. The type is the Material class, not `ImageButton`.
+    //   It is looked up in `initControls` and used in `initListeners`.
+    private FloatingActionButton fabInsert;
+
+    // The scrollable list. Looked up in `initControls`, it receives the adapter there too.
+    private ListView listView;
+
+    // The result launcher. It is NOT initialized here: it receives its value only
+    //   at the end of `onCreate`, after `registerForActivityResult`.
+    // WHY a field and not a local variable: the listeners in `initListeners`
+    //   must be able to read it at the moment of the click, that is, long after `onCreate`.
+    private ActivityResultLauncher<Intent> launcher;
+
+    // THE LIST — the only real state of the app.
+    // `final` means the REFERENCE does not change: you cannot write `movies = ...`.
+    //   The content, however, changes freely: `add`, `set`, `clear` are allowed.
+    // WHY `List` and not `ArrayList` in the declaration: the declared type is the interface,
+    //   the implementation is hidden. You swap `ArrayList` for `LinkedList` without
+    //   touching the rest of the file.
+    // WHY `new ArrayList<>()` here: the list exists before `onCreate`, so
+    //   `addSampleMovies()` can fill it without null checks.
+    private final List<Movie> movies = new ArrayList<>();
+
+    // THE ADAPTER. It holds the REFERENCE to `movies`, not a copy.
+    // It is not initialized here because it needs a `Context` (`this`), and
+    //   `this` is usable only after `super.onCreate`.
+    private ArrayAdapter<Movie> movieAdapter;
+
+    // ==================================================================================
+    // onCreate — NINE STEPS, IN ORDER
+    // ==================================================================================
+    // WHAT IT DOES: builds the screen, loads the demo data, creates the adapter, attaches
+    //   the listeners and registers the result launcher.
+    // HOW: 1. infrastructure (super, edge-to-edge, layout, insets)
+    //      2. data (addSampleMovies)
+    //      3. adapter
+    //      4. controls (findViewById + setAdapter)
+    //      5. listeners
+    //      6. launcher
+    // RISK: `registerForActivityResult` must be called BEFORE the activity is
+    //   STARTED. Here it is in `onCreate`, so it is legal. Moved to `onResume`,
+    //   it would throw `IllegalStateException`.
+    // REF: the same insets template appears in `ItemActivity.onCreate`.
+    // ==================================================================================
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Edge-to-edge: the content is drawn under both the status bar and the
+        // navigation bar. Without it, the app would have its own band at the top.
+        EdgeToEdge.enable(this);
+
+        // Inflates `activity_main.xml` into the view tree. From this moment,
+        //   `findViewById` can find `R.id.main`, `R.id.listView` and the FAB.
+        setContentView(R.layout.activity_main);
+
+        // Insets: measures the system bars and turns them into padding on the container.
+        // `(v, insets) -> { ... }` is a lambda expression for
+        //   `OnApplyWindowInsetsListener` — the interface has a single method.
+        // WHY `R.id.main`: the root FrameLayout in `activity_main.xml`.
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            // `systemBars()` = the status bar + the navigation bar, together.
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            // Padding instead of margin: the margin would be ignored by the FrameLayout parent.
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            // `return insets` = "I have consumed nothing"; the event can go further.
+            return insets;
+        });
+
+        // Step 2: fill the list with the 3 demo movies.
+        // WHY BEFORE creating the adapter: so the adapter starts with 3
+        //   elements already. If it came after, it would work the same, but it would require an
+        //   extra `notifyDataSetChanged()`.
+        addSampleMovies();
+
+        // Step 3: create the adapter.
+        // `android.R.layout.simple_list_item_1` = a single TextView per row, from
+        //   the framework. It is not a layout of the project — hence the `android.` prefix.
+        // The third argument is the LIST, not a copy of it. See the theory block.
+        movieAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, movies);
+
+        // Step 4: bind the references to the views and install the adapter.
+        initControls();
+
+        // Step 5: attach the listeners.
+        // WATCH OUT: `launcher` is still `null` at this moment. It is fine —
+        //   the listeners read it only on click, and by then `onCreate` has finished.
+        initListeners();
+
+        // Step 6: register the launcher.
+        // `StartActivityForResult` is the contract that starts an activity and
+        //   waits for a result — the modern equivalent of `startActivityForResult`.
+        // The callback is an anonymous class, not a lambda expression, because it has
+        //   two levels of indentation and a single method with a long body.
+        launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+                new ActivityResultCallback<ActivityResult>() {
+                    @Override
+                    public void onActivityResult(ActivityResult o) {
+
+                        // THE FILTER: the result only counts if the secondary activity
+                        //   called `setResult(RESULT_OK, ...)`. `RESULT_CANCELED`
+                        //   (the Back button) takes the false branch and does nothing.
+                        if(o.getResultCode() == RESULT_OK)
+                        {
+                            // `getData()` = the Intent built in `ItemActivity.saveMovie`.
+                            // RISK: if an activity returned RESULT_OK without data,
+                            //   `intent` would be `null` and the next line would throw an NPE.
+                            //   It does not happen here: `saveMovie` always puts an Intent.
+                            Intent intent = o.getData();
+
+                            // Reads the movie. The method is the OLD one, with an explicit cast —
+                            //   not `IntentCompat`, as `ItemActivity` uses.
+                            //   It is deprecated since API 33, but it works.
+                            // THE OBJECT IS A deserialized COPY, not the original.
+                            Movie movie = (Movie) intent.getSerializableExtra(MOVIE_EXTRA);
+
+                            // Reads the position. `-1` is the default value when
+                            //   the extra is missing — that is, exactly in insert mode.
+                            int position = intent.getIntExtra(POSITION_EXTRA, -1);
+
+                            // THE INSERT BRANCH: there is no position.
+                            if(position == -1)
+                            {
+                                // Adds at the end of the list.
+                                movies.add(movie);
+
+                                // Notifies the adapter. Without this call, the ListView does NOT
+                                //   know that the list has changed and redraws nothing.
+                                movieAdapter.notifyDataSetChanged();
+                            }
+                            // THE EDIT BRANCH: there is a position.
+                            else
+                            {
+                                // REPLACES the element at the position. Not `add` — it would
+                                //   duplicate the movie. Not `remove` + `add` — it would change the order.
+                                movies.set(position, movie);
+
+                                // The same notification. Both branches need it.
+                                movieAdapter.notifyDataSetChanged();
+                            }
+                        }
+                    }
+                });
+    }
+
+    // ==================================================================================
+    // initListeners — WHAT HAPPENS ON PRESS
+    // ==================================================================================
+    // WHAT IT DOES: attaches two listeners — one on the FAB, one on the rows of the list.
+    // HOW: 1. FAB -> Intent without extras -> insert
+    //      2. row -> Intent with MOVIE + POSITION -> edit
+    // RISK: the method is called before `launcher` is assigned. It works
+    //   only because the listeners read the field on click, not on attachment.
+    // REF: the same anonymous listener pattern appears four times in `ItemActivity`.
+    // ==================================================================================
+    private void initListeners() {
+
+        // Listener on the FAB. The anonymous class implements `View.OnClickListener`.
+        fabInsert.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                // `MainActivity.this` — NOT `this`. Inside the anonymous class,
+                //   `this` is the listener, not the activity. The `Context` required by
+                //   the Intent constructor is the activity.
+                // The second argument is the class of the activity to start.
+                Intent intent = new Intent(MainActivity.this, ItemActivity.class);
+
+                // WITHOUT extras. The absence of MOVIE_EXTRA is exactly the signal for
+                //   "insert mode" that `ItemActivity.onCreate` reads.
+                launcher.launch(intent);
+            }
+        });
+
+        // Listener on the rows of the list. `AdapterView.OnItemClickListener` has four
+        //   parameters: the parent, the row view, the position and the id.
+        // `id` is the fourth and is IGNORED here: the identity is the position.
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                // The same Intent to the same activity.
+                Intent intent = new Intent(MainActivity.this, ItemActivity.class);
+
+                // HERE is the difference from the FAB: the movie leaves for the form.
+                //   `movies.get(position)` is the object in the list; `putExtra` SERIALIZES it.
+                //   The form will receive a copy.
+                intent.putExtra(MOVIE_EXTRA, movies.get(position));
+
+                // The position leaves separately, as an `int`. It is not part of the model.
+                intent.putExtra(POSITION_EXTRA, position);
+
+                // Starts the activity through the launcher, so the result reaches the callback.
+                launcher.launch(intent);
+            }
+        });
+    }
+
+    // ==================================================================================
+    // initControls — FINDVIEWBYID AND SETADAPTER
+    // ==================================================================================
+    // WHAT IT DOES: binds the two fields to the views in the XML and installs the adapter.
+    // HOW: 1. FAB by id  2. ListView by id  3. setAdapter
+    // RISK: if an id does not exist in the layout, `findViewById` returns `null` and
+    //   the next call throws an NPE. Here both ids exist in `activity_main.xml`.
+    // REF: `ItemActivity.initControls` does the same thing for 13 views.
+    // ==================================================================================
+    private void initControls() {
+
+        // `R.id.floatingActionButton` — the id from the XML, not the name of the field.
+        fabInsert = findViewById(R.id.floatingActionButton);
+
+        // `R.id.listView` — the id from the XML.
+        listView = findViewById(R.id.listView);
+
+        // Installs the adapter. From this moment, `android:entries="@array/items"`
+        //   in the XML is IGNORED: `setAdapter` replaces it completely.
+        listView.setAdapter(movieAdapter);
+    }
+
+    // ==================================================================================
+    // addSampleMovies — THE THREE DEMO MOVIES
+    // ==================================================================================
+    // WHAT IT DOES: adds three `Movie` objects to the list, using the constructor with 10 parameters.
+    // HOW: three `movies.add(new Movie(...))` calls, each with 10 positional
+    //   arguments, in the order of the signature.
+    // RISK: the order of the arguments is POSITIONAL. "Sci-Fi" must be the
+    //   third, not the second — otherwise it lands in `release` and does not compile, or
+    //   it lands in `genre` when the types coincide and compiles wrongly.
+    // REF: the constructor is annotated in 31.2; the position table is there.
+    // ==================================================================================
+    private void addSampleMovies() {
+
+        // MOVIE 1 — Inception.
+        // `new GregorianCalendar(year, month, day)` — WATCH OUT: the month is 0-based.
+        //   `Calendar.JULY` is 6, not 7. `getTime()` turns the calendar into a `Date`.
+        // Arguments 4..10: budget (int widened to double), duration, rating (`4.5f`),
+        //   watched, approval, onWatchlist, posterUrl.
+        movies.add(new Movie(
+                "Inception",
+                new GregorianCalendar(2010, Calendar.JULY, 16).getTime(),
+                "Sci-Fi",
+                160000000,
+                148,
+                4.5f,
+                true,
+                "PG-13",
+                false,
+                "https://example.com/posters/inception.jpg"));
+
+        // MOVIE 2 — Toy Story. `4f` is a float literal: without `f`, it would be a double
+        //   and would not fit in the `float rating` parameter.
+        movies.add(new Movie(
+                "Toy Story",
+                new GregorianCalendar(1995, Calendar.NOVEMBER, 22).getTime(),
+                "Animation",
+                30000000,
+                81,
+                4f,
+                true,
+                "G",
+                false,
+                "https://example.com/posters/toy-story.jpg"));
+
+        // MOVIE 3 — The Matrix. `Calendar.MARCH` is 2 (0-based).
+        //   `watched = false`, `onWatchlist = true` — the only combination that differs
+        //   from the first two and that shows the two booleans are independent.
+        movies.add(new Movie(
+                "The Matrix",
+                new GregorianCalendar(1999, Calendar.MARCH, 31).getTime(),
+                "Action",
+                63000000,
+                136,
+                5f,
+                false,
+                "R",
+                true,
+                "https://example.com/posters/the-matrix.jpg"));
+    }
+}
+```
+
+**Reference table for `onCreate`:**
+
+| # | Line | What it builds | Depends on |
+|---|---|---|---|
+| 1 | `super.onCreate` | the AppCompat chain | — |
+| 2 | `EdgeToEdge.enable` | drawing under the bars | — |
+| 3 | `setContentView` | the view tree | `activity_main.xml` |
+| 4 | insets listener | padding on `R.id.main` | the id `main` |
+| 5 | `addSampleMovies` | 3 `Movie` objects in the list | `Movie` |
+| 6 | `new ArrayAdapter` | the adapter | the list, `this` |
+| 7 | `initControls` | FAB, ListView, `setAdapter` | `R.id.*` |
+| 8 | `initListeners` | 2 listeners | `launcher` (still `null`) |
+| 9 | `registerForActivityResult` | `launcher` | the contract |
+
+---
+## 31.4 `ItemActivity.java` — the form
+
+The third file and the longest of the three Java classes. Here a `Movie` is built from 10 widgets and sent back.
+
+```java
+/*
+ * ======================================================================================
+ * FILE: ItemActivity.java — THE INSERT AND EDIT FORM
+ * ======================================================================================
+ * WHAT IT IS: a single activity that serves TWO modes. If it receives a `Movie`
+ *   in the Intent, it is editing; if it receives nothing, it is insertion.
+ *
+ * WHY IT EXISTS: it is the screen that turns widgets into the model. All 10
+ *   fields of `Movie` are produced here, from `getText()`, `getProgress()`,
+ *   `getRating()`, `isChecked()` and `getSelectedItem()`.
+ *
+ * WHAT IT DEPENDS ON: `activity_item.xml` (13 views), `Movie`, the constants
+ *   `MainActivity.MOVIE_EXTRA` / `POSITION_EXTRA` and the Activity Result API
+ *   (through `setResult`).
+ *
+ * WHO DEPENDS ON IT: `MainActivity`, which receives the result Intent in the callback.
+ *
+ * WHAT IT DOES NOT DO: it does not hold the list, it does not know what position the movie has in the list (it receives it),
+ *   it saves nothing to disk. It does not validate the fields before saving.
+ *
+ * WHAT BREAKS WITHOUT IT: the app would have a list, but no way to add or
+ *   modify a movie. The FAB would start a non-existent activity.
+ *
+ * WATCH OUT FOR THE IMPORTS: three of them are DEAD — `android.media.Rating`,
+ *   `android.widget.Switch` and `Snackbar`. They are marked one by one below. See 31.0.5.
+ * ======================================================================================
+ */
+
+// THE PACKAGE: the same `activities` as MainActivity — that is why the `protected`
+//   constants of MainActivity are visible here without an import.
+package ro.ase.ie.g1099.activities;
+
+// DatePickerDialog: the wheel dialog for year/month/day.
+import android.app.DatePickerDialog;
+
+// Intent: the result object, built on save.
+import android.content.Intent;
+
+// Rating: the rating class for MEDIA content, from API 21.
+//   DEAD IMPORT. It is used nowhere in the file — it appears exactly once, here.
+//   The widget in the form is `RatingBar`, a completely different class. See 31.0.5.
+import android.media.Rating;
+
+// Bundle: only in the onCreate signature.
+import android.os.Bundle;
+
+// View: the parameter type in OnClickListener.
+import android.view.View;
+
+// Button: the save button (`btMovieAction`).
+import android.widget.Button;
+
+// CheckBox: the "Watchlist" check mark (`cbonWatchList`).
+import android.widget.CheckBox;
+
+// CompoundButton: the common interface for Switch and CheckBox; it appears in the signature
+//   of the switch listener.
+import android.widget.CompoundButton;
+
+// DatePicker: the view type in the date dialog callback.
+import android.widget.DatePicker;
+
+// EditText: the title, the date, the budget and the poster.
+import android.widget.EditText;
+
+// RadioButton: the 5 parental guidance buttons.
+import android.widget.RadioButton;
+
+// RadioGroup: the container of the 5 buttons.
+import android.widget.RadioGroup;
+
+// RatingBar: the star bar. THIS is the rating widget, not `android.media.Rating`.
+import android.widget.RatingBar;
+
+// SeekBar: the duration bar.
+import android.widget.SeekBar;
+
+// Spinner: the drop-down list of genres.
+import android.widget.Spinner;
+
+// Switch: the classic toggle widget.
+//   DEAD IMPORT. The field `swWatched` is declared `MaterialSwitch`, and
+//   `MaterialSwitch` extends `SwitchCompat`, not `Switch`. The name `Switch` appears
+//   nowhere outside this line. See 31.0.6.
+import android.widget.Switch;
+
+// TextView: the two dynamic labels (`tvDurationValue`, `tvWatchedValue`).
+import android.widget.TextView;
+
+// EdgeToEdge: drawing under the system bars.
+import androidx.activity.EdgeToEdge;
+
+// NonNull: annotation on the `buttonView` parameter of the switch listener.
+//   It is a promise that the parameter is not null; the compiler does not check it,
+//   but lint uses it.
+import androidx.annotation.NonNull;
+
+// AppCompatActivity: the base class of the activity.
+import androidx.appcompat.app.AppCompatActivity;
+
+// IntentCompat: the typed variant of `getSerializableExtra`, with `Class<T>`.
+//   Unlike MainActivity, which uses the old method with a cast,
+//   here the modern variant is used.
+import androidx.core.content.IntentCompat;
+
+// Insets / ViewCompat / WindowInsetsCompat: the same three classes as in MainActivity,
+//   for the padding under the system bars.
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+// MaterialSwitch: the Material 3 switch. It extends SwitchCompat -> CompoundButton.
+import com.google.android.material.materialswitch.MaterialSwitch;
+
+// Snackbar: a short message bar, at the bottom of the screen.
+//   DEAD IMPORT. There is no `Snackbar.make(...)` in the file.
+import com.google.android.material.snackbar.Snackbar;
+
+// ParseException: the exception thrown by `SimpleDateFormat.parse` on invalid text.
+import java.text.ParseException;
+
+// SimpleDateFormat: the "dd/MM/yyyy" formatter for the date field.
+import java.text.SimpleDateFormat;
+
+// Calendar: the source of truth for the date.
+import java.util.Calendar;
+
+// Date: the type returned by `dateFormat.parse(...)`.
+import java.util.Date;
+
+// Locale: the regional format for the formatter.
+import java.util.Locale;
+
+// R: the generated resources.
+import ro.ase.ie.g1099.R;
+
+// Movie: the model built on save and read on fill.
+import ro.ase.ie.g1099.model.Movie;
+
+/*
+ * ======================================================================================
+ * THEORY BLOCK: THE FORM AS A STATE MACHINE
+ * ======================================================================================
+ *
+ * 1. **Two modes, a single activity.** `ItemActivity` does not have two layouts and
+ *    two classes. It has a `position` field that is `-1` (insert) or `>= 0` (edit).
+ *    All the different behaviour derives from this field.
+ *
+ * 2. **The source of truth is not always the widget.** For 9 fields, the widget
+ *    is the source (you read directly from it on save). For the date, the source is
+ *    `releaseCal`, and the `EditText` is only a DISPLAY.
+ *
+ * 3. **The listeners are also a source of truth for the labels.** `tvDurationValue`
+ *    and `tvWatchedValue` are not read on save; they are updated by the listeners
+ *    of the widgets. If a listener does not fire, the label lags behind.
+ *
+ * 4. **The result is an Intent.** The activity does not return an object through `return`;
+ *    it puts it in an `Intent` and hands it over through `setResult`.
+ *
+ * 5. **The order in `onCreate` is critical.** `initListeners()` runs BEFORE
+ *    `fillForm()`. The reason: `setChecked` and `setProgress` trigger the listeners,
+ *    which update the labels. Reversed, the labels would keep the values from the XML.
+ *
+ * VISUAL: the data flow in the form
+ *
+ *   [etTitle] -------------------------+
+ *   [etRelease] --(display only)--+    |
+ *                                 |    |
+ *   [releaseCal] -----------------+----+---> saveMovie() ---> Movie ---> Intent
+ *   [spGenre] -------------------------+                                    |
+ *   [etBudget] ------------------------+                                    v
+ *   [sbDuration] ----------------------+                            setResult(RESULT_OK)
+ *   [rbRating] ------------------------+                                    |
+ *   [swWatched] -----------------------+                                    v
+ *   [cbonWatchList] -------------------+                                  finish()
+ *   [rgApproval] --(loop)--+----------+
+ *   [etPoster] ------------------------+
+ *
+ * VISUAL: the two modes
+ *
+ *   Intent WITHOUT MOVIE_EXTRA          Intent WITH MOVIE_EXTRA
+ *          |                                  |
+ *          v                                  v
+ *   existing == null                   existing != null
+ *          |                                  |
+ *   position stays -1                  position = getIntExtra(..., -1)
+ *   empty form                         fillForm(existing)
+ *   button: "Save Movie"               button: "Update Movie"
+ *          |                                  |
+ *          +---------------+------------------+
+ *                          v
+ *                     saveMovie()
+ *                          |
+ *          position == -1 -> Intent WITHOUT POSITION_EXTRA
+ *          position >= 0  -> Intent WITH POSITION_EXTRA
+ * ======================================================================================
+ */
+public class ItemActivity extends AppCompatActivity {
+
+    // ==================================================================================
+    // THE 13 REFERENCES TO VIEWS
+    // ==================================================================================
+    // WHY 13: the form has 10 data fields + 2 dynamic labels + 1 button.
+    //   The 7 `TextView`s of fixed labels (`tvTile`, `tvGenre`, `tvBudget`,
+    //   `tvDuration`, `tvRating`, `tvWatched`, `tvGuidance`) do NOT appear here: they are not
+    //   read and are not modified from code, so they need no reference.
+    //
+    // WHY THEY ARE ALL `private`: they are implementation details of the screen.
+    // ==================================================================================
+
+    // Field 1: the title. The real object in the XML is `TextInputEditText`, but the declared
+    // type is `EditText` — the parent class. It is enough for `getText()`.
+    private EditText etTitle;
+
+    // Field 2: the date, as TEXT. The real value is in `releaseCal` (see below).
+    private EditText etRelease;
+
+    // Field 3: the genre. `Spinner` — the drop-down list from `@array/movie_genre`.
+    private Spinner spGenre;
+
+    // Field 4: the budget. `inputType="numberDecimal"` in the XML.
+    private EditText etBudget;
+
+    // Field 5: the duration. `SeekBar` with max 300.
+    private SeekBar sbDuration;
+
+    // Field 6: the rating. `RatingBar` with 5 stars and a step of 0.5.
+    // WATCH OUT: the type is `RatingBar`, NOT `android.media.Rating`. That import
+    //   is dead — see 31.0.5.
+    private RatingBar rbRating;
+
+    // Field 7: the parental guidance. `RadioGroup` with 5 buttons.
+    private RadioGroup rgApproval;
+
+    // Field 8: the "Watchlist" check mark.
+    // WATCH OUT FOR THE NAME: the field is `cbonWatchList`, the ID is `cbOnWatchList`.
+    //   An `o` missing on one side, an `O` extra on the other. It is not a typo to fix:
+    //   that is how the source is. `findViewById(R.id.cbonWatchList)` would NOT compile.
+    private CheckBox cbonWatchList;
+
+    // Field 9: the "Recommended" switch. The real type is `MaterialSwitch`, which
+    // extends `SwitchCompat` -> `CompoundButton`. Declared `MaterialSwitch` in order
+    // to have access to all its methods.
+    // THAT is why the `android.widget.Switch` import is dead: it is not the type of this field.
+    private MaterialSwitch swWatched;
+
+    // Field 10: the poster URL.
+    private EditText etPoster;
+
+    // Field 11: the save button.
+    // WATCH OUT FOR THE NAME: the field is `btMovieAction`, the ID is `btnMovieAction`.
+    private Button btMovieAction;
+
+    // Field 12: the label that displays the duration ("148 min."). It is NOT read on
+    // save — it is display only, updated by the SeekBar listener.
+    private TextView tvDurationValue;
+
+    // Field 13: the label that displays "Yes"/"No" for the switch.
+    private TextView tvWatchedValue;
+
+    // ==================================================================================
+    // THE STATE OF THE FORM
+    // ==================================================================================
+
+    // THE MODE: -1 = insert, >= 0 = edit.
+    // WHY `-1` and not `0`: `0` is a valid position in the list. The sentinel must
+    //   be a value IMPOSSIBLE as a position.
+    // WHO CHANGES IT: only `onCreate`, when it finds a movie in the Intent.
+    private int position = -1;   // -1 = insert mode
+
+    // THE SOURCE OF TRUTH FOR THE DATE.
+    // `Calendar.getInstance()` = the CURRENT date and time. That is why the form starts
+    //   with today's date, not with an empty date.
+    // WHY NOT `null`: `saveMovie` calls `releaseCal.getTime()` unconditionally.
+    //   A `null` would throw an NPE on the first save.
+    // WHY `Calendar` and not `Date`: `Calendar` has fields (YEAR, MONTH, DAY_OF_MONTH)
+    //   that `DatePickerDialog` reads and writes directly.
+    // RISK: in edit mode, `fillForm` does NOT update this calendar — see BUG 4.
+    private Calendar releaseCal = Calendar.getInstance();
+
+    // THE DATE FORMATTER.
+    // "dd/MM/yyyy" = day with 2 digits / month with 2 digits / year with 4 digits.
+    //   WATCH OUT: `MM` = month, `mm` = minutes. Swapping them is a classic mistake.
+    // `Locale.getDefault()` = the format of the device's language. Here the pattern is
+    //   explicit, so Locale influences only the symbols and the internal order.
+    // `final`: the reference does not change. The object, however, is MUTABLE.
+    // RISK: `SimpleDateFormat` is not thread-safe. Here it is used exclusively on
+    //   the UI thread, so there is no concurrency.
+    private final SimpleDateFormat dateFormat =
+            new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+
+    // ==================================================================================
+    // onCreate — INFRASTRUCTURE, CONTROLS, LISTENERS, MODE
+    // ==================================================================================
+    // WHAT IT DOES: builds the screen, attaches the listeners, then decides whether to fill
+    //   the form with an existing movie or leave it empty.
+    // HOW: 1. infrastructure (super, edge-to-edge, layout, insets)
+    //      2. initControls
+    //      3. initListeners
+    //      4. reads the Intent
+    //      5. if a movie exists -> position, fillForm, title, button text
+    // RISK: the order 2-3-5 is mandatory. `fillForm` needs the views (2)
+    //   and must trigger the listeners (3) for the labels.
+    // REF: `MainActivity.onCreate` has the same first infrastructure phase.
+    // ==================================================================================
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Edge-to-edge: the same call as in MainActivity.
+        EdgeToEdge.enable(this);
+
+        // Inflates `activity_item.xml`. The tree has a root ScrollView with the id `main`.
+        setContentView(R.layout.activity_item);
+
+        // Insets on the root container. Identical to MainActivity, with a single
+        //   difference of context: here `R.id.main` is the ScrollView, not the FrameLayout.
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
+        // Phase 1: bind the 13 fields to the views in the XML.
+        // WHY FIRST: `fillForm` needs them, and so does `initListeners`.
+        initControls();
+
+        // Phase 2: attach the listeners.
+        // WHY BEFORE `fillForm`: `fillForm` calls `setChecked` and `setProgress`.
+        //   These calls TRIGGER the listeners, which update the labels
+        //   `tvWatchedValue` and `tvDurationValue`. If the listeners were attached after
+        //   `fillForm`, the labels would keep the default values from the XML.
+        initListeners();
+
+        // Phase 3: read the incoming Intent.
+        // `getIntent()` returns the Intent that started the activity. It is not null:
+        //   any activity is started with an Intent, even an empty one.
+        Intent intent = getIntent();
+
+        // TYPED read of the serializable.
+        // WHY `IntentCompat` AND NOT `intent.getSerializableExtra(...)`:
+        //   The old method is deprecated since API 33. `IntentCompat.getSerializableExtra`
+        //   also receives the expected class, so it checks the type before the cast
+        //   and works identically on all versions.
+        // WHY `MainActivity.MOVIE_EXTRA`: the same constant as on send. A typo
+        //   here would produce `null` with no error.
+        // THE VALUE: `null` in insert mode (the FAB puts no extra).
+        Movie existing = IntentCompat.getSerializableExtra(intent, MainActivity.MOVIE_EXTRA, Movie.class);
+
+        // EDIT MODE: there is a movie in the Intent.
+        if (existing != null) {
+
+            // Reads the position. Here `-1` would mean "movie sent without a position" —
+            // a case that does not happen in the normal flow, but would turn the save
+            // into an insert (duplicate).
+            position = intent.getIntExtra(MainActivity.POSITION_EXTRA, -1);
+
+            // Fills the form with the values of the received movie.
+            // THE OBJECT IS A COPY: the changes in the form do NOT reach the list in
+            // MainActivity except through the result Intent.
+            fillForm(existing);
+
+            // Changes the title of the screen. `setTitle` is the Activity method,
+            //   NOT the model setter — there is no conflict, the receiver differs.
+            // If the theme has no ActionBar, the title is not visible anywhere on screen;
+            //   the visible feedback for the user is the button text, below.
+            setTitle("Edit movie");
+
+            // Changes the text of the button. The same button does insert or update;
+            //   the label is the only difference visible to the user.
+            btMovieAction.setText("Update Movie");
+        }
+
+        // INSERT MODE: `existing == null`. Nothing happens.
+        //   `position` stays -1, the form keeps the default values from the XML:
+        //   empty title, date = today, genre = the first in the list, empty budget, duration 0,
+        //   rating 0, switch off, check mark off, "G" checked, empty poster.
+    }
+
+    // ==================================================================================
+    // fillForm — MODEL -> WIDGETS
+    // ==================================================================================
+    // WHAT IT DOES: copies the 10 values from `Movie` into the 10 widgets.
+    // HOW: 1. the simple fields, in the order of the model
+    //      2. Spinner: loop over the positions, match on text
+    //      3. RadioGroup: loop over the children, match on text
+    // RISK: it does not update `releaseCal`. See BUG 4 — the date is lost on update.
+    // REF: each line is the inverse of a line in `saveMovie`.
+    // ==================================================================================
+    private void fillForm(Movie existing) {
+
+        // Text: `getText().toString()` on save, `setText(...)` on fill.
+        // `setText` expects a `CharSequence`; `String` is a `CharSequence`.
+        etTitle.setText(existing.getTitle());
+
+        // BUG 2: `existing.getRelease()` can be `null`.
+        // ==============================================================================
+        // `SimpleDateFormat.format(null)` throws `NullPointerException`.
+        // WHEN IT HAPPENS: when the edited movie has `release == null`. In the demo flow
+        //   all 3 movies have a date, so the bug is not visible. It becomes real if a
+        //   `Movie` is built with the empty constructor and saved without a date.
+        // FIX: `if (existing.getRelease() != null) { ... } else { etRelease.setText(""); }`
+        // ==============================================================================
+        etRelease.setText(dateFormat.format(existing.getRelease()));
+
+        // BUG 3: `String.valueOf(double)` produces scientific notation for large values.
+        // ==============================================================================
+        // `String.valueOf(160000000.0)` -> "1.6E8".
+        // The user sees "1.6E8" in the budget field. `Double.parseDouble("1.6E8")`
+        //   works, so the value is saved correctly — but the display is ugly
+        //   and looks like an error.
+        // FIX: `String.format(Locale.getDefault(), "%.0f", existing.getBudget())`
+        //   or a `DecimalFormat`.
+        // ==============================================================================
+        etBudget.setText(String.valueOf(existing.getBudget()));
+
+        // `SeekBar.setProgress(int)` — the value is automatically limited to 0..max.
+        // If the duration in the model were 500, the bar would stop at 300.
+        // SIDE EFFECT: if the value CHANGES, `onProgressChanged` is triggered
+        //   and the label `tvDurationValue` is updated. If the value is already 0
+        //   (the default), the listener does NOT fire — but the label in the XML is
+        //   already "0 min", so the result is correct.
+        sbDuration.setProgress(existing.getDuration());
+
+        // `CheckBox.setChecked(boolean)` — it has no listener, so no reaction in a chain.
+        cbonWatchList.setChecked(existing.isOnWatchlist());
+
+        // `MaterialSwitch.setChecked(boolean)` — TRIGGERS the switch listener,
+        //   which writes "Yes"/"No" into `tvWatchedValue`. That is why the listeners must be
+        //   attached before `fillForm`.
+        swWatched.setChecked(existing.isWatched());
+
+        // `RatingBar.setRating(float)` — the parameter is `float`, exactly the type of the field
+        //   in the model. A value of 4.5 lights 4 and a half stars.
+        rbRating.setRating(existing.getRating());
+
+        // `setText(null)` is legal: the field becomes empty. It throws no exception.
+        // Here you see the naming difference from G1097: `getPosterUrl()`, not `getPoster()`.
+        etPoster.setText(existing.getPosterUrl());
+
+        // SPINNER — it has no `setValue`, it has `setSelection(index)`.
+        // That is why a loop is needed: it looks for the INDEX of the matching value.
+        // `getCount()` = the number of elements in `@array/movie_genre`.
+        // `getItemAtPosition(index)` returns an `Object` (in practice, a `String`).
+        // `break` at the first match: if the array had duplicates, the first wins.
+        // If no match is found, the spinner stays on position 0 —
+        //   silently, with no error.
+        for(int index=0; index<spGenre.getCount(); index++)
+        {
+            if(spGenre.getItemAtPosition(index).equals(existing.getGenre()))
+            {
+                // `setSelection` moves the selection. It triggers no listener here,
+                //   because we attached none on the Spinner.
+                spGenre.setSelection(index);
+                break;
+            }
+        }
+
+        // RADIOGROUP — here too there is no `setValue`. `check(id)` receives an ID.
+        // `getChildCount()` = 5 (the 5 MaterialRadioButtons).
+        // `getChildAt(index)` returns a `View`; cast to `RadioButton` for `getText()`.
+        for(int index=0; index<rgApproval.getChildCount(); index++)
+        {
+            RadioButton rb = (RadioButton) rgApproval.getChildAt(index);
+            if(rb.getText().toString().equals(existing.getApproval()))
+            {
+                // `check(...)` receives the ID of the child, not the index. That is why
+                //   it reads `getChildAt(index).getId()`.
+                // Side effect: `check` automatically unchecks the previously checked button.
+                rgApproval.check(rgApproval.getChildAt(index).getId());
+                break;
+            }
+        }
+
+        // WHAT THIS METHOD DOES NOT DO: it does not write into `releaseCal`.
+        //   The text is displayed correctly, but the calendar stays on TODAY's date.
+        //   See BUG 4, right after the list.
+    }
+
+    // ==================================================================================
+    // initControls — 13 FINDVIEWBYID CALLS, IN THE ORDER OF THE FORM
+    // ==================================================================================
+    // WHAT IT DOES: binds each Java field to the view with the corresponding id from the XML.
+    // HOW: 13 `findViewById` calls, in the visual order of the form.
+    // RISK: each id must exist in `activity_item.xml`. A wrong id
+    //   returns `null` and crashes on the first access, not here.
+    // REF: `MainActivity.initControls` has the same role, with 2 views.
+    // ==================================================================================
+    private void initControls() {
+
+        // The "Basics" card: the title and the date.
+        etTitle = findViewById(R.id.etTitle);
+        etRelease = findViewById(R.id.etRelease);
+
+        // The genre — a Spinner wrapped in a MaterialCardView in the XML.
+        spGenre = findViewById(R.id.spGenre);
+
+        // The "Production" card: the budget and the duration.
+        etBudget = findViewById(R.id.etBudget);
+        sbDuration = findViewById(R.id.sbDuration);
+
+        // The "Your verdict" card: rating, guidance, switch, check mark.
+        rbRating = findViewById(R.id.rbRating);
+        rgApproval = findViewById(R.id.rgApproval);
+
+        // WATCH OUT: the id is `cbOnWatchList` (with a capital `O`), the field is
+        //   `cbonWatchList` (with a lowercase `o`). They differ only by the capital letter.
+        cbonWatchList = findViewById(R.id.cbOnWatchList);
+
+        swWatched = findViewById(R.id.swWatched);
+
+        // The "Poster" card.
+        etPoster = findViewById(R.id.etPoster);
+
+        // The save button. The id is `btnMovieAction`, the field `btMovieAction`.
+        btMovieAction = findViewById(R.id.btnMovieAction);
+
+        // The two dynamic labels. They are read only by the listeners below.
+        tvDurationValue = findViewById(R.id.tvDurationValue);
+        tvWatchedValue = findViewById(R.id.tvWatchedValue);
+    }
+
+    // ==================================================================================
+    // initListeners — FOUR LISTENERS
+    // ==================================================================================
+    // WHAT IT DOES: attaches the behaviour of the four interactive widgets.
+    // HOW: 1. etRelease -> opens the date dialog
+    //      2. btMovieAction -> saveMovie
+    //      3. swWatched -> updates the "Yes"/"No" label
+    //      4. sbDuration -> updates the "N min." label
+    // RISK: the switch listener and the SeekBar one are essential for `fillForm`;
+    //   without them, the labels would stay out of sync on edit.
+    // REF: the same anonymous classes as in `MainActivity.initListeners`.
+    // ==================================================================================
+    private void initListeners() {
+
+        // 1. CLICK ON THE DATE FIELD -> dialog.
+        // `EditText` is also editable, but here the click is intercepted and replaced
+        //   with a dialog. The user does not type the date, they choose it.
+        etRelease.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showReleaseDatePicker();
+            }
+        });
+
+        // 2. CLICK ON THE BUTTON -> save.
+        // The same listener does insert or update; the difference is the `position` field.
+        btMovieAction.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveMovie();
+            }
+        });
+
+        // 3. SWITCH -> label.
+        // `CompoundButton.OnCheckedChangeListener` has a single method, with two
+        //   arguments: the button and the new state.
+        // `@NonNull` on `buttonView` is a contract annotation, not a check
+        //   at runtime.
+        swWatched.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(@NonNull CompoundButton buttonView, boolean isChecked) {
+                // Ternary operator: "Yes" if it is checked, "No" otherwise.
+                // `setText` expects a `CharSequence`; both literals are `String`.
+                tvWatchedValue.setText(isChecked ? "Yes" : "No");
+            }
+        });
+
+        // 4. SEEKBAR -> label.
+        // The interface has THREE methods; two remain empty, but MUST be written:
+        //   otherwise the anonymous class does not compile.
+        sbDuration.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+            // Called on every change of value.
+            // `progress` = the new value (0..300).
+            // `fromUser` = true if the change comes from the finger, false if it comes
+            //   from code (`setProgress`). Here it is IGNORED on purpose: the label
+            //   must reflect the value in both cases.
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                // `progress + " min."` — int concatenated with String. Java converts
+                //   the int to text automatically. Result: "148 min.".
+                tvDurationValue.setText(progress + " min.");
+            }
+
+            // Called when the finger touches the bar. We do not need it.
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            // Called when the finger lifts. We do not need it.
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+    }
+
+    // ==================================================================================
+    // saveMovie — WIDGETS -> MODEL -> INTENT -> RESULT
+    // ==================================================================================
+    // WHAT IT DOES: builds a new `Movie` from the current values of the form,
+    //   puts it in an Intent and sends it back to MainActivity.
+    // HOW: 1. `new Movie()` — the empty constructor
+    //      2. 9 setters directly from the widgets
+    //      3. loop over the RadioGroup for the 10th field
+    //      4. Intent without a target, with MOVIE_EXTRA and, conditionally, POSITION_EXTRA
+    //      5. setResult + finish
+    // RISK: `Double.parseDouble` on empty text throws `NumberFormatException` — BUG 1.
+    // REF: each line is the inverse of a line in `fillForm`.
+    // ==================================================================================
+    private void saveMovie() {
+
+        // A NEW object, not the received one. Even in edit mode, the movie in the list
+        //   is not modified directly: it is replaced with this one, through `movies.set`.
+        Movie movie = new Movie();
+
+        // `getText()` returns an `Editable`, not a `String`. `toString()` does the conversion.
+        movie.setTitle(etTitle.getText().toString());
+
+        // THE DATE: from `releaseCal`, NOT from the text in `etRelease`.
+        // `getTime()` turns the calendar into a new `Date`.
+        // Here you see BUG 4: in edit mode, `releaseCal` was not synchronized.
+        movie.setRelease(releaseCal.getTime());
+
+        // THE GENRE: `getSelectedItem()` returns an `Object`; `toString()` turns it into text.
+        // If the spinner were empty, it would throw an NPE — here the list comes from
+        //   `@array/movie_genre` and is not empty.
+        movie.setGenre(spGenre.getSelectedItem().toString());
+
+        // BUG 1: `Double.parseDouble("")` throws `NumberFormatException`.
+        // ==============================================================================
+        // `etBudget` starts EMPTY in insert mode. If the user presses "Save Movie"
+        //   without writing a budget, the app CRASHES. There is no validation beforehand.
+        // FIX: `String text = etBudget.getText().toString();`
+        //             `double value = text.isEmpty() ? 0 : Double.parseDouble(text);`
+        // ==============================================================================
+        movie.setBudget(Double.parseDouble(etBudget.getText().toString()));
+
+        // THE DURATION: directly from the progress of the bar. `int`, no conversion.
+        movie.setDuration(sbDuration.getProgress());
+
+        // THE RATING: `float`, exactly the type of the field.
+        movie.setRating(rbRating.getRating());
+
+        // THE SWITCH: `isChecked()` returns a `boolean`.
+        movie.setWatched(swWatched.isChecked());
+
+        // THE CHECK MARK: `isChecked()` returns a `boolean`.
+        movie.setOnWatchlist(cbonWatchList.isChecked());
+
+        // THE POSTER: the raw text, with no URL validation. It can also be empty.
+        // Here you see the second naming difference: `setPosterUrl`, not `setPoster`.
+        movie.setPosterUrl(etPoster.getText().toString());
+
+        // THE GUIDANCE: the only field that has no direct getter on the widget.
+        // `RadioGroup` has no `getSelectedItem`; it only has `getCheckedRadioButtonId()`,
+        //   which would require an extra lookup. The loop is simpler.
+        for(int index=0; index<rgApproval.getChildCount(); index++)
+        {
+            RadioButton rb = (RadioButton) rgApproval.getChildAt(index);
+            if(rb.isChecked())
+            {
+                // The text of the button, not its ID. See field 8 in `Movie.java`.
+                movie.setApproval(rb.getText().toString());
+                break;
+            }
+        }
+
+        // THE RESULT INTENT — without a target.
+        // `new Intent()` starts nothing. It is only a container for `setResult`.
+        Intent intent = new Intent();
+
+        // The movie, under the same key used by MainActivity on read.
+        intent.putExtra(MainActivity.MOVIE_EXTRA, movie);
+
+        // THE POSITION — ONLY in edit mode.
+        // In insert mode, the extra is missing, and MainActivity reads `-1` as the default.
+        // Thus, the absence of the position is exactly the signal to "add".
+        if (position != -1)
+            intent.putExtra(MainActivity.POSITION_EXTRA, position);
+
+        // Hands over the result. `RESULT_OK` is the constant inherited from `Activity` (= -1).
+        // Without this call, MainActivity would receive `RESULT_CANCELED` and would ignore the movie.
+        setResult(RESULT_OK, intent);
+
+        // Closes the activity. Without `finish()`, the form would stay on screen,
+        //   and the result would be delivered only on pressing the Back button.
+        finish();
+    }
+
+    // ==================================================================================
+    // showReleaseDatePicker — THE DATE DIALOG
+    // ==================================================================================
+    // WHAT IT DOES: opens a `DatePickerDialog` positioned on the current date from
+    //   `releaseCal` and writes the result into the calendar and into the text.
+    // HOW: 1. if the text exists, it tries to parse it into `releaseCal`
+    //      2. opens the dialog with the year/month/day from `releaseCal`
+    //      3. on confirm, it writes into `releaseCal` and formats the text
+    // RISK: `parse` can throw `ParseException`; it is caught and IGNORED.
+    // REF: the only place in the app that uses `DatePickerDialog`.
+    // ==================================================================================
+    private void showReleaseDatePicker() {
+
+        // The current text in the field. It can be empty (insert) or a formatted date (edit).
+        String current = etRelease.getText().toString();
+
+        // If text exists, try to turn it into a date.
+        if (!current.isEmpty()) {
+            try {
+                // `parse` returns `null` if the text cannot be fully interpreted.
+                Date parsed = dateFormat.parse(current);
+                if (parsed != null)
+                    // Synchronizes the calendar with the text. This is the ONLY place
+                    //   where `releaseCal` receives the date from the form — hence BUG 4.
+                    releaseCal.setTime(parsed);
+            } catch (ParseException ignored) { }
+            // Empty `catch`, on purpose: invalid text does not block the dialog.
+            //   The calendar stays on the previous value, and the dialog opens
+            //   on it. The user corrects from the dialog.
+        }
+
+        // Builds the dialog.
+        // `this` = the Context (the activity).
+        // The second argument is the confirm listener, as an anonymous class.
+        // The next three are the initial values: year, month, day.
+        new DatePickerDialog(
+                this,
+                new DatePickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(DatePicker view, int year, int month, int day) {
+
+                        // `month` is already 0-based, exactly as `Calendar.set` expects it.
+                        //   Do NOT subtract 1. The confusion appears with `GregorianCalendar`, where
+                        //   the `Calendar.JULY` constants hide the same convention.
+                        releaseCal.set(year, month, day);
+
+                        // Clears any error displayed on the field. `setError(null)`
+                        //   hides the icon and the message under the `TextInputLayout`.
+                        etRelease.setError(null);
+
+                        // Writes the formatted text. Here `releaseCal` is already updated,
+                        //   so the text and the calendar are synchronized.
+                        etRelease.setText(dateFormat.format(releaseCal.getTime()));
+                    }
+                },
+
+                // The initial values of the dialog wheels: from the calendar, not from the text.
+                releaseCal.get(Calendar.YEAR),
+                releaseCal.get(Calendar.MONTH),
+                releaseCal.get(Calendar.DAY_OF_MONTH)
+
+        // `show()` is mandatory. The constructor creates the dialog, but does not display it.
+        ).show();
+    }
+}
+```
+
+**The four real bugs, in a single place:**
+
+| # | Where | What happens | When it shows |
+|---|---|---|---|
+| 1 | `saveMovie` -> `Double.parseDouble` | `NumberFormatException` on an empty field | the first "Save Movie" without a budget |
+| 2 | `fillForm` -> `dateFormat.format(null)` | `NullPointerException` | editing a `Movie` with `release == null` |
+| 3 | `fillForm` -> `String.valueOf(double)` | "1.6E8" instead of "160000000" | any budget >= 10^7 |
+| 4 | `fillForm` does not write into `releaseCal` | the movie's date becomes TODAY's date | editing without touching the date field |
+
+**BUG 4, in detail** — it is the only one that does not appear in chapter 22, because it was not flagged there either:
+
+```
+EDIT MODE, the user changes ONLY the title:
+
+  onCreate
+    releaseCal = Calendar.getInstance()        -> TODAY's date
+    fillForm(existing)
+      etRelease.setText("16/07/2010")          -> only the TEXT
+      (releaseCal stays on TODAY's date)
+
+  the user presses "Update Movie"
+    saveMovie()
+      movie.setRelease(releaseCal.getTime())   -> TODAY's date, not 16/07/2010
+
+  MainActivity
+    movies.set(position, movie)                -> the original date is LOST
+```
+
+If the user opens the date dialog at least once, `showReleaseDatePicker` parses the text and fixes the calendar. The bug manifests only when the field is left untouched.
+
+---
+## 31.5 `AndroidManifest.xml` — the map of the app
+
+The fourth file and the only one that is neither code nor layout. It is the **declaration** that the system reads before loading a single class.
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ================================================================================== -->
+<!-- FILE: AndroidManifest.xml — THE DECLARATION OF THE APP                             -->
+<!-- ================================================================================== -->
+<!-- WHAT IT IS: the file that tells the operating system what components the app has,   -->
+<!--   which of them can be started from the outside and what theme it uses.             -->
+<!-- WHY IT EXISTS: without it, Android does not know that `MainActivity` is the entry point. -->
+<!-- WHAT IT DOES NOT DO: it contains no code, no layout, it declares no permissions     -->
+<!--   (the app needs none).                                                             -->
+<!-- WHAT BREAKS WITHOUT IT: the app would not appear in the launcher.                   -->
+<!-- THE DIFFERENCE FROM G1097: only `Theme.G1099` instead of `Theme.G1097`.             -->
+<!--   The package name does not appear here: it comes from the `namespace` in build.gradle. -->
+<!-- ================================================================================== -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- ============================================================================== -->
+    <!-- THE APPLICATION ELEMENT — the global configuration of the app.                  -->
+    <!-- ATTRIBUTES, ONE BY ONE:                                                         -->
+    <!--   allowBackup         = lets the system copy the app's data.                    -->
+    <!--   dataExtractionRules = the backup rules for Android 12+.                       -->
+    <!--   fullBackupContent   = the backup rules for Android 11 and older.              -->
+    <!--   icon / roundIcon    = the launcher icons; `mipmap` = several densities.       -->
+    <!--   label               = the app name, from `strings.xml`. Never a literal       -->
+    <!--                         text here.                                              -->
+    <!--   supportsRtl         = support for languages written right to left.            -->
+    <!--   theme               = the app theme. The only difference from G1097.          -->
+    <!--                                                                                 -->
+    <!-- `xmlns:tools` is declared above, but in this file it is NOT used:               -->
+    <!--   no `tools:` attribute appears. A dead declaration, like the dead imports.     -->
+    <!-- ============================================================================== -->
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.G1099">
+
+        <!-- ========================================================================== -->
+        <!-- ACTIVITY 1: MainActivity — the list screen.                                -->
+        <!-- `android:name` is RELATIVE: `.activities.MainActivity` is composed with     -->
+        <!--   the package name from `build.gradle`.                                    -->
+        <!-- `android:exported="true"` is MANDATORY from API 31 for any                  -->
+        <!--   component with an intent-filter. Without it, the build fails.             -->
+        <!-- `adjustResize`: when the keyboard appears, the window shrinks, and          -->
+        <!--   the content stays visible. The alternative `adjustPan` would push the screen. -->
+        <!-- ========================================================================== -->
+        <activity
+            android:name=".activities.MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
+
+            <!-- THE INTENT FILTER — what makes the activity startable from the launcher. -->
+            <intent-filter>
+                <!-- `MAIN` = the entry point of the app. -->
+                <action android:name="android.intent.action.MAIN" />
+
+                <!-- `LAUNCHER` = it appears in the phone's app list. -->
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- ========================================================================== -->
+        <!-- ACTIVITY 2: ItemActivity — the form.                                       -->
+        <!-- `android:exported="false"`: it CANNOT be started by another app.            -->
+        <!--   It is correct: the form opens only from MainActivity, through an Intent.  -->
+        <!-- No intent-filter, because it responds to no global action.                  -->
+        <!-- `adjustResize` again: the form has text fields, so the keyboard appears.    -->
+        <!-- ========================================================================== -->
+        <activity
+            android:name=".activities.ItemActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+    </application>
+
+</manifest>
+```
+
+**Reference table for the manifest:**
+
+| Attribute | Value | Effect | Mandatory? |
+|---|---|---|---|
+| `android:exported` on `MainActivity` | `true` | it can be started from the launcher | **yes**, from API 31 |
+| `android:exported` on `ItemActivity` | `false` | only from the app | **yes**, from API 31 |
+| `android:windowSoftInputMode` | `adjustResize` | the window shrinks for the keyboard | no, but recommended |
+| `android:theme` | `@style/Theme.G1099` | the Material 3 theme | no, but without it it looks default |
+| `android:allowBackup` | `true` | automatic backup | no |
+| `android:supportsRtl` | `true` | mirrored layout in RTL | no |
+
+---
+
+## 31.6 `activity_main.xml` — the list screen
+
+The fifth file. Twenty-six lines, two children. It is the simplest layout in the app and, nevertheless, it contains a trap.
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ================================================================================== -->
+<!-- FILE: activity_main.xml — THE LIST SCREEN                                          -->
+<!-- ================================================================================== -->
+<!-- WHAT IT IS: a FrameLayout with exactly two children: ListView (fills everything) and FAB (on top of it). -->
+<!-- WHY SO LITTLE: all the complexity is in `activity_item.xml` (the form).            -->
+<!--   Here only the skeleton.                                                          -->
+<!-- STRUCTURE:                                                                         -->
+<!--                                                                                    -->
+<!--   FrameLayout (id=main)                                                            -->
+<!--   |== ListView (id=listView)          -> first child = drawn first = underneath     -->
+<!--   +== FloatingActionButton (id=...)   -> second child = drawn over the list         -->
+<!--                                                                                    -->
+<!-- THE ORDER OF THE CHILDREN IS MEANING, NOT STYLE: in a FrameLayout, each child is    -->
+<!--   drawn over the previous one. Reversed, the list would cover the button.           -->
+<!-- ================================================================================== -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    tools:context=".activities.MainActivity">
+
+    <!-- ============================================================================== -->
+    <!-- LISTVIEW — the scrollable list.                                                 -->
+    <!-- `android:id="@+id/listView"` -> looked up in `initControls`.                    -->
+    <!-- `match_parent` on both axes: the list fills the whole screen, including the     -->
+    <!--   area under the FAB. The button is drawn OVER the list, not the list beside it. -->
+    <!-- `android:entries="@array/items"` -> fills the list from XML with the elements   -->
+    <!--   of the demo array. AT RUNTIME, `listView.setAdapter(movieAdapter)`            -->
+    <!--   REPLACES this adapter completely. `entries` remains only for the preview.     -->
+    <!--   The runtime cost is zero after `setAdapter`.                                  -->
+    <!-- ============================================================================== -->
+    <ListView
+        android:id="@+id/listView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:entries="@array/items" />
+
+    <!-- ============================================================================== -->
+    <!-- FLOATING ACTION BUTTON — the "+" button.                                       -->
+    <!-- The full name is necessary: it is a class from the Material library, not from   -->
+    <!--   the framework. The `com.google.android.material...` prefix is the class path. -->
+    <!-- `wrap_content` on both axes: the FAB has a fixed size from the style (56dp).    -->
+    <!--   `match_parent` would stretch it over the whole screen.                        -->
+    <!-- `android:layout_gravity="bottom|end"` = the position of THIS CHILD in its       -->
+    <!--   parent. `end` respects the reading direction: in RTL it becomes left.         -->
+    <!-- `android:layout_margin="16dp"` = 16dp from the edge of the content area.        -->
+    <!-- `android:contentDescription="Add"` = the text read by TalkBack. A literal       -->
+    <!--   text, so lint gives a warning (it should be `@string/...`).                   -->
+    <!-- `app:srcCompat` = the compatible variant for vector images.                     -->
+    <!-- ============================================================================== -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/floatingActionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:contentDescription="Add"
+        app:srcCompat="@drawable/outline_add_24" />
+
+</FrameLayout>
+```
+
+**The trap of the file:** `android:orientation="horizontal"` on a `FrameLayout`. The attribute **does not exist** on `FrameLayout` — it exists only on `LinearLayout`. Android ignores it at runtime and emits a lint warning ("Unknown attribute"). It is a leftover from a previous `LinearLayout`, kept from one version to another. It breaks nothing, but it shows the file was edited.
+
+**`layout_gravity` vs `gravity`:**
+
+```
+gravity         = how the ELEMENT arranges its children inside itself
+layout_gravity  = how the ELEMENT is arranged in its parent
+
+TextView with gravity="center"         -> the text is centred in the TextView
+TextView with layout_gravity="center"  -> the TextView is centred in the parent
+```
+
+---
+
+## 31.7 `activity_item.xml` — the form
+
+The sixth and last file. Four hundred and fifty-two lines, four cards, 26 ids. It is the layout that produces all 10 values of the model.
+
+### 31.7.1 Three rules that apply throughout the file
+
+**1. `?attr/` vs `@color/` vs `#RRGGBB`**
+
+| Form | When it is resolved | Does it change with the theme? | When it is used |
+|---|---|---|---|
+| `?attr/colorPrimary` | at runtime, from the current theme | **yes** | any semantic colour |
+| `@color/my_color` | at build time, from `colors.xml` | no | fixed brand colours |
+| `#FFC107` | at build time, literally | no | assumed exceptions (the stars) |
+
+The essential difference: `?attr/` is a **role**, `@color/` is a **value**. `?attr/colorPrimary` means "the primary colour of the theme" and becomes another shade in dark mode. `#FFC107` stays amber in both themes.
+
+**2. `0dp` + `layout_weight`**
+
+```
+Horizontal LinearLayout, total width 360dp
+
+  +-----------------------------+------------+
+  | TextView                    | TextView   |
+  | layout_width="0dp"          | wrap_content
+  | layout_weight="1"           |            |
+  +-----------------------------+------------+
+  |<------ all the remaining space --------->|
+
+  `0dp` + weight = "take all the space left after the other children took their part".
+  `wrap_content` + weight = "take your natural size, then split the rest".
+```
+
+**3. `tools:` does not reach the APK**
+
+`tools:text`, `tools:rating` and `tools:progress` exist **only** in the Android Studio preview. They are removed at build time. You can use them to see the form filled without writing code.
+
+### 31.7.2 The annotated file
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ================================================================================== -->
+<!-- FILE: activity_item.xml — THE INSERT AND EDIT FORM                                 -->
+<!-- ================================================================================== -->
+<!-- WHAT IT IS: a ScrollView with a single vertical LinearLayout child, which contains  -->
+<!--   four MaterialCardViews (Basics, Production, Your verdict, Poster) and the save    -->
+<!--   button. 26 ids, of which 13 are looked up in code.                                -->
+<!-- WHY IT EXISTS: it is the only layout that collects data from the user.              -->
+<!-- WHAT IT DOES NOT DO: it validates nothing. An empty field is perfectly valid for the XML. -->
+<!-- WHAT BREAKS WITHOUT IT: `ItemActivity` would call `setContentView` on a             -->
+<!--   non-existent resource and would crash on start.                                   -->
+<!-- THE DIFFERENCE FROM G1097: none. The file is identical.                             -->
+<!-- ================================================================================== -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
+    android:fillViewport="true"
+    tools:context=".activities.ItemActivity">
+
+    <!-- ============================================================================== -->
+    <!-- SCROLLVIEW — the root.                                                          -->
+    <!-- `android:id="@+id/main"` -> used by the insets listener in `onCreate`.          -->
+    <!-- WHY ScrollView: the form is taller than the screen, especially with             -->
+    <!--   the keyboard open.                                                            -->
+    <!-- THE RULE: ScrollView has EXACTLY ONE child. Two children would throw            -->
+    <!--   `IllegalStateException` at inflate.                                           -->
+    <!-- `android:fillViewport="true"`: if the single child is shorter than the screen,  -->
+    <!--   it is stretched to fill the viewport. Without it, the background stays empty underneath. -->
+    <!-- `android:background="?attr/colorSurface"` = the surface colour of the theme.    -->
+    <!-- ============================================================================== -->
+
+    <!-- ============================================================================== -->
+    <!-- THE VERTICAL CONTAINER — the only child of the ScrollView.                      -->
+    <!-- `wrap_content` in height: it grows with the content, so the ScrollView has      -->
+    <!--   something to scroll.                                                          -->
+    <!-- `paddingHorizontal` and `paddingTop/Bottom` = 16dp on the sides, 24dp top/bottom. -->
+    <!--   `paddingHorizontal` is API 26+; on older versions it is ignored.              -->
+    <!-- ============================================================================== -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="24dp">
+
+        <!-- Header -->
+        <!-- THE SCREEN TITLE, as text in the layout. It is not `setTitle` — it is a TextView. -->
+        <!-- `textAppearanceHeadlineMedium` = the Material 3 typographic scale.          -->
+        <!-- `?attr/colorOnSurface` = the text colour suitable for the surface.          -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Movie details"
+            android:textAppearance="?attr/textAppearanceHeadlineMedium"
+            android:textColor="?attr/colorOnSurface"
+            android:textStyle="bold" />
+
+        <!-- THE SUBTITLE. `colorOnSurfaceVariant` = secondary text, more faded.         -->
+        <!-- `layout_marginBottom="20dp"` = space up to the first card.                  -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="20dp"
+            android:text="Fill in the information below and save."
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+
+        <!-- ============ CARD 1: Basics ============ -->
+        <!-- CARD 1 — the title, the genre and the date.                                 -->
+        <!-- `?attr/materialCardViewFilledStyle` = the Material 3 filled card style.     -->
+        <!-- `cardCornerRadius="20dp"` = rounded corners, over the value from the style. -->
+        <!-- `layout_marginBottom="16dp"` = space between the cards.                     -->
+        <com.google.android.material.card.MaterialCardView
+            style="?attr/materialCardViewFilledStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="20dp">
+
+            <!-- THE CONTENT OF THE CARD. `padding="16dp"` on all sides.                 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- THE SECTION TITLE. `colorPrimary` = the accent of the theme.         -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:text="Basics"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textColor="?attr/colorPrimary" />
+
+                <!-- Title -->
+                <!-- THE FIELD LABEL. `tvTile` is a TYPO ("Tile" instead of                -->
+                <!--   "Title"), but it is harmless: the id is used                       -->
+                <!--   nowhere in code. An id with a typo breaks nothing as long as       -->
+                <!--   nobody looks it up.                                                -->
+                <TextView
+                    android:id="@+id/tvTile"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
+                    android:text="Title"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                <!-- THE TITLE FIELD — TextInputLayout + TextInputEditText.               -->
+                <!-- `OutlinedBox` = the outlined style.                                  -->
+                <!-- `app:hintEnabled="false"` = no floating label, because               -->
+                <!--   the label already exists as a TextView above.                      -->
+                <!-- `app:endIconMode="clear_text"` = the "X" clear button, on focus.     -->
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:hintEnabled="false"
+                    app:endIconMode="clear_text">
+
+                    <!-- `etTitle` — the source of `movie.setTitle(...)`.                  -->
+                    <!-- `inputType="textCapWords"` = the keyboard writes with a capital  -->
+                    <!--   letter at the start of each word.                              -->
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Movie title"
+                        android:inputType="textCapWords" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Genre -->
+                <!-- THE GENRE LABEL. `tvGenre` is not used in code.                      -->
+                <TextView
+                    android:id="@+id/tvGenre"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
+                    android:text="Genre"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                <!-- THE SPINNER, WRAPPED IN A CARD.                                      -->
+                <!-- WHY wrapped: the Spinner has no outline of its own. The card gives   -->
+                <!--   it the look of a field, so it matches the TextInputLayouts.        -->
+                <!-- `cardBackgroundColor="@android:color/transparent"` = no fill.        -->
+                <!-- `strokeColor="?attr/colorOutline"` = the outline.                    -->
+                <!-- `layout_height="56dp"` = the standard height of a Material field.    -->
+                <com.google.android.material.card.MaterialCardView
+                    style="?attr/materialCardViewOutlinedStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginBottom="16dp"
+                    app:cardBackgroundColor="@android:color/transparent"
+                    app:cardCornerRadius="4dp"
+                    app:strokeColor="?attr/colorOutline">
+
+                    <!-- `spGenre` — the source of `movie.setGenre(...)`.                  -->
+                    <!-- `android:entries="@array/movie_genre"` = the values come from    -->
+                    <!--   XML, not from code. Adding a genre = one line in arrays.xml.   -->
+                    <!-- `spinnerMode="dropdown"` = a drop-down list, not a dialog.       -->
+                    <Spinner
+                        android:id="@+id/spGenre"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:entries="@array/movie_genre"
+                        android:paddingStart="4dp"
+                        android:spinnerMode="dropdown" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Release date -->
+                <!-- THE DATE FIELD.                                                      -->
+                <!-- `hintEnabled="true"` HERE, unlike the title: the label               -->
+                <!--   "Release date" is the floating hint, not a separate TextView.      -->
+                <!-- `startIconDrawable` = the calendar icon from the framework.          -->
+                <!-- WATCH OUT: the field is EDITABLE, but the click is intercepted by    -->
+                <!--   `etRelease.setOnClickListener` and replaced with a dialog.         -->
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:hintEnabled="true"
+                    app:startIconContentDescription="Release date"
+                    app:startIconDrawable="@android:drawable/ic_menu_my_calendar">
+
+                    <!-- `etRelease` — DISPLAY only. The source of truth is `releaseCal`.   -->
+                    <!-- `inputType="date"` = numeric keyboard with separators.           -->
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etRelease"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Release date"
+                        android:inputType="date" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ============ CARD 2: Production ============ -->
+        <!-- CARD 2 — the budget and the duration.                                       -->
+        <com.google.android.material.card.MaterialCardView
+            style="?attr/materialCardViewFilledStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="20dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:text="Production"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textColor="?attr/colorPrimary" />
+
+                <!-- Budget -->
+                <!-- THE BUDGET LABEL. `tvBudget` is not used in code.                    -->
+                <TextView
+                    android:id="@+id/tvBudget"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
+                    android:text="Budget"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                <!-- THE BUDGET FIELD.                                                    -->
+                <!-- `app:prefixText="$ "` = the prefix displayed in the field, not in the text. -->
+                <!-- `inputType="numberDecimal"` = numeric keyboard with a decimal point. -->
+                <!-- RISK: the keyboard also allows an empty field. `Double.parseDouble("")` -->
+                <!--   throws `NumberFormatException` — BUG 1 in 31.4.                    -->
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:hintEnabled="false"
+                    app:prefixText="$ ">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etBudget"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Budget"
+                        android:inputType="numberDecimal" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Duration -->
+                <!-- THE ROW WITH THE LABEL AND THE DURATION VALUE.                       -->
+                <!-- `layout_weight="1"` on the label = pushes the value to the right.    -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <!-- `tvDuration` — a fixed label, unused in code.                    -->
+                    <TextView
+                        android:id="@+id/tvDuration"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Duration"
+                        android:textAppearance="?attr/textAppearanceLabelLarge"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <!-- `tvDurationValue` — THE ONLY TextView here that is              -->
+                    <!--   looked up in code. It is updated by the SeekBar listener.     -->
+                    <!-- `tools:text="148 min"` = a value only for the preview.          -->
+                    <TextView
+                        android:id="@+id/tvDurationValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0 min"
+                        android:textAppearance="?attr/textAppearanceLabelLarge"
+                        android:textColor="?attr/colorPrimary"
+                        tools:text="148 min" />
+                </LinearLayout>
+
+                <!-- THE DURATION SEEKBAR.                                                -->
+                <!-- `android:max="300"` = the maximum value. `android:min="0"` = the minimum. -->
+                <!--   `android:min` is API 26+; on older versions it is ignored.         -->
+                <!-- `progressTint` and `thumbTint` = the colour of the bar and of the handle. -->
+                <!-- `tools:progress="148"` = the position in the preview.                -->
+                <SeekBar
+                    android:id="@+id/sbDuration"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:max="300"
+                    android:min="0"
+                    android:progressTint="?attr/colorPrimary"
+                    android:thumbTint="?attr/colorPrimary"
+                    tools:progress="148" />
+
+                <!-- THE LEGEND OF THE BAR: "0 min" on the left, "300 min" on the right.  -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="0 min"
+                        android:textAppearance="?attr/textAppearanceLabelSmall"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="300 min"
+                        android:textAppearance="?attr/textAppearanceLabelSmall"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ============ CARD 3: Your verdict ============ -->
+        <!-- CARD 3 — rating, switch, check mark and parental guidance.                  -->
+        <com.google.android.material.card.MaterialCardView
+            style="?attr/materialCardViewFilledStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="20dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:text="Your verdict"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textColor="?attr/colorPrimary" />
+
+                <!-- Rating -->
+                <!-- THE RATING LABEL. `tvRating` is not used in code.                    -->
+                <TextView
+                    android:id="@+id/tvRating"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Rating"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                <!-- RATINGBAR — the star widget.                                         -->
+                <!-- `numStars="5"` = 5 stars. `stepSize="0.5"` = half stars.             -->
+                <!-- `#FFC107` = amber, the only literal colour in the file.              -->
+                <!-- `progressBackgroundTint` = the colour of the unfilled stars.         -->
+                <!-- WATCH OUT: this is `android.widget.RatingBar`, NOT                     -->
+                <!--   `android.media.Rating` from the dead import. See 31.0.5.           -->
+                <RatingBar
+                    android:id="@+id/rbRating"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="4dp"
+                    android:numStars="5"
+                    android:stepSize="0.5"
+                    android:progressTint="#FFC107"
+                    android:secondaryProgressTint="#FFC107"
+                    android:progressBackgroundTint="?attr/colorOutlineVariant"
+                    tools:rating="3.5" />
+
+                <!-- SEPARATOR LINE. `1dp` height, outline colour.                        -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginVertical="12dp"
+                    android:background="?attr/colorOutlineVariant" />
+
+                <!-- Recommended -->
+                <!-- THE ROW WITH THE SWITCH AND THE CHECK MARK. `minHeight="48dp"` = the -->
+                <!--   minimum touch target recommended by Material.                      -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp"
+                    android:orientation="horizontal">
+
+                    <!-- THE TEXT COLUMN, with `weight="1"` so it pushes the controls     -->
+                    <!--   to the right.                                                  -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <!-- `tvWatched` — the fixed label "Recommended".                 -->
+                        <TextView
+                            android:id="@+id/tvWatched"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Recommended"
+                            android:textAppearance="?attr/textAppearanceBodyLarge"
+                            android:textColor="?attr/colorOnSurface" />
+
+                        <!-- `tvWatchedValue` — the dynamic label "Yes"/"No",             -->
+                        <!--   updated by the switch listener.                            -->
+                        <TextView
+                            android:id="@+id/tvWatchedValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="No"
+                            android:textAppearance="?attr/textAppearanceLabelLarge"
+                            android:textColor="?attr/colorPrimary" />
+                    </LinearLayout>
+
+                    <!-- MATERIALSWITCH — the "Recommended" widget.                       -->
+                    <!-- The full name is mandatory: the class is from the Material       -->
+                    <!--   library, not from the framework. That is why the import        -->
+                    <!--   `android.widget.Switch` is dead. See 31.0.6.                   -->
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/swWatched"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="12dp" />
+
+                    <!-- MATERIALCHECKBOX — the "Watchlist" check mark.                   -->
+                    <!-- The ID is `cbOnWatchList`, the Java field is `cbonWatchList`.    -->
+                    <!--   They differ by a single capital letter.                        -->
+                    <com.google.android.material.checkbox.MaterialCheckBox
+                        android:id="@+id/cbOnWatchList"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Watchlist" />
+                </LinearLayout>
+
+                <!-- The second separator line. -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginVertical="12dp"
+                    android:background="?attr/colorOutlineVariant" />
+
+                <!-- Guidance -->
+                <!-- THE GUIDANCE LABEL. `tvGuidance` is not used in code.                -->
+                <TextView
+                    android:id="@+id/tvGuidance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
+                    android:text="Guidance"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                <!-- HORIZONTAL SCROLL: the 5 radio buttons do not fit on a narrow      -->
+                <!--   screen, so they can be dragged sideways. `scrollbars="none"` = no -->
+                <!--   visible indicator.                                               -->
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
+
+                    <!-- RADIOGROUP — the container that guarantees the SINGLE selection. -->
+                    <!-- `orientation="horizontal"` = the buttons sit on one row.         -->
+                    <!-- The code iterates `getChildAt(index)` and reads `getText()`.     -->
+                    <RadioGroup
+                        android:id="@+id/rgApproval"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <!-- `android:checked="true"` = "G" is selected by default.       -->
+                        <!--   That is why `saveMovie` always finds a checked button.     -->
+                        <com.google.android.material.radiobutton.MaterialRadioButton
+                            android:id="@+id/rbGeneral"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true"
+                            android:text="G" />
+
+                        <com.google.android.material.radiobutton.MaterialRadioButton
+                            android:id="@+id/rbParentGuidance"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="PG" />
+
+                        <com.google.android.material.radiobutton.MaterialRadioButton
+                            android:id="@+id/rbPG13"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="PG-13" />
+
+                        <com.google.android.material.radiobutton.MaterialRadioButton
+                            android:id="@+id/rbRestricted"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="R" />
+
+                        <com.google.android.material.radiobutton.MaterialRadioButton
+                            android:id="@+id/rbNC17"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="NC-17" />
+                    </RadioGroup>
+                </HorizontalScrollView>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ============ CARD 4: Poster ============ -->
+        <!-- CARD 4 — the poster URL.                                                    -->
+        <!-- `layout_marginBottom="24dp"` = the last card, more space up to the button.  -->
+        <com.google.android.material.card.MaterialCardView
+            style="?attr/materialCardViewFilledStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:cardCornerRadius="20dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:text="Poster"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textColor="?attr/colorPrimary" />
+
+                <!-- THE POSTER FIELD.                                                    -->
+                <!-- `inputType="textUri"` = keyboard with `/` and `.com`.                -->
+                <!-- `startIconDrawable` = the gallery icon from the framework.           -->
+                <!-- `etPoster` — the source of `movie.setPosterUrl(...)`.                -->
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:hintEnabled="false"
+                    app:endIconMode="clear_text"
+                    app:startIconContentDescription="Poster link"
+                    app:startIconDrawable="@android:drawable/ic_menu_gallery">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etPoster"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Poster URL"
+                        android:inputType="textUri" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Save -->
+        <!-- THE SAVE BUTTON.                                                            -->
+        <!-- `layout_height="60dp"` = taller than the standard, as the main action.      -->
+        <!-- `app:cornerRadius="30dp"` = fully rounded corners (half of 60).             -->
+        <!-- `app:icon` + `app:iconGravity="textStart"` = icon before the text.          -->
+        <!-- The text is changed from code in edit mode: "Update Movie".                 -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnMovieAction"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Save Movie"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
+            app:cornerRadius="30dp"
+            app:icon="@android:drawable/ic_menu_save"
+            app:iconGravity="textStart" />
+
+    </LinearLayout>
+</ScrollView>
+```
+
+**Reference table for the 13 views with an id:**
+
+| # | id in XML | Type | Java field | Role |
+|---|---|---|---|---|
+| 1 | `etTitle` | `TextInputEditText` | `etTitle` | `setTitle` / `getTitle` |
+| 2 | `etRelease` | `TextInputEditText` | `etRelease` | date display |
+| 3 | `spGenre` | `Spinner` | `spGenre` | `setGenre` |
+| 4 | `etBudget` | `TextInputEditText` | `etBudget` | `setBudget` |
+| 5 | `sbDuration` | `SeekBar` | `sbDuration` | `setDuration` |
+| 6 | `rbRating` | `RatingBar` | `rbRating` | `setRating` |
+| 7 | `rgApproval` | `RadioGroup` | `rgApproval` | `setApproval` |
+| 8 | `cbOnWatchList` | `MaterialCheckBox` | `cbonWatchList` | `setOnWatchlist` |
+| 9 | `swWatched` | `MaterialSwitch` | `swWatched` | `setWatched` |
+| 10 | `etPoster` | `TextInputEditText` | `etPoster` | `setPosterUrl` |
+| 11 | `btnMovieAction` | `MaterialButton` | `btMovieAction` | triggers `saveMovie` |
+| 12 | `tvDurationValue` | `TextView` | `tvDurationValue` | dynamic label |
+| 13 | `tvWatchedValue` | `TextView` | `tvWatchedValue` | dynamic label |
+
+**The seven fixed labels that are not looked up in code:** `tvTile`, `tvGenre`, `tvBudget`, `tvDuration`, `tvRating`, `tvWatched`, `tvGuidance`. They are fixed labels. They have an id because that is how Android Studio generated them, but nobody looks them up. The five radio buttons are not looked up by id either: `fillForm` and `saveMovie` go through them with `getChildAt(index)`.
+
+---
+
+## 31.8 The complete flow
+
+Four diagrams. Each follows a single thread, from the event to the pixel.
+
+### 31.8.1 Starting the app
+
+```
+START
+  MainActivity.onCreate(savedInstanceState = null)
+    |
+    |== super.onCreate                 -> AppCompat installs its delegate
+    |== EdgeToEdge.enable(this)         -> the windows draw under the bars
+    |== setContentView(activity_main)   -> the view tree exists
+    |== insets on R.id.main             -> padding = status bar + nav bar
+    |== addSampleMovies()               -> movies = [Inception, Toy Story, The Matrix]
+    |== new ArrayAdapter(this,
+    |       simple_list_item_1, movies) -> movieAdapter holds the REFERENCE to `movies`
+    |== initControls()                  -> fabInsert, listView, setAdapter
+    |== initListeners()                 -> FAB + item click (launcher is still null)
+    +== registerForActivityResult(...)  -> launcher created
+          |
+          v
+  ListView displays 3 rows:
+    "Movie{title='Inception', release=..., genre='Sci-Fi', ...}"
+    "Movie{title='Toy Story', ...}"
+    "Movie{title='The Matrix', ...}"
+
+  NOTE: the poster does NOT appear in any row. `toString()` does not include it.
+```
+
+### 31.8.2 Insert — FAB
+
+```
+PRESS FAB
+  fabInsert.onClick
+    |
+    |== new Intent(MainActivity.this, ItemActivity.class)   (no extras)
+    +== launcher.launch(intent)
+          |
+          v
+  MainActivity: onPause
+  ItemActivity: onCreate
+    |
+    |== setContentView(activity_item)
+    |== insets on R.id.main
+    |== initControls()          -> 13 findViewById calls
+    |== initListeners()         -> 4 listeners
+    |== getIntent()             -> Intent without MOVIE_EXTRA
+    +== existing == null        -> position stays -1, empty form
+          |
+          v
+  THE USER FILLS IT IN AND PRESSES "Save Movie"
+    |
+    |== saveMovie()
+    |     |== new Movie()
+    |     |== 9 setters from the widgets
+    |     |== loop over rgApproval -> the 10th setter
+    |     |== Intent without a target
+    |     |== putExtra(MOVIE_EXTRA, movie)
+    |     |== (position == -1, so POSITION_EXTRA is NOT put)
+    |     |== setResult(RESULT_OK, intent)
+    |     +== finish()
+    |
+    v
+  ItemActivity: onPause -> onStop -> onDestroy
+  MainActivity: onStart -> onResume -> callback
+    |
+    |== resultCode == RESULT_OK ?
+    |== intent = o.getData()
+    |== movie = (Movie) getSerializableExtra(MOVIE_EXTRA)   <- A COPY
+    |== position = getIntExtra(POSITION_EXTRA, -1)           -> -1
+    |== movies.add(movie)
+    +== movieAdapter.notifyDataSetChanged()
+          |
+          v
+  ListView redraws -> the 4th row appears
+```
+
+### 31.8.3 Edit — click on a row
+
+```
+CLICK ON ROW 1
+  listView.onItemClick(parent, view, position = 0, id = 0)
+    |
+    |== new Intent(MainActivity.this, ItemActivity.class)
+    |== putExtra(MOVIE_EXTRA, movies.get(0))    <- SERIALIZATION
+    |== putExtra(POSITION_EXTRA, 0)
+    +== launcher.launch(intent)
+          |
+          v
+  ItemActivity.onCreate
+    |
+    |== initControls() + initListeners()
+    |== existing = IntentCompat.getSerializableExtra(...)   <- COPY
+    |== existing != null
+    |     |== position = 0
+    |     |== fillForm(existing)     -> 10 fields filled
+    |     |     |   (releaseCal is NOT updated -> BUG 4)
+    |     |== setTitle("Edit movie")
+    |     +== btMovieAction.setText("Update Movie")
+    +== (the form shows the existing movie)
+          |
+          v
+  THE USER MODIFIES IT AND PRESSES "Update Movie"
+    |
+    |== saveMovie()
+    |     |== new Movie() + 10 setters
+    |     |== putExtra(MOVIE_EXTRA, movie)
+    |     |== position != -1 -> putExtra(POSITION_EXTRA, 0)
+    |     +== setResult + finish()
+    |
+    v
+  MainActivity callback
+    |== position = 0 (not -1)
+    |== movies.set(0, movie)        <- REPLACEMENT, not addition
+    +== notifyDataSetChanged()
+          |
+          v
+  Row 1 is redrawn with the new data
+```
+
+### 31.8.4 The object that travels
+
+```
+MainActivity                          Intent / Bundle                ItemActivity
+------------                          ---------------                ------------
+
+movies: List<Movie>
+  [0] Movie@A  ---------------------+
+  [1] Movie@B                       |
+  [2] Movie@C                       |
+                                    |  putExtra("movie", Movie@A)
+                                    v
+                          serialize(Movie@A) -> bytes
+                                    |
+                                    v
+                          Bundle { "movie" -> bytes,
+                                   "position" -> 0 }
+                                    |
+                                    v
+                          deserialize(bytes) -> Movie@A'
+                                    |
+                                    v
+                                                       existing = Movie@A'
+                                                       (NEW object, new address)
+                                    |
+                        fillForm(existing) reads
+                        saveMovie() creates Movie@D
+                                    |
+                                    v
+                          Intent result { "movie" -> Movie@D,
+                                            "position" -> 0 }
+                                    |
+                                    v
+                          movies.set(0, Movie@D)
+                                    |
+                                    v
+                          Movie@A stays in the heap until GC
+```
+
+**The practical consequence:** the change in the form is not visible in the list until `movies.set(...)`. There is no "link" between the object in the list and the one in the form — they are two distinct objects, with distinct addresses.
+
+### 31.8.5 The lifecycle — what happens to the state
+
+```
+MainActivity                          ItemActivity
+------------                          ------------
+
+onCreate
+onStart
+onResume   <-- the screen is visible
+   |
+   |  launcher.launch(...)
+   v
+onPause    ------------------------>  onCreate
+                                      onStart
+                                      onResume   <-- the form is visible
+                                         |
+                                         |  saveMovie() -> setResult -> finish()
+                                         v
+onResume   <-- the callback runs    onPause
+   |                                onStop
+   |                                onDestroy
+   v
+(the list screen, updated)
+
+IF THE USER PRESSES BACK IN THE FORM:
+  ItemActivity: onPause -> onStop -> onDestroy
+  MainActivity: onResume
+  the callback does NOT run with RESULT_OK -> the list stays unchanged
+
+IF THE SYSTEM KILLS THE PROCESS WHILE THE FORM IS OPEN:
+  the form state is lost, because it is not saved in `onSaveInstanceState`
+  `movies` is lost too, because it is not persistent
+  (the didactic app has no `SharedPreferences`, database or file)
+```
+
+### 31.8.6 Row recycling in the ListView
+
+```
+ListView has 7 visible rows, the list has 100 elements.
+
+  screen: [0][1][2][3][4][5][6]
+
+  you scroll down:
+    row 0 goes out at the top  ->  convertView = row 0
+    row 7 comes in at the bottom <-  ArrayAdapter.getView(7, convertView, parent)
+
+  ArrayAdapter:
+    if convertView != null:
+        reuses the view (it no longer inflates the XML)
+    TextView.setText(movies.get(7).toString())
+
+  WHY it matters: without recycling, 100 rows would mean 100 inflates.
+    With recycling, there are ~8 views for any number of elements.
+
+  WHY `notifyDataSetChanged()` is necessary:
+    ListView does NOT observe the list. It only knows what the adapter told it at the last bind.
+    `notifyDataSetChanged()` -> adapter.notifyChanged() -> ListView re-binds
+    the visible rows.
+```
+
+---
+
+## 31.9 What to remember from each file
+
+| File | The essence | The trap |
+|---|---|---|
+| `Movie.java` | a serializable POJO, 10 fields, an explicit empty constructor, `isX()` for booleans, `toString()` = the display contract | the constructor with 10 parameters is POSITIONAL; the poster is missing from `toString()` |
+| `MainActivity.java` | the order in `onCreate`, `ArrayAdapter`, `registerForActivityResult`, `notifyDataSetChanged` | `launcher` is assigned AFTER `initListeners`; two dead imports |
+| `ItemActivity.java` | 13 `findViewById` calls, `releaseCal` as the source of truth, a generic loop over the `RadioGroup`, `setResult` + `finish` | empty budget -> crash; null date -> crash; `releaseCal` not synchronized on edit; three dead imports |
+| `AndroidManifest.xml` | two activities, `exported`, `windowSoftInputMode`, the theme | `android:exported` is mandatory from API 31 |
+| `activity_main.xml` | `FrameLayout` + the order of the children + `layout_gravity` on the FAB | `android:orientation` is invalid on a FrameLayout |
+| `activity_item.xml` | a `ScrollView` with one child, `MaterialCardView` as a section, `TextInputLayout`, a wrapped `Spinner` | `hintEnabled` must be correlated with the existence of the label; 7 fixed labels unused |
+
+### The 10 things you will have been asked
+
+1. **Why `implements Serializable`?** So it can be put in an `Intent` with `putExtra`.
+2. **Is the received object the original?** No. It is a deserialized copy.
+3. **Why an explicit empty constructor?** A constructor with parameters suppresses the implicit constructor, and `saveMovie` does `new Movie()`.
+4. **Why `isWatched()`?** The JavaBeans convention for `boolean`.
+5. **Why `notifyDataSetChanged()`?** ListView does not observe the list; the adapter must announce it.
+6. **Why `MainActivity.this`?** In the anonymous class, `this` is the listener, not the `Context`.
+7. **Why `releaseCal` and not `etRelease`?** The calendar is the source of truth; the text can be invalid.
+8. **Why is `fromUser` ignored?** The label must reflect the value also when it comes from code.
+9. **Why `0dp` + `weight`?** "Take all the remaining space", not "take the natural size".
+10. **Which imports are dead in G1099?** `Toast` and `Date` in `MainActivity`; `Rating`, `Switch` and `Snackbar` in `ItemActivity`.
+
+### The differences that can be questions
+
+| Possible question | Short answer |
+|---|---|
+| What type does the poster field have in G1099? | `String posterUrl`, without `= null` |
+| What is the poster getter called? | `getPosterUrl()` — not `getPoster()` |
+| Does the poster appear in the list? | No — `toString()` does not include it |
+| Where is the no-parameter constructor? | First, at line 18, before the one with parameters |
+| What is `android.media.Rating`? | A media rating class, API 21+, unused here |
+| What widget produces the rating? | `RatingBar`, from `android.widget` |
+| Does `movie_item.xml` exist? | No, in G1099 it does not exist |
+
+---
+
+## Chapter 31 summary
+
+- The model does not touch the UI; the activities contain no row logic.
+- `onCreate`: `super` -> `EdgeToEdge` -> `setContentView` -> insets -> data -> adapter -> controls -> listeners -> launcher.
+- `releaseCal` is the source of truth for the date, not the text in the `EditText`.
+- The loop over the `RadioGroup` makes the code generic — you add buttons in XML, the code sees them.
+- `setResult(RESULT_OK, intent)` + `finish()` is the mandatory pair.
+- `notifyDataSetChanged()` after any change to the list.
+- The poster exists in the model, it has a getter and a setter, but it does not appear in `toString()` and it has no `= null`.
+- `android.media.Rating` is a dead import that looks like `RatingBar` — the best reading trap in the chapter.
+- Four real bugs: empty budget, null `release`, scientific notation, `releaseCal` not synchronized on edit.
+- G1099 has six files, not seven: `movie_item.xml` is missing.
+
+**Back to** [cheatsheet](21%20-%20Cheatsheet.md) **or to** [the overview](index.html).

@@ -1872,7 +1872,6 @@ public class ItemActivity extends AppCompatActivity {
                 // `setTime(Date)` copiază milisecundele în Calendar.
                 if (parsed != null)
                     releaseCal.setTime(parsed);
-            }
 
             // `catch` GOL, cu nume `ignored`.
             // ==========================================================================
