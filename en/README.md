@@ -54,7 +54,7 @@ A step is “done” when: the code compiles, the app runs, and you can explain 
 
 ## Chapter order
 
-### Part I — The G1097 app, from scratch
+### Path 1 — Rebuild from scratch
 
 | # | File | What you learn | Steps |
 |---|---|---|---|
@@ -70,7 +70,7 @@ A step is “done” when: the code compiles, the app runs, and you can explain 
 | 10 | [10 - Reconstruieste de la zero.md](10%20-%20Reconstruieste%20de%20la%20zero.md) | Final drill, timed, without the material | — |
 | 11 | [11 - Extensii.md](11%20-%20Extensii.md) | `RecyclerView`, `ViewHolder`, `onBindViewHolder`, new attributes | 11.1–11.14 |
 
-### Part II — The course projects and the repo history
+### Appendix — The course projects and the repo history
 
 | # | File | What you learn | Steps |
 |---|---|---|---|
@@ -82,7 +82,7 @@ A step is “done” when: the code compiles, the app runs, and you can explain 
 
 > **Part I** builds your app. **Part II** covers the rest of the repo: the four course projects (which contain exactly what G1097 lacks — RecyclerView, ViewBinding, menus, the lifecycle) and the complete history.
 
-### Part III — Seminar-style practice: 60 exam requirements
+### Path 2 — Exam exercises: 60 requirements
 
 Every requirement has: the prompt, files touched, **"How you approach it — your steps"** (4–6 concrete actions), **two graduated hints**, then the collapsible solution with an explanation.
 
@@ -95,7 +95,7 @@ Every requirement has: the prompt, files touched, **"How you approach it — you
 | 23 | [23 - Bancul 5 - Migrare ListView la RecyclerView.md](23%20-%20Bancul%205%20-%20Migrare%20ListView%20la%20RecyclerView.md) | The complete migration, in 10 steps that each compile | 23.1–23.10 |
 | 24 | [24 - Bancul 6 - Persistenta si verificare.md](24%20-%20Bancul%206%20-%20Persistenta%20si%20verificare.md) | Does the data save? Verification, debugging, `SharedPreferences` | 24.1–24.10 |
 
-### Part IV — Reference
+### Path 3 — Explained code + cheatsheet
 
 | # | File | What it contains |
 |---|---|---|

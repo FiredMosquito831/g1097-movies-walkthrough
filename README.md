@@ -54,7 +54,7 @@ Un pas e „gata” când: codul compilează, aplicația rulează, și poți exp
 
 ## Ordinea capitolelor
 
-### Partea I — Aplicația G1097, de la zero
+### Calea 1 — Rescrie de la 0
 
 | # | Fișier | Ce înveți | Pași |
 |---|---|---|---|
@@ -70,7 +70,7 @@ Un pas e „gata” când: codul compilează, aplicația rulează, și poți exp
 | 10 | [10 - Reconstruieste de la zero.md](10%20-%20Reconstruieste%20de%20la%20zero.md) | Drill final, cronometrat, fără material | — |
 | 11 | [11 - Extensii.md](11%20-%20Extensii.md) | `RecyclerView`, `ViewHolder`, `onBindViewHolder`, atribute noi | 11.1–11.14 |
 
-### Partea II — Proiectele de curs și istoricul repo-ului
+### Anexe — Proiectele de curs și istoricul repo-ului
 
 | # | Fișier | Ce înveți | Pași |
 |---|---|---|---|
@@ -82,7 +82,7 @@ Un pas e „gata” când: codul compilează, aplicația rulează, și poți exp
 
 > **Partea I** construiește aplicația ta. **Partea II** acoperă restul repo-ului: cele patru proiecte de curs (care conțin exact lucrurile care lipsesc din G1097 — RecyclerView, ViewBinding, meniuri, ciclu de viață) și istoricul complet.
 
-### Partea III — Practică în stil seminar: 60 de cerințe de examen
+### Calea 2 — Exerciții tip test: 60 de cerințe de examen
 
 Fiecare cerință are: enunț, fișiere atinse, **„Cum abordezi — pașii tăi"** (4–6 acțiuni concrete), **două indicii gradate**, apoi soluția pliabilă cu explicație.
 
@@ -95,7 +95,7 @@ Fiecare cerință are: enunț, fișiere atinse, **„Cum abordezi — pașii tă
 | 23 | [23 - Bancul 5 - Migrare ListView la RecyclerView.md](23%20-%20Bancul%205%20-%20Migrare%20ListView%20la%20RecyclerView.md) | Migrarea completă, în 10 pași care compilează fiecare | 23.1–23.10 |
 | 24 | [24 - Bancul 6 - Persistenta si verificare.md](24%20-%20Bancul%206%20-%20Persistenta%20si%20verificare.md) | Se salvează datele? Verificare, debug, `SharedPreferences` | 24.1–24.10 |
 
-### Partea IV — Referință
+### Calea 3 — Codul explicat + cheatsheet
 
 | # | Fișier | Ce conține |
 |---|---|---|
