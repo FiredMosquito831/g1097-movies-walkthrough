@@ -67,6 +67,10 @@ CHAPTERS = [
      "21 - Cheatsheet.md", "21 - Cheatsheet.md"),
     ("22", "Codul adnotat", "Annotated code",
      "22 - Codul adnotat.md", "22 - Annotated code.md"),
+    ("23", "Bancul 5 — Migrare ListView → RecyclerView", "Bank 5 — ListView to RecyclerView",
+     "23 - Bancul 5 - Migrare ListView la RecyclerView.md", "23 - Bank 5 - ListView to RecyclerView.md"),
+    ("24", "Bancul 6 — Persistență și verificare", "Bank 6 — Persistence and verification",
+     "24 - Bancul 6 - Persistenta si verificare.md", "24 - Bank 6 - Persistence and verification.md"),
 ]
 
 MD_EXT = ["extra", "codehilite", "toc", "tables", "fenced_code", "attr_list",
@@ -207,7 +211,36 @@ def preprocess(raw: str, lang: str):
     text = "\n".join(out)
     text = re.sub(r"\]\((\d\d)%20-%20[^)]*\.md\)", r"](cap-\1.html)", text)
     text = re.sub(r"\]\((?:README|index)\.md\)", r"](index.html)", text)
+    text = fix_lists(text)
     return text, items
+
+
+def fix_lists(text: str) -> str:
+    """Markdown needs a blank line before a list that follows a paragraph.
+    Chapters often write '**Cum abordezi:**' immediately followed by '1. ...',
+    which collapses into one paragraph. Insert the blank line."""
+    lines = text.split("\n")
+    out = []
+    in_fence = False
+    prev_blank = True
+    for ln in lines:
+        if ln.lstrip().startswith("```"):
+            in_fence = not in_fence
+            out.append(ln)
+            prev_blank = False
+            continue
+        if not in_fence:
+            is_list = bool(re.match(r"^\s*(?:[-*+]|\d+\.)\s+\S", ln))
+            if is_list and not prev_blank:
+                prev = out[-1] if out else ""
+                if prev.strip() and not re.match(r"^\s*(?:[-*+]|\d+\.)\s+\S", prev) \
+                        and not re.match(r"^#{1,6}\s", prev) \
+                        and not prev.lstrip().startswith(">") \
+                        and not prev.lstrip().startswith("<"):
+                    out.append("")
+        out.append(ln)
+        prev_blank = (ln.strip() == "")
+    return "\n".join(out)
 
 
 def add_drill_checkpoint(md_text: str, num: str, items: list, lang: str) -> str:

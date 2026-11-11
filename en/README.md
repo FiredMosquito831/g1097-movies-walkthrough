@@ -82,6 +82,26 @@ A step is “done” when: the code compiles, the app runs, and you can explain 
 
 > **Part I** builds your app. **Part II** covers the rest of the repo: the four course projects (which contain exactly what G1097 lacks — RecyclerView, ViewBinding, menus, the lifecycle) and the complete history.
 
+### Part III — Seminar-style practice: 60 exam requirements
+
+Every requirement has: the prompt, files touched, **"How you approach it — your steps"** (4–6 concrete actions), **two graduated hints**, then the collapsible solution with an explanation.
+
+| # | File | Requirement type | Exercises |
+|---|---|---|---|
+| 17 | [17 - Bancul 1 - Atribute noi.md](17%20-%20Bancul%201%20-%20Atribute%20noi.md) | Add an attribute (`String`, `Integer`, `boolean`, `float`, `ArrayList`, new class) | 17.1–17.10 |
+| 18 | [18 - Bancul 2 - Bindinguri si adaptoare.md](18%20-%20Bancul%202%20-%20Bindinguri%20si%20adaptoare.md) | Bind values, change a widget, build an adapter | 18.1–18.10 |
+| 19 | [19 - Bancul 3 - Valori in UI si persistenta.md](19%20-%20Bancul%203%20-%20Valori%20in%20UI%20si%20persistenta.md) | Value → label, widget → model, list → screen, rotation | 19.1–19.10 |
+| 20 | [20 - Bancul 4 - Controale noi.md](20%20-%20Bancul%204%20-%20Controale%20noi.md) | Add a button, switch, chip, FAB, spinner | 20.1–20.10 |
+| 23 | [23 - Bancul 5 - Migrare ListView la RecyclerView.md](23%20-%20Bancul%205%20-%20Migrare%20ListView%20la%20RecyclerView.md) | The complete migration, in 10 steps that each compile | 23.1–23.10 |
+| 24 | [24 - Bancul 6 - Persistenta si verificare.md](24%20-%20Bancul%206%20-%20Persistenta%20si%20verificare.md) | Does the data save? Verification, debugging, `SharedPreferences` | 24.1–24.10 |
+
+### Part IV — Reference
+
+| # | File | What it contains |
+|---|---|---|
+| 21 | [21 - Cheatsheet.md](21%20-%20Cheatsheet.md) | File map, model, IDs, ViewBinding, the listener table, the adapter decision tree, intents, lifecycle, common errors, exam recipes |
+| 22 | [22 - Codul adnotat.md](22%20-%20Codul%20adnotat.md) | All six G1097 files explained block by block, plus the complete flow |
+
 ---
 
 ## Progress table

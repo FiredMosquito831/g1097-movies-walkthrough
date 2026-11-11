@@ -82,6 +82,26 @@ Un pas e „gata” când: codul compilează, aplicația rulează, și poți exp
 
 > **Partea I** construiește aplicația ta. **Partea II** acoperă restul repo-ului: cele patru proiecte de curs (care conțin exact lucrurile care lipsesc din G1097 — RecyclerView, ViewBinding, meniuri, ciclu de viață) și istoricul complet.
 
+### Partea III — Practică în stil seminar: 60 de cerințe de examen
+
+Fiecare cerință are: enunț, fișiere atinse, **„Cum abordezi — pașii tăi"** (4–6 acțiuni concrete), **două indicii gradate**, apoi soluția pliabilă cu explicație.
+
+| # | Fișier | Tipul de cerință | Exerciții |
+|---|---|---|---|
+| 17 | [17 - Bancul 1 - Atribute noi.md](17%20-%20Bancul%201%20-%20Atribute%20noi.md) | Adaugă un atribut (`String`, `Integer`, `boolean`, `float`, `ArrayList`, clasă nouă) | 17.1–17.10 |
+| 18 | [18 - Bancul 2 - Bindinguri si adaptoare.md](18%20-%20Bancul%202%20-%20Bindinguri%20si%20adaptoare.md) | Leagă valori, schimbă un widget, fă un adapter | 18.1–18.10 |
+| 19 | [19 - Bancul 3 - Valori in UI si persistenta.md](19%20-%20Bancul%203%20-%20Valori%20in%20UI%20si%20persistenta.md) | Valoare → etichetă, widget → model, listă → ecran, rotire | 19.1–19.10 |
+| 20 | [20 - Bancul 4 - Controale noi.md](20%20-%20Bancul%204%20-%20Controale%20noi.md) | Adaugă buton, switch, chip, FAB, spinner | 20.1–20.10 |
+| 23 | [23 - Bancul 5 - Migrare ListView la RecyclerView.md](23%20-%20Bancul%205%20-%20Migrare%20ListView%20la%20RecyclerView.md) | Migrarea completă, în 10 pași care compilează fiecare | 23.1–23.10 |
+| 24 | [24 - Bancul 6 - Persistenta si verificare.md](24%20-%20Bancul%206%20-%20Persistenta%20si%20verificare.md) | Se salvează datele? Verificare, debug, `SharedPreferences` | 24.1–24.10 |
+
+### Partea IV — Referință
+
+| # | Fișier | Ce conține |
+|---|---|---|
+| 21 | [21 - Cheatsheet.md](21%20-%20Cheatsheet.md) | Harta fișierelor, model, ID-uri, ViewBinding, tabelul de listeneri, arborele de decizie pentru adaptoare, intents, ciclu de viață, erori frecvente, rețete pentru examen |
+| 22 | [22 - Codul adnotat.md](22%20-%20Codul%20adnotat.md) | Toate cele 6 fișiere G1097 explicate bloc cu bloc, plus fluxul complet |
+
 ---
 
 ## Tabel de progres
