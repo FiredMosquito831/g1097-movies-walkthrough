@@ -423,9 +423,9 @@ The simplest way: add a new `string-array` in `strings.xml` and copy the `TextVi
 
 ```xml
 <string-array name="movie_language">
-    <item>Română</item>
-    <item>Engleză</item>
-    <item>Franceză</item>
+    <item>Romanian</item>
+    <item>English</item>
+    <item>French</item>
 </string-array>
 ```
 

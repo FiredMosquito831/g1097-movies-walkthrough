@@ -46,9 +46,19 @@
 6. Write the `clearForm()` method at the end of the class: it empties the three `EditText`s and resets `spGenre`, `sbDuration`, `rbRating`, `swWatched`, `cbonWatchList`, `rgApproval` — plus, mandatorily, `releaseCal`.
 7. Check: Run, fill in the whole form, press "Clear form". All the fields empty out, the duration label reads "0 min.", the switch's label reads "No", the rating drops to zero. Then fill in only the title and save: the movie must have today's date, not the date you had picked before the clear.
 
-**Hint 1 — if you get stuck at step 2:** the button goes in as a sibling of `btnMovieAction`, not inside it. If you put it after `</LinearLayout>`, it becomes the second direct child of the `ScrollView` and you get "ScrollView can host only one direct child".
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 2</summary>
 
-**Hint 2 — if you get stuck at step 6:** `sbDuration.setProgress(0)` and `swWatched.setChecked(false)` update their own labels, because the listeners from `initListeners()` are already attached. You don't have to write `tvDurationValue.setText("0 min.")` yourself.
+the button goes in as a sibling of `btnMovieAction`, not inside it. If you put it after `</LinearLayout>`, it becomes the second direct child of the `ScrollView` and you get "ScrollView can host only one direct child".
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 6</summary>
+
+`sbDuration.setProgress(0)` and `swWatched.setChecked(false)` update their own labels, because the listeners from `initListeners()` are already attached. You don't have to write `tvDurationValue.setText("0 min.")` yourself.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -134,9 +144,19 @@ private void clearForm() {
 5. In `initListeners()`, add `fabCount.setOnClickListener(...)` which shows `Toast.makeText(MainActivity.this, movies.size() + " movies", Toast.LENGTH_SHORT).show();`.
 6. Check: Run. A second round button appears bottom-left. Tap it: "3 movies". Add a movie, tap it again: "4 movies".
 
-**Hint 1 — if you get stuck at step 2:** `FrameLayout` positions its children by `android:layout_gravity`. `bottom|end` = bottom-right, `bottom|start` = bottom-left. If you forget `layout_gravity`, the button sits in the top-left corner, on top of the list.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 2</summary>
 
-**Hint 2 — if you get stuck at step 5:** `Toast.makeText(...)` needs a `Context`. In an anonymous class you write `MainActivity.this`; in a lambda `this` is already `MainActivity`. `MainActivity.this` works in both cases, so it's the safe choice.
+`FrameLayout` positions its children by `android:layout_gravity`. `bottom|end` = bottom-right, `bottom|start` = bottom-left. If you forget `layout_gravity`, the button sits in the top-left corner, on top of the list.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 5</summary>
+
+`Toast.makeText(...)` needs a `Context`. In an anonymous class you write `MainActivity.this`; in a lambda `this` is already `MainActivity`. `MainActivity.this` works in both cases, so it's the safe choice.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -207,9 +227,19 @@ fabCount.setOnClickListener(new View.OnClickListener() {
 6. In `MainActivity.java`, in the launcher callback, add the branch `else if (o.getResultCode() == ItemActivity.RESULT_DELETE)`.
 7. Check: Run, tap a movie, press Delete — the row disappears from the list. Tap the "+" FAB: the Delete button isn't visible.
 
-**Hint 1 — if you get stuck at step 2:** result codes are `int`s. `RESULT_OK` = -1, `RESULT_CANCELED` = 0, `RESULT_FIRST_USER` = 1. Any custom code must be ≥ 1; use 2 or `RESULT_FIRST_USER`.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 2</summary>
 
-**Hint 2 — if you get stuck at step 6:** `o.getData()` can be `null` when the result has no Intent. Check `data != null` before `getIntExtra`, otherwise you get a `NullPointerException` right on the new branch.
+result codes are `int`s. `RESULT_OK` = -1, `RESULT_CANCELED` = 0, `RESULT_FIRST_USER` = 1. Any custom code must be ≥ 1; use 2 or `RESULT_FIRST_USER`.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 6</summary>
+
+`o.getData()` can be `null` when the result has no Intent. Check `data != null` before `getIntExtra`, otherwise you get a `NullPointerException` right on the new branch.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -320,9 +350,19 @@ if (o.getResultCode() == RESULT_OK) {
 7. Replace `movies.get(position)` in the click with `visibleMovies.get(position)` and send `movies.indexOf(movie)` as the position.
 8. Check: Run. Turn the switch on: only Inception and Toy Story remain (both have `watched = true`). Add a new movie with the switch on: it doesn't appear until you turn the switch off.
 
-**Hint 1 — if you get stuck at step 6:** don't filter `movies` directly. `movies` is the data source; if you empty it, the movies are lost for good. Filtering happens in a second list, `visibleMovies`, which the adapter reads.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 6</summary>
 
-**Hint 2 — if you get stuck at step 4:** `ArrayAdapter` keeps the reference to the list it received in the constructor. If you change the list's contents (`clear()` + `add()`), the adapter sees the change after `notifyDataSetChanged()`. If you replace the reference (`visibleMovies = new ArrayList<>()`), the adapter stays on the old list and you no longer see anything.
+don't filter `movies` directly. `movies` is the data source; if you empty it, the movies are lost for good. Filtering happens in a second list, `visibleMovies`, which the adapter reads.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 4</summary>
+
+`ArrayAdapter` keeps the reference to the list it received in the constructor. If you change the list's contents (`clear()` + `add()`), the adapter sees the change after `notifyDataSetChanged()`. If you replace the reference (`visibleMovies = new ArrayList<>()`), the adapter stays on the old list and you no longer see anything.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -436,9 +476,19 @@ And in the launcher callback, both `movieAdapter.notifyDataSetChanged()` calls a
 7. In `MainActivity`, change `new ArrayAdapter<>(...)` to `new MovieAdapter(this, visibleMovies)`.
 8. Check: Run. Inception (2010) and Toy Story (1995) have no chip; add a movie with today's date — it appears with "New". Add one from 2015 — no chip.
 
-**Hint 1 — if you get stuck at step 3:** `ArrayAdapter` asks for a layout in the constructor, but if you override `getView()` you can pass `0`. Nothing is inflated with it; you only use it so `getItem()` and `getCount()` are ready-made.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 3</summary>
 
-**Hint 2 — if you get stuck at step 6:** `convertView` is reused. If you set `chipNew` visible for a new movie and don't hide it for the next one, the chip stays stuck on the recycled row. That's why `setVisibility` is done on every `getView`, in both branches — `VISIBLE` and `GONE`.
+`ArrayAdapter` asks for a layout in the constructor, but if you override `getView()` you can pass `0`. Nothing is inflated with it; you only use it so `getItem()` and `getCount()` are ready-made.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 6</summary>
+
+`convertView` is reused. If you set `chipNew` visible for a new movie and don't hide it for the next one, the chip stays stuck on the recycled row. That's why `setVisibility` is done on every `getView`, in both branches — `VISIBLE` and `GONE`.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -581,9 +631,19 @@ movieAdapter = new MovieAdapter(this, visibleMovies);   // before: new ArrayAdap
 5. Also change `android:contentDescription` from "Add" to something that describes the new action.
 6. Check: Run. The round button now has a star. If it appears black on the colored background, add `app:tint="?attr/colorOnPrimaryContainer"` to the FAB or remove `android:tint` from the vector.
 
-**Hint 1 — if you get stuck at step 1:** the dialog has two screens. The first picks the type and the icon; the second picks the name and the color. If you close it on the first, nothing was created.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 1</summary>
 
-**Hint 2 — if you get stuck at step 4:** the name matters. `ic_star_24` becomes `R.drawable.ic_star_24`. Resources want lowercase letters, digits and underscores — no capitals, no hyphens, no spaces.
+the dialog has two screens. The first picks the type and the icon; the second picks the name and the color. If you close it on the first, nothing was created.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 4</summary>
+
+the name matters. `ic_star_24` becomes `R.drawable.ic_star_24`. Resources want lowercase letters, digits and underscores — no capitals, no hyphens, no spaces.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -652,9 +712,19 @@ movieAdapter = new MovieAdapter(this, visibleMovies);   // before: new ArrayAdap
 7. Change the adapter construction to `new MovieAdapter(this, visibleMovies, this::openForEdit)`.
 8. Check: Run. Tap the card outside the button — nothing. Tap "Edit" — the filled-in form opens, the screen title is "Edit movie", and the save button reads "Update Movie".
 
-**Hint 1 — if you get stuck at step 6:** `position` in `getView` is the position in the displayed list, not in `movies`. When you filter (20.4), the two differ. That's why `MainActivity` receives the position from the list and translates it with `movies.indexOf(movie)`.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 6</summary>
 
-**Hint 2 — if you get stuck at step 4:** the listener is attached on every `getView`, not once. If you put it only in the `convertView == null` branch, the recycled row's button will open the movie that was there on the first inflation.
+`position` in `getView` is the position in the displayed list, not in `movies`. When you filter (20.4), the two differ. That's why `MainActivity` receives the position from the list and translates it with `movies.indexOf(movie)`.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 4</summary>
+
+the listener is attached on every `getView`, not once. If you put it only in the `convertView == null` branch, the recycled row's button will open the movie that was there on the first inflation.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -751,9 +821,19 @@ movieAdapter = new MovieAdapter(this, visibleMovies, this::openForEdit);
 6. Write `sortMovies(int mode)`: 0 → `refreshList()`, 1 → sort by title, 2 → sort by rating descending, then `notifyDataSetChanged()`.
 7. Check: Run. Pick "Title A-Z": Inception, The Matrix, Toy Story. Pick "Rating (best first)": The Matrix (5), Inception (4.5), Toy Story (4). Pick "As added": the initial order.
 
-**Hint 1 — if you get stuck at step 5:** `Spinner` needs **two** methods in the listener, even if `onNothingSelected` does nothing. If you try it with a lambda, it doesn't compile — the interface isn't functional.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 5</summary>
 
-**Hint 2 — if you get stuck at step 6:** sorting is done on `visibleMovies`, not on `movies`. `movies` keeps the insertion order, and "As added" restores it through `refreshList()`.
+`Spinner` needs **two** methods in the listener, even if `onNothingSelected` does nothing. If you try it with a lambda, it doesn't compile — the interface isn't functional.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 6</summary>
+
+sorting is done on `visibleMovies`, not on `movies`. `movies` keeps the insertion order, and "As added" restores it through `refreshList()`.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -849,9 +929,19 @@ private void sortMovies(int mode) {
 5. Press Save right after you emptied Budget: the app crashes with `NumberFormatException`. Note down why — that's the theory question.
 6. Open `ItemActivity.java` and trace `saveMovie()`: `Double.parseDouble(etBudget.getText().toString())`. Confirm that the clear didn't touch anything else.
 
-**Hint 1 — if you get stuck at step 3:** the attribute sits on the `TextInputLayout`, not on the `TextInputEditText`. If you put it on the edit text, it's ignored without an error — and the button doesn't appear.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 3</summary>
 
-**Hint 2 — if you get stuck at step 5:** `endIconMode` has fixed values: `clear_text`, `password_toggle`, `dropdown_menu`, `custom`, `none`. Anything else gives a build error, with the attribute's name.
+the attribute sits on the `TextInputLayout`, not on the `TextInputEditText`. If you put it on the edit text, it's ignored without an error — and the button doesn't appear.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 5</summary>
+
+`endIconMode` has fixed values: `clear_text`, `password_toggle`, `dropdown_menu`, `custom`, `none`. Anything else gives a build error, with the attribute's name.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -933,9 +1023,19 @@ The title block, already in the code, for comparison:
 7. In the callback, if `getBooleanExtra(DUPLICATE_EXTRA, false)` is true, add the movie twice.
 8. Check: Run, fill in the form, press "Duplicate movie". Two identical rows appear in the list. Edit an existing movie and press "Duplicate movie": the list grows by one copy, the original movie stays.
 
-**Hint 1 — if you get stuck at step 5:** `RESULT_OK` alone can't say "add twice". You need a second information channel in the same Intent — a `boolean` extra. The result code stays `RESULT_OK`, because the operation is still a save.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 5</summary>
 
-**Hint 2 — if you get stuck at step 7:** if you send `POSITION_EXTRA`, `MainActivity` takes the edit branch and replaces the existing movie, it doesn't add. For a duplicate, the position has to be missing — then `getIntExtra(POSITION_EXTRA, -1)` returns -1, that is "insert".
+`RESULT_OK` alone can't say "add twice". You need a second information channel in the same Intent — a `boolean` extra. The result code stays `RESULT_OK`, because the operation is still a save.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 7</summary>
+
+if you send `POSITION_EXTRA`, `MainActivity` takes the edit branch and replaces the existing movie, it doesn't add. For a duplicate, the position has to be missing — then `getIntExtra(POSITION_EXTRA, -1)` returns -1, that is "insert".
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>

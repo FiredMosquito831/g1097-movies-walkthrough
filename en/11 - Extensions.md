@@ -57,7 +57,7 @@ With `ViewHolder`:
 ```java
 if (convertView == null) {
     convertView = inflater.inflate(R.layout.movie_item, parent, false);
-    holder = new MovieViewHolder(convertView);   // ← o singură dată
+    holder = new MovieViewHolder(convertView);   // ← only once
     convertView.setTag(holder);
 } else {
     holder = (MovieViewHolder) convertView.getTag();
@@ -482,7 +482,7 @@ For chips, you want `GONE`: if it isn't “watched”, the chip disappears compl
 private RecyclerView recyclerView;
 private MovieAdapter movieAdapter;
 
-// în onCreate, înlocuiește:
+// in onCreate, replace:
 // movieAdapter = new ArrayAdapter<>(...);
 movieAdapter = new MovieAdapter(movies, position -> {
     Intent intent = new Intent(MainActivity.this, ItemActivity.class);
@@ -491,12 +491,12 @@ movieAdapter = new MovieAdapter(movies, position -> {
     launcher.launch(intent);
 });
 
-// în initControls:
+// in initControls:
 recyclerView = findViewById(R.id.recyclerView);
 recyclerView.setLayoutManager(new LinearLayoutManager(this));
 recyclerView.setAdapter(movieAdapter);
 
-// în initListeners: șterge listView.setOnItemClickListener(...)
+// in initListeners: delete listView.setOnItemClickListener(...)
 ```
 
 #### `LayoutManager`
@@ -590,7 +590,7 @@ You want to add a “country of production” — a `String` that appears on the
 ```java
 private String country;
 
-// în constructorul complet, adaugă la final:
+// in the full constructor, add at the end:
 public Movie(String title, Date release, String genre, double budget,
              int duration, float rating, boolean watched, String approval,
              boolean onWatchlist, String poster, String country) {
@@ -672,13 +672,13 @@ In `movie_item.xml`, after `movieFacts`:
 #### How — step 5: the adapter
 
 ```java
-// în ViewHolder:
+// in ViewHolder:
 private final TextView movieCountry;
 
-// în constructor:
+// in constructor:
 movieCountry = itemView.findViewById(R.id.movieCountry);
 
-// în bind:
+// in bind:
 movieCountry.setText(movie.getCountry() != null ? movie.getCountry() : "");
 ```
 
@@ -724,7 +724,7 @@ A **derived** attribute is not saved — it's calculated. “Recent movie” = r
 #### How
 
 ```java
-// în Movie.java:
+// in Movie.java:
 public boolean isRecent() {
     if (release == null) return false;
     Calendar fiveYearsAgo = Calendar.getInstance();
@@ -826,7 +826,7 @@ In `movie_item.xml`, add an `ImageButton`:
 #### How — step 3: the adapter
 
 ```java
-// în ViewHolder:
+// in ViewHolder:
 private final ImageButton btnDelete;
 
 // constructor:
@@ -950,13 +950,13 @@ A vertical `LinearLayout` with a `TextInputLayout` (wrap_content) and a `FrameLa
 #### How to filter
 
 ```java
-private final List<Movie> allMovies = new ArrayList<>();  // lista completă
-private final List<Movie> movies = new ArrayList<>();     // lista filtrată
+private final List<Movie> allMovies = new ArrayList<>();  // the full list
+private final List<Movie> movies = new ArrayList<>();     // the filtered list
 
-// în onCreate, după addSampleMovies:
+// in onCreate, after addSampleMovies:
 allMovies.addAll(movies);
 
-// în initListeners:
+// in initListeners:
 etSearch.addTextChangedListener(new TextWatcher() {
     @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
     @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}

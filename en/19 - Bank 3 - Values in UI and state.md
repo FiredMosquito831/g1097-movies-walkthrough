@@ -29,9 +29,19 @@ All ten exercises are variants of these four directions. Three of them (19.7, 19
 4. Write the answer in two sentences: the listener is called on `setChecked` **if the value changes**; for `false` it doesn't change, but the label in the XML is already `"No"`.
 5. Check on the emulator: open "Inception" (`watched = true`) → label `"Yes"`; open "The Matrix" (`watched = false`) → `"No"`. Then temporarily move `initListeners()` after the `if` block and repeat: "Inception" shows `"No"`. Put the order back.
 
-**Hint 1 — if you get stuck at step 1:** `CompoundButton.setChecked()` is not a mute setter. Read the source: it calls the listener, but only if the value changes (`if (mChecked != checked)`).
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 1</summary>
 
-**Hint 2 — if you get stuck at step 3:** the XML has `android:text="No"` on `tvWatchedValue` (line 318). The `false` case doesn't trigger the listener, but the label is already correct — that's why it works "by luck".
+`CompoundButton.setChecked()` is not a mute setter. Read the source: it calls the listener, but only if the value changes (`if (mChecked != checked)`).
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 3</summary>
+
+the XML has `android:text="No"` on `tvWatchedValue` (line 318). The `false` case doesn't trigger the listener, but the label is already correct — that's why it works "by luck".
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -127,9 +137,19 @@ That way you're independent of the order and of the `mChecked != checked` guard.
 4. In `initListeners()`, add the two pieces: `etTitle.setFilters(...)` (the blocking) and `etTitle.addTextChangedListener(...)` (the counter).
 5. Check on the emulator: type in the title — the counter goes up on every keystroke; at 50 characters typing adds nothing more; the X button in the field clears the text and the counter goes back to `"0 / 50"`.
 
-**Hint 1 — if you get stuck at step 1:** they're two different mechanisms. The counter is a `TextWatcher`; the blocking is an `InputFilter.LengthFilter`. One doesn't do the other's job.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 1</summary>
 
-**Hint 2 — if you get stuck at step 4:** `TextWatcher` has three methods; the one you care about is `afterTextChanged(Editable s)`, and the length comes from `s.length()`. `LengthFilter` goes in an array: `new InputFilter[]{ new InputFilter.LengthFilter(50) }`.
+they're two different mechanisms. The counter is a `TextWatcher`; the blocking is an `InputFilter.LengthFilter`. One doesn't do the other's job.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 4</summary>
+
+`TextWatcher` has three methods; the one you care about is `afterTextChanged(Editable s)`, and the length comes from `s.length()`. `LengthFilter` goes in an array: `new InputFilter[]{ new InputFilter.LengthFilter(50) }`.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -213,9 +233,19 @@ etTitle.addTextChangedListener(new TextWatcher() {
 4. In `initListeners()`, add the watcher: read the text, check `isEmpty()`, then `try { Double.parseDouble(raw) } catch (NumberFormatException e)`.
 5. Check on the emulator: type `160000000` → the label shows `$160,000,000`; delete everything → `$0`; paste `12a` → the label shows `—`.
 
-**Hint 1 — if you get stuck at step 3:** `NumberFormat.getNumberInstance(Locale.US)` groups with `,` and separates decimals with `.` — exactly what `Double.parseDouble` accepts.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 3</summary>
 
-**Hint 2 — if you get stuck at step 4:** `Double.parseDouble("")` throws, so check `raw.isEmpty()` **before** the `try`. The formatting itself is `budgetFormat.format(value)`.
+`NumberFormat.getNumberInstance(Locale.US)` groups with `,` and separates decimals with `.` — exactly what `Double.parseDouble` accepts.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 4</summary>
+
+`Double.parseDouble("")` throws, so check `raw.isEmpty()` **before** the `try`. The formatting itself is `budgetFormat.format(value)`.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -305,9 +335,19 @@ etBudget.addTextChangedListener(new TextWatcher() {
 3. Replace the body of `onProgressChanged` with a single call: `tvDurationValue.setText(formatDuration(progress));`.
 4. Check on the emulator: drag the slider to 82 → `"1 h 22 min"`; to 60 → `"1 h"`; to 59 → `"59 min"`. Then open "Inception" (148) → `"2 h 28 min"` immediately, without touching the slider.
 
-**Hint 1 — if you get stuck at step 2:** the hours are `totalMinutes / 60`, the remaining minutes are `totalMinutes % 60`. The `minutes == 0` case must be handled separately, otherwise you get `"1 h 0 min"`.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 2</summary>
 
-**Hint 2 — if you get stuck at step 4:** `onProgressChanged` is called when `fillForm` does `sbDuration.setProgress(...)` too, with `fromUser == false`. That's why the label is correct when opening a movie — don't move the update into `onStopTrackingTouch`.
+the hours are `totalMinutes / 60`, the remaining minutes are `totalMinutes % 60`. The `minutes == 0` case must be handled separately, otherwise you get `"1 h 0 min"`.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 4</summary>
+
+`onProgressChanged` is called when `fillForm` does `sbDuration.setProgress(...)` too, with `fromUser == false`. That's why the label is correct when opening a movie — don't move the update into `onStopTrackingTouch`.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -364,9 +404,19 @@ public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 3. Add `Toast.makeText(MainActivity.this, movies.size() + " movies in the list", Toast.LENGTH_SHORT).show();` at the end of the `if (o.getResultCode() == RESULT_OK)` block, after the `if/else`.
 4. Check on the emulator: start with 3 demo movies; press `+`, fill in, Save → `"4 movies in the list"`; then tap "Inception", change the title, Update → `"3 movies in the list"`.
 
-**Hint 1 — if you get stuck at step 3:** inside the anonymous `ActivityResultCallback` class, `this` is the callback, not the activity. Write `MainActivity.this`, otherwise it won't compile (there's no `Context`).
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 3</summary>
 
-**Hint 2 — if you get stuck at step 4:** the number must be read **after** the mutation. If you put the Toast before `movies.add(movie)`, you show 3 instead of 4. `Toast` is already imported at line 9.
+inside the anonymous `ActivityResultCallback` class, `this` is the callback, not the activity. Write `MainActivity.this`, otherwise it won't compile (there's no `Context`).
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 4</summary>
+
+the number must be read **after** the mutation. If you put the Toast before `movies.add(movie)`, you show 3 instead of 4. `Toast` is already imported at line 9.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -426,9 +476,19 @@ public void onActivityResult(ActivityResult o) {
 4. Write `onSaveInstanceState` (the four values + `releaseCal.getTimeInMillis()`) and `onRestoreInstanceState` (symmetric, with `setTimeInMillis`).
 5. Check on the emulator: open "Inception", change the title, budget, duration and rating, rotate the phone → the values stay. Then pick a date from the picker, rotate, press Update, reopen the movie → the date is the one chosen, not today's.
 
-**Hint 1 — if you get stuck at step 1:** the four fields in the requirement (`etTitle`, `etBudget`, `sbDuration`, `rbRating`) already save themselves — `EditText.getFreezesText()` returns `true`, and `ProgressBar` saves its progress. The field that does **not** get saved is `releaseCal`.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 1</summary>
 
-**Hint 2 — if you get stuck at step 4:** `onRestoreInstanceState` runs after `onStart`, so after `fillForm(existing)` in `onCreate` — your restoration wins over the model. If you restored at the start of `onCreate`, `fillForm` would overwrite your values.
+the four fields in the requirement (`etTitle`, `etBudget`, `sbDuration`, `rbRating`) already save themselves — `EditText.getFreezesText()` returns `true`, and `ProgressBar` saves its progress. The field that does **not** get saved is `releaseCal`.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 4</summary>
+
+`onRestoreInstanceState` runs after `onStart`, so after `fillForm(existing)` in `onCreate` — your restoration wins over the model. If you restored at the start of `onCreate`, `fillForm` would overwrite your values.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -499,9 +559,19 @@ protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
 3. Replace the line with an explicit format: `String.format(Locale.US, "%.0f", existing.getBudget())` or `BigDecimal.valueOf(...).toPlainString()`.
 4. Check on the emulator: reopen all three → `160000000`, `30000000`, `63000000`. Press Update on "Inception" without touching the budget and reopen it → the value is still `160000000`.
 
-**Hint 1 — if you get stuck at step 2:** `String.valueOf(double)` calls `Double.toString(double)`, which switches to scientific notation from 10^7 upwards. All three demo values are above the threshold.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 2</summary>
 
-**Hint 2 — if you get stuck at step 3:** `%.0f` = no decimals, no exponent, no separators. `Locale.US` is mandatory, otherwise `Locale.getDefault()` would put `,` as the decimal separator and `Double.parseDouble` would reject the text on Save.
+`String.valueOf(double)` calls `Double.toString(double)`, which switches to scientific notation from 10^7 upwards. All three demo values are above the threshold.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 3</summary>
+
+`%.0f` = no decimals, no exponent, no separators. `Locale.US` is mandatory, otherwise `Locale.getDefault()` would put `,` as the decimal separator and `Double.parseDouble` would reject the text on Save.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -553,9 +623,19 @@ Variant 2 needs `import java.math.BigDecimal;`. `Locale` is already imported (li
 4. Check the second defect: run the app, open "Inception", press Update **without** touching the date field, reopen the movie → the date has become today.
 5. Check after the fix: the same sequence → the date stays `16/07/2010`.
 
-**Hint 1 — if you get stuck at step 2:** `dateFormat` isn't `null` — the NPE comes from inside `SimpleDateFormat.format`, which does `calendar.setTime(null)`. Read the stack trace down to the `ItemActivity.fillForm` frame.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 2</summary>
 
-**Hint 2 — if you get stuck at step 4:** `releaseCal` is only updated in `showReleaseDatePicker` (lines 199–204). If you don't open the picker, it stays on "now", and `saveMovie()` writes `releaseCal.getTime()` — not the field's text.
+`dateFormat` isn't `null` — the NPE comes from inside `SimpleDateFormat.format`, which does `calendar.setTime(null)`. Read the stack trace down to the `ItemActivity.fillForm` frame.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 4</summary>
+
+`releaseCal` is only updated in `showReleaseDatePicker` (lines 199–204). If you don't open the picker, it stays on "now", and `saveMovie()` writes `releaseCal.getTime()` — not the field's text.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -606,9 +686,19 @@ if (existing.getRelease() != null) {
 4. Write the variant for `RecyclerView`: `notifyItemInserted(movies.size() - 1)` on insert, `notifyItemChanged(position)` on edit.
 5. Check on the emulator: comment out `notifyDataSetChanged()` only on the `else` branch, edit a movie → the row keeps the old values. Put it back → the row updates.
 
-**Hint 1 — if you get stuck at step 4:** `ArrayAdapter` has no `notifyItemChanged`. That method only exists on `RecyclerView.Adapter`, so on `ListView` the only correct variant is `notifyDataSetChanged()`.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 4</summary>
 
-**Hint 2 — if you get stuck at step 5:** the order is "mutate, then notify". And the object in the `Intent` is a new (deserialised) instance, so without `movies.set(position, movie)` the edit is lost even with a correct notify.
+`ArrayAdapter` has no `notifyItemChanged`. That method only exists on `RecyclerView.Adapter`, so on `ListView` the only correct variant is `notifyDataSetChanged()`.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 5</summary>
+
+the order is "mutate, then notify". And the object in the `Intent` is a new (deserialised) instance, so without `movies.set(position, movie)` the edit is lost even with a correct notify.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -669,9 +759,19 @@ if (position == -1) {
 3. Open `saveMovie()` at line 173 and replace `movie.setBudget(Double.parseDouble(...))` with the guarded variant: `isEmpty()` → `setError` + `requestFocus` + `return`; then `try/catch` around the parsing.
 4. Check on the emulator: empty the budget and press Save → the app does **not** crash, the error appears on the field, the activity stays open. Type `abc` → error. Delete and type `100` → the error disappears. Save → you're back in the list with 4 movies.
 
-**Hint 1 — if you get stuck at step 2:** use `afterTextChanged`, not `onTextChanged` — only there do you have the final `Editable`. `setError(null)` on the empty and valid branches is just as important as `setError("...")` on the invalid one.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 2</summary>
 
-**Hint 2 — if you get stuck at step 3:** `Double.parseDouble("")` throws `NumberFormatException`. The `return` must come **before** `setResult`/`finish()`, otherwise you send an incomplete movie to `MainActivity`.
+use `afterTextChanged`, not `onTextChanged` — only there do you have the final `Editable`. `setError(null)` on the empty and valid branches is just as important as `setError("...")` on the invalid one.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 3</summary>
+
+`Double.parseDouble("")` throws `NumberFormatException`. The `return` must come **before** `setResult`/`finish()`, otherwise you send an incomplete movie to `MainActivity`.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>

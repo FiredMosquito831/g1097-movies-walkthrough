@@ -32,9 +32,19 @@
 3. Deschide `fillForm(...)` și caută `tvDurationValue`. Nu apare. Rulează aplicația, deschide un film existent și uită-te la eticheta Duration: arată 148, deși `fillForm` nu a scris nimic acolo.
 4. Explică de ce: `sbDuration.setProgress(148)` din `fillForm` a declanșat `onProgressChanged`. Verifică apoi ordinea din `onCreate`: `initControls(); initListeners();` rulează **înainte** de `fillForm(existing)`.
 
-**Indiciu 1 — dacă te blochezi la pasul 1:** `SeekBar` nu are `setOnProgressChangedListener`. Metoda se numește `setOnSeekBarChangeListener` și primește un `SeekBar.OnSeekBarChangeListener` cu trei metode: `onProgressChanged`, `onStartTrackingTouch`, `onStopTrackingTouch`. Doar prima te interesează.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 1</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 3:** dacă eticheta rămâne „0 min" când editezi un film, listener-ul nu era înregistrat la momentul `setProgress`. Verifică ordinea din `onCreate`: `initListeners()` trebuie să ruleze înainte de `fillForm(existing)`.
+`SeekBar` nu are `setOnProgressChangedListener`. Metoda se numește `setOnSeekBarChangeListener` și primește un `SeekBar.OnSeekBarChangeListener` cu trei metode: `onProgressChanged`, `onStartTrackingTouch`, `onStopTrackingTouch`. Doar prima te interesează.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 3</summary>
+
+dacă eticheta rămâne „0 min" când editezi un film, listener-ul nu era înregistrat la momentul `setProgress`. Verifică ordinea din `onCreate`: `initListeners()` trebuie să ruleze înainte de `fillForm(existing)`.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -122,9 +132,19 @@ Consecințe directe, toate verificabile în codul din `d719ffc`:
 4. Atinge toate locurile în care apare `etBudget`: `initControls()` (`findViewById`), `fillForm()` (setProgress), `saveMovie()` (getProgress × 1.000.000). În `initListeners()` adaugi listener-ul care scrie „$160M".
 5. Rulează: deschide Inception → slider-ul stă la 160, eticheta arată „$160M". Mișcă slider-ul → eticheta se schimbă din 1 în 1 milion. Salvează → în listă bugetul e cel nou.
 
-**Indiciu 1 — dacă te blochezi la pasul 2:** `SeekBar` nu are „pas". Are `max`. Pașii îi faci tu, prin interpretarea valorii: progres 0..500 înmulțit cu `1_000_000`. Nu există `android:stepSize` pe `SeekBar` (există pe `Slider`-ul Material, alt widget).
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 2</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 4:** dacă build-ul zice „cannot find symbol: variable etBudget", ai uitat unul din cele patru locuri (câmpul plus cele trei utilizări). Caută `etBudget` în fișier cu Ctrl+F — trebuie să găsești zero rezultate înainte să rulezi.
+`SeekBar` nu are „pas". Are `max`. Pașii îi faci tu, prin interpretarea valorii: progres 0..500 înmulțit cu `1_000_000`. Nu există `android:stepSize` pe `SeekBar` (există pe `Slider`-ul Material, alt widget).
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 4</summary>
+
+dacă build-ul zice „cannot find symbol: variable etBudget", ai uitat unul din cele patru locuri (câmpul plus cele trei utilizări). Caută `etBudget` în fișier cu Ctrl+F — trebuie să găsești zero rezultate înainte să rulezi.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -241,9 +261,19 @@ movie.setBudget(sbBudget.getProgress() * 1_000_000.0);
 4. Scrie conversia în ambele sensuri: la citire `setSelection((int) rating - 1)`, cu limitare în 0..4; la scriere `setRating(position + 1)`.
 5. Rulează: editează un film cu rating 4.5 → spinner-ul arată „4 stars" (jumătatea se pierde). Salvează → în listă rating-ul e 4.
 
-**Indiciu 1 — dacă te blochezi la pasul 4:** `Spinner` întoarce o **poziție** (0..4), nu o valoare (1..5). `getSelectedItemPosition()` e indexul, `getSelectedItem()` e textul („3 stars"). Pentru rating vrei indexul.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 4</summary>
 
-**Indiciu 2 — dacă tot nu merge la pasul 4:** dacă ratingul e 0 (film nou, câmp `float` neselectat), `(int) 0 - 1 = -1` — index invalid. Limitează: `Math.max(0, Math.min(4, ...))`.
+`Spinner` întoarce o **poziție** (0..4), nu o valoare (1..5). `getSelectedItemPosition()` e indexul, `getSelectedItem()` e textul („3 stars"). Pentru rating vrei indexul.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă tot nu merge la pasul 4</summary>
+
+dacă ratingul e 0 (film nou, câmp `float` neselectat), `(int) 0 - 1 = -1` — index invalid. Limitează: `Math.max(0, Math.min(4, ...))`.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -324,9 +354,19 @@ movie.setRating(spRating.getSelectedItemPosition() + 1);
 4. Umple `getView`: `if (convertView == null) { inflate; findViewById; setTag } else { getTag }`, apoi `setText` pe cele două view-uri.
 5. În `MainActivity`: schimbă tipul câmpului și linia din `onCreate`. Rulează: două linii per rând, click-ul merge neschimbat.
 
-**Indiciu 1 — dacă te blochezi la pasul 1:** `android.R.layout.simple_list_item_2` **există** și are două `TextView`-uri (`android.R.id.text1`, `android.R.id.text2`). Dar `ArrayAdapter` umple doar `text1`; `text2` rămâne gol. Deci tot la adapter propriu ajungi.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 1</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 4:** dacă rândurile se repetă greșit la scroll (primul film apare de trei ori), ai uitat `convertView.setTag(holder)` sau ai pus `findViewById` în afara blocului `if (convertView == null)`.
+`android.R.layout.simple_list_item_2` **există** și are două `TextView`-uri (`android.R.id.text1`, `android.R.id.text2`). Dar `ArrayAdapter` umple doar `text1`; `text2` rămâne gol. Deci tot la adapter propriu ajungi.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 4</summary>
+
+dacă rândurile se repetă greșit la scroll (primul film apare de trei ori), ai uitat `convertView.setTag(holder)` sau ai pus `findViewById` în afara blocului `if (convertView == null)`.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -495,16 +535,26 @@ Nimic altceva. `listView.setAdapter(movieAdapter)` și `movieAdapter.notifyDataS
 4. `MainActivity`: schimbă câmpurile (`ListView` → `RecyclerView`), construiește adapterul cu listener-ul de click, pune `setLayoutManager` + `setAdapter` în `initControls()`, șterge blocul `listView.setOnItemClickListener` din `initListeners()`.
 5. Rulează: lista arată ca înainte, click-ul deschide formularul, salvarea actualizează rândul. Dacă lista e goală fără eroare, vezi Indiciul 2.
 
-**Indiciu 1 — dacă te blochezi la pasul 1:** `RecyclerView` nu e în `appcompat` și nici în `material`. E `androidx.recyclerview:recyclerview`, o bibliotecă separată. Fără ea: „cannot find symbol class RecyclerView".
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 1</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 5:** dacă lista e goală și nu apare nicio eroare în Logcat, ai uitat `setLayoutManager`. E singura greșeală care nu se plânge: `RecyclerView` fără `LayoutManager` nu afișează nimic.
+`RecyclerView` nu e în `appcompat` și nici în `material`. E `androidx.recyclerview:recyclerview`, o bibliotecă separată. Fără ea: „cannot find symbol class RecyclerView".
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 5</summary>
+
+dacă lista e goală și nu apare nicio eroare în Logcat, ai uitat `setLayoutManager`. E singura greșeală care nu se plânge: `RecyclerView` fără `LayoutManager` nu afișează nimic.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
 
 **Ce s-a făcut:** am adăugat dependența, am schimbat widget-ul în XML, am scris un adapter cu `ViewHolder` și am mutat click-ul din `ListView` în adapter. Cinci fișiere, în ordinea de mai jos.
 
-**Cod:** patru fișiere, în ordinea în care le scrii.
+**Cod:** cinci fișiere, grupate în patru pași.
 
 ### Pas 0 — dependența
 
@@ -726,9 +776,19 @@ recyclerView.setAdapter(movieAdapter);
 3. În `bind()`, după `movieFacts`, citește `movie.getPoster()` și tratează trei cazuri: `null`, `""`, valoare validă.
 4. Rulează: Inception arată URL-ul, un film adăugat fără poster nu arată nimic (rândul nu crește cu o linie goală).
 
-**Indiciu 1 — dacă te blochezi la pasul 3:** `poster` are `= null` în model, dar formularul scrie `""` când câmpul e gol (`etPoster.getText().toString()`). Ai nevoie de ambele verificări: `poster != null && !poster.isEmpty()`.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 3</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 4:** dacă rândul fără poster are totuși un spațiu gol sub `movieFacts`, ai folosit `View.INVISIBLE`. Trebuie `View.GONE`.
+`poster` are `= null` în model, dar formularul scrie `""` când câmpul e gol (`etPoster.getText().toString()`). Ai nevoie de ambele verificări: `poster != null && !poster.isEmpty()`.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 4</summary>
+
+dacă rândul fără poster are totuși un spațiu gol sub `movieFacts`, ai folosit `View.INVISIBLE`. Trebuie `View.GONE`.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -799,9 +859,19 @@ if (poster != null && !poster.isEmpty()) {
 3. Rulează. Nu atinge nimic altceva — nici adapterul, nici `movie_item.xml`, nici `getItemCount`.
 4. Notează ce s-a schimbat vizual (margini, titluri tăiate, înălțimi) și ce a rămas identic (conținutul rândului, click-ul, salvarea).
 
-**Indiciu 1 — dacă te blochezi la pasul 2:** `GridLayoutManager` e în același pachet cu `LinearLayoutManager` (`androidx.recyclerview.widget`). Al doilea parametru e numărul de coloane, nu înălțimea.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 2</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 4:** răspunsul „de ce nu se schimbă adapterul" e că `LayoutManager`-ul primește view-uri gata umplute de la adapter și doar le așază. Nu știe ce e în ele, deci nu are ce să modifice.
+`GridLayoutManager` e în același pachet cu `LinearLayoutManager` (`androidx.recyclerview.widget`). Al doilea parametru e numărul de coloane, nu înălțimea.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 4</summary>
+
+răspunsul „de ce nu se schimbă adapterul" e că `LayoutManager`-ul primește view-uri gata umplute de la adapter și doar le așază. Nu știe ce e în ele, deci nu are ce să modifice.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -862,14 +932,26 @@ Import: `androidx.recyclerview.widget.GridLayoutManager`. Importul lui `LinearLa
 4. Soluția B: dă undo la `toString()` (revino la formatul de debug) și modifică `MovieListAdapter.getView` din 18.4.
 5. Scrie comparația: fișiere, linii, timp, efecte secundare, ce poți face în plus.
 
-**Indiciu 1 — dacă te blochezi la pasul 2:** `ArrayAdapter` nu știe ce e un `Movie`. Cheamă `toString()` pe fiecare element — e singurul punct de control asupra textului.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 2</summary>
 
-**Indiciu 2 — dacă tot nu merge la pasul 2:** `Date.getYear()` întoarce anul minus 1900 și e depreciat. 2010 devine 110. Folosește `SimpleDateFormat("yyyy", Locale.getDefault())`.
+`ArrayAdapter` nu știe ce e un `Movie`. Cheamă `toString()` pe fiecare element — e singurul punct de control asupra textului.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă tot nu merge la pasul 2</summary>
+
+`Date.getYear()` întoarce anul minus 1900 și e depreciat. 2010 devine 110. Folosește `SimpleDateFormat("yyyy", Locale.getDefault())`.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
 
 **Ce s-a făcut:** două răspunsuri corecte la aceeași cerință, cu costuri foarte diferite.
+
+**Cod:** două soluții, ambele complete.
 
 ### Soluția A — `toString()`
 
@@ -943,9 +1025,19 @@ holder.rowSubtitle.setVisibility(View.GONE);
 3. În `bind()`, scrie ramura dublă: valoare validă → `setText` + `VISIBLE`; altfel → `GONE`.
 4. Rulează: Inception arată „PG-13", Toy Story „G", The Matrix „R". Un film fără aprobare nu arată niciun chip.
 
-**Indiciu 1 — dacă te blochezi la pasul 2:** `Chip` extinde `TextView` (prin `AppCompatCheckBox`), deci are `setText`. Importul e `com.google.android.material.chip.Chip`, nu `android.widget.*`.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 2</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 4:** dacă un rând reciclat păstrează chip-ul filmului anterior, ai pus `setVisibility(VISIBLE)` doar pe ramura pozitivă. Ambele ramuri trebuie să seteze vizibilitatea.
+`Chip` extinde `TextView` (prin `AppCompatCheckBox`), deci are `setText`. Importul e `com.google.android.material.chip.Chip`, nu `android.widget.*`.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 4</summary>
+
+dacă un rând reciclat păstrează chip-ul filmului anterior, ai pus `setVisibility(VISIBLE)` doar pe ramura pozitivă. Ambele ramuri trebuie să seteze vizibilitatea.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -1012,14 +1104,26 @@ Aici nu există „gol": `boolean` e mereu `true` sau `false`. De aceea nu au ne
 4. Deschide `MovieAdapter.java`: câmp în `ViewHolder`, `findViewById` în constructor, ramura din `bind()`.
 5. Rulează: Inception arată „Written by Christopher Nolan". Un film fără writer nu arată linia deloc.
 
-**Indiciu 1 — dacă te blochezi la pasul 1:** ordinea e model → layout → adapter. Dacă începi cu XML-ul, ajungi să scrii `movie.getWriter()` într-un adapter unde metoda nu există încă și nu înțelegi eroarea.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 1</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 5:** dacă totul compilează dar nu vezi nimic pe ecran, toate cele 3 filme demo au `writer == null` și `TextView`-ul e `GONE`. Pune o valoare într-un sample — altfel pari că nu ai făcut nimic.
+ordinea e model → layout → adapter. Dacă începi cu XML-ul, ajungi să scrii `movie.getWriter()` într-un adapter unde metoda nu există încă și nu înțelegi eroarea.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 5</summary>
+
+dacă totul compilează dar nu vezi nimic pe ecran, toate cele 3 filme demo au `writer == null` și `TextView`-ul e `GONE`. Pune o valoare într-un sample — altfel pari că nu ai făcut nimic.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
 
 **Ce s-a făcut:** am adăugat un atribut nou în model, un view nou în rând și legătura dintre ele. Ăsta e exercițiul care apare cel mai des la examen: „adaugă atributul X și afișează-l în listă".
+
+**Cod:** trei fișiere, în ordinea în care le scrii.
 
 ### Pas 1 — `Movie.java`
 

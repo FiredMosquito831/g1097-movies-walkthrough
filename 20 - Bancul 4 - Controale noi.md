@@ -46,9 +46,19 @@
 6. Scrie metoda `clearForm()` la finalul clasei: golește cele trei `EditText`-uri și resetează `spGenre`, `sbDuration`, `rbRating`, `swWatched`, `cbonWatchList`, `rgApproval` — plus, obligatoriu, `releaseCal`.
 7. Verifică: Run, completează tot formularul, apasă „Clear form". Toate câmpurile se golesc, eticheta duratei arată „0 min.", cea a switch-ului „No", ratingul cade la zero. Apoi completează doar titlul și salvează: filmul trebuie să aibă data de azi, nu data pe care o aleseseși înainte de clear.
 
-**Indiciu 1 — dacă te blochezi la pasul 2:** butonul se pune ca frate al lui `btnMovieAction`, nu în interiorul lui. Dacă îl pui după `</LinearLayout>`, devine al doilea copil direct al `ScrollView`-ului și primești „ScrollView can host only one direct child".
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 2</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 6:** `sbDuration.setProgress(0)` și `swWatched.setChecked(false)` își actualizează singure etichetele, pentru că listenerii din `initListeners()` sunt deja atașați. Nu trebuie să scrii tu `tvDurationValue.setText("0 min.")`.
+butonul se pune ca frate al lui `btnMovieAction`, nu în interiorul lui. Dacă îl pui după `</LinearLayout>`, devine al doilea copil direct al `ScrollView`-ului și primești „ScrollView can host only one direct child".
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 6</summary>
+
+`sbDuration.setProgress(0)` și `swWatched.setChecked(false)` își actualizează singure etichetele, pentru că listenerii din `initListeners()` sunt deja atașați. Nu trebuie să scrii tu `tvDurationValue.setText("0 min.")`.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -134,9 +144,19 @@ private void clearForm() {
 5. În `initListeners()`, adaugă `fabCount.setOnClickListener(...)` care afișează `Toast.makeText(MainActivity.this, movies.size() + " movies", Toast.LENGTH_SHORT).show();`.
 6. Verifică: Run. Jos-stânga apare un al doilea buton rotund. Atinge-l: „3 movies". Adaugă un film, atinge-l din nou: „4 movies".
 
-**Indiciu 1 — dacă te blochezi la pasul 2:** `FrameLayout` așază copiii după `android:layout_gravity`. `bottom|end` = dreapta jos, `bottom|start` = stânga jos. Dacă uiți `layout_gravity`, butonul stă în colțul din stânga sus, suprapus peste listă.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 2</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 5:** `Toast.makeText(...)` are nevoie de un `Context`. În clasă anonimă scrii `MainActivity.this`; într-o lambda `this` e deja `MainActivity`. `MainActivity.this` merge în ambele cazuri, deci e alegerea sigură.
+`FrameLayout` așază copiii după `android:layout_gravity`. `bottom|end` = dreapta jos, `bottom|start` = stânga jos. Dacă uiți `layout_gravity`, butonul stă în colțul din stânga sus, suprapus peste listă.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 5</summary>
+
+`Toast.makeText(...)` are nevoie de un `Context`. În clasă anonimă scrii `MainActivity.this`; într-o lambda `this` e deja `MainActivity`. `MainActivity.this` merge în ambele cazuri, deci e alegerea sigură.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -207,9 +227,19 @@ fabCount.setOnClickListener(new View.OnClickListener() {
 6. În `MainActivity.java`, în callback-ul launcherului, adaugă ramura `else if (o.getResultCode() == ItemActivity.RESULT_DELETE)`.
 7. Verifică: Run, atinge un film, apasă Delete — rândul dispare din listă. Atinge FAB-ul „+": butonul Delete nu e vizibil.
 
-**Indiciu 1 — dacă te blochezi la pasul 2:** codurile de rezultat sunt `int`-uri. `RESULT_OK` = -1, `RESULT_CANCELED` = 0, `RESULT_FIRST_USER` = 1. Orice cod propriu trebuie să fie ≥ 1; folosește 2 sau `RESULT_FIRST_USER`.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 2</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 6:** `o.getData()` poate fi `null` când rezultatul nu are Intent. Verifică `data != null` înainte de `getIntExtra`, altfel `NullPointerException` exact pe ramura nouă.
+codurile de rezultat sunt `int`-uri. `RESULT_OK` = -1, `RESULT_CANCELED` = 0, `RESULT_FIRST_USER` = 1. Orice cod propriu trebuie să fie ≥ 1; folosește 2 sau `RESULT_FIRST_USER`.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 6</summary>
+
+`o.getData()` poate fi `null` când rezultatul nu are Intent. Verifică `data != null` înainte de `getIntExtra`, altfel `NullPointerException` exact pe ramura nouă.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -320,9 +350,19 @@ if (o.getResultCode() == RESULT_OK) {
 7. Înlocuiește `movies.get(position)` din click cu `visibleMovies.get(position)` și trimite `movies.indexOf(movie)` ca poziție.
 8. Verifică: Run. Pornește switch-ul: rămân doar Inception și Toy Story (ambele au `watched = true`). Adaugă un film nou cu switch-ul pornit: nu apare până nu oprești switch-ul.
 
-**Indiciu 1 — dacă te blochezi la pasul 6:** nu filtra `movies` direct. `movies` e sursa de date; dacă o golești, filmele sunt pierdute definitiv. Filtrarea se face într-o a doua listă, `visibleMovies`, pe care o citește adapterul.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 6</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 4:** `ArrayAdapter` ține referința la lista primită în constructor. Dacă schimbi conținutul listei (`clear()` + `add()`), adapterul vede modificarea după `notifyDataSetChanged()`. Dacă înlocuiești referința (`visibleMovies = new ArrayList<>()`), adapterul rămâne pe lista veche și nu mai vezi nimic.
+nu filtra `movies` direct. `movies` e sursa de date; dacă o golești, filmele sunt pierdute definitiv. Filtrarea se face într-o a doua listă, `visibleMovies`, pe care o citește adapterul.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 4</summary>
+
+`ArrayAdapter` ține referința la lista primită în constructor. Dacă schimbi conținutul listei (`clear()` + `add()`), adapterul vede modificarea după `notifyDataSetChanged()`. Dacă înlocuiești referința (`visibleMovies = new ArrayList<>()`), adapterul rămâne pe lista veche și nu mai vezi nimic.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -436,9 +476,19 @@ Iar în callback-ul launcherului, ambele `movieAdapter.notifyDataSetChanged()` s
 7. În `MainActivity`, schimbă `new ArrayAdapter<>(...)` cu `new MovieAdapter(this, visibleMovies)`.
 8. Verifică: Run. Inception (2010) și Toy Story (1995) nu au chip; adaugă un film cu data de azi — apare cu „New". Adaugă unul din 2015 — fără chip.
 
-**Indiciu 1 — dacă te blochezi la pasul 3:** `ArrayAdapter` cere un layout în constructor, dar dacă suprascrii `getView()` poți da `0`. Nu se umflă nimic cu el; îl folosești doar ca să ai `getItem()` și `getCount()` gata făcute.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 3</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 6:** `convertView` se refolosește. Dacă setezi `chipNew` vizibil pentru un film nou și nu îl ascunzi pentru următorul, chip-ul rămâne lipit pe rândul reciclat. De aceea `setVisibility` se face la fiecare `getView`, în ambele ramuri — `VISIBLE` și `GONE`.
+`ArrayAdapter` cere un layout în constructor, dar dacă suprascrii `getView()` poți da `0`. Nu se umflă nimic cu el; îl folosești doar ca să ai `getItem()` și `getCount()` gata făcute.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 6</summary>
+
+`convertView` se refolosește. Dacă setezi `chipNew` vizibil pentru un film nou și nu îl ascunzi pentru următorul, chip-ul rămâne lipit pe rândul reciclat. De aceea `setVisibility` se face la fiecare `getView`, în ambele ramuri — `VISIBLE` și `GONE`.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -581,9 +631,19 @@ movieAdapter = new MovieAdapter(this, visibleMovies);   // înainte: new ArrayAd
 5. Schimbă și `android:contentDescription` din „Add" în ceva ce descrie noua acțiune.
 6. Verifică: Run. Butonul rotund are acum o stea. Dacă apare neagră pe fundal colorat, adaugă `app:tint="?attr/colorOnPrimaryContainer"` pe FAB sau șterge `android:tint` din vector.
 
-**Indiciu 1 — dacă te blochezi la pasul 1:** dialogul are două ecrane. Primul alege tipul și iconița; al doilea alege numele și culoarea. Dacă închizi la primul, nu s-a creat nimic.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 1</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 4:** numele contează. `ic_star_24` devine `R.drawable.ic_star_24`. Resursele vor litere mici, cifre și underscore — fără majuscule, fără cratime, fără spații.
+dialogul are două ecrane. Primul alege tipul și iconița; al doilea alege numele și culoarea. Dacă închizi la primul, nu s-a creat nimic.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 4</summary>
+
+numele contează. `ic_star_24` devine `R.drawable.ic_star_24`. Resursele vor litere mici, cifre și underscore — fără majuscule, fără cratime, fără spații.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -652,9 +712,19 @@ movieAdapter = new MovieAdapter(this, visibleMovies);   // înainte: new ArrayAd
 7. Schimbă construirea adapterului în `new MovieAdapter(this, visibleMovies, this::openForEdit)`.
 8. Verifică: Run. Atinge cardul în afara butonului — nimic. Atinge „Edit" — se deschide formularul completat, titlul ecranului e „Edit movie", iar butonul de salvare scrie „Update Movie".
 
-**Indiciu 1 — dacă te blochezi la pasul 6:** `position` din `getView` e poziția în lista afișată, nu în `movies`. Când filtrezi (20.4), cele două diferă. De aceea `MainActivity` primește poziția din listă și o traduce cu `movies.indexOf(movie)`.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 6</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 4:** listener-ul se atașează la fiecare `getView`, nu o singură dată. Dacă îl pui doar în ramura `convertView == null`, butonul rândului reciclat va deschide filmul care era acolo la prima umflare.
+`position` din `getView` e poziția în lista afișată, nu în `movies`. Când filtrezi (20.4), cele două diferă. De aceea `MainActivity` primește poziția din listă și o traduce cu `movies.indexOf(movie)`.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 4</summary>
+
+listener-ul se atașează la fiecare `getView`, nu o singură dată. Dacă îl pui doar în ramura `convertView == null`, butonul rândului reciclat va deschide filmul care era acolo la prima umflare.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -751,9 +821,19 @@ movieAdapter = new MovieAdapter(this, visibleMovies, this::openForEdit);
 6. Scrie `sortMovies(int mode)`: 0 → `refreshList()`, 1 → sortare după titlu, 2 → sortare după rating descrescător, apoi `notifyDataSetChanged()`.
 7. Verifică: Run. Alege „Title A-Z": Inception, The Matrix, Toy Story. Alege „Rating (best first)": The Matrix (5), Inception (4.5), Toy Story (4). Alege „As added": ordinea inițială.
 
-**Indiciu 1 — dacă te blochezi la pasul 5:** `Spinner` are nevoie de **două** metode în listener, chiar dacă `onNothingSelected` nu face nimic. Dacă încerci cu lambda, nu compilează — interfața nu e funcțională.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 5</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 6:** sortarea se face pe `visibleMovies`, nu pe `movies`. `movies` păstrează ordinea de inserare, iar „As added" o restaurează prin `refreshList()`.
+`Spinner` are nevoie de **două** metode în listener, chiar dacă `onNothingSelected` nu face nimic. Dacă încerci cu lambda, nu compilează — interfața nu e funcțională.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 6</summary>
+
+sortarea se face pe `visibleMovies`, nu pe `movies`. `movies` păstrează ordinea de inserare, iar „As added" o restaurează prin `refreshList()`.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -849,9 +929,19 @@ private void sortMovies(int mode) {
 5. Apasă Save imediat după ce ai golit Budget: aplicația cade cu `NumberFormatException`. Notează de ce — asta e întrebarea de teorie.
 6. Deschide `ItemActivity.java` și urmărește `saveMovie()`: `Double.parseDouble(etBudget.getText().toString())`. Confirmă că ștergerea n-a atins nimic altceva.
 
-**Indiciu 1 — dacă te blochezi la pasul 3:** atributul stă pe `TextInputLayout`, nu pe `TextInputEditText`. Dacă îl pui pe edit text, e ignorat fără eroare — și butonul nu apare.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 3</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 5:** `endIconMode` are valori fixe: `clear_text`, `password_toggle`, `dropdown_menu`, `custom`, `none`. Orice altceva dă eroare la build, cu numele atributului.
+atributul stă pe `TextInputLayout`, nu pe `TextInputEditText`. Dacă îl pui pe edit text, e ignorat fără eroare — și butonul nu apare.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 5</summary>
+
+`endIconMode` are valori fixe: `clear_text`, `password_toggle`, `dropdown_menu`, `custom`, `none`. Orice altceva dă eroare la build, cu numele atributului.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -933,9 +1023,19 @@ Blocul titlului, deja existent în cod, pentru comparație:
 7. În callback, dacă `getBooleanExtra(DUPLICATE_EXTRA, false)` e true, adaugă filmul de două ori.
 8. Verifică: Run, completează formularul, apasă „Duplicate movie". În listă apar două rânduri identice. Editează un film existent și apasă „Duplicate movie": lista crește cu o copie, filmul original rămâne.
 
-**Indiciu 1 — dacă te blochezi la pasul 5:** `RESULT_OK` singur nu poate spune „adaugă de două ori". Ai nevoie de un al doilea canal de informație în același Intent — un `boolean` extra. Codul de rezultat rămâne `RESULT_OK`, pentru că operația e tot o salvare.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 5</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 7:** dacă trimiți `POSITION_EXTRA`, `MainActivity` intră pe ramura de editare și înlocuiește filmul existent, nu adaugă. Pentru duplicat, poziția trebuie să lipsească — atunci `getIntExtra(POSITION_EXTRA, -1)` întoarce -1, adică „insert".
+`RESULT_OK` singur nu poate spune „adaugă de două ori". Ai nevoie de un al doilea canal de informație în același Intent — un `boolean` extra. Codul de rezultat rămâne `RESULT_OK`, pentru că operația e tot o salvare.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 7</summary>
+
+dacă trimiți `POSITION_EXTRA`, `MainActivity` intră pe ramura de editare și înlocuiește filmul existent, nu adaugă. Pentru duplicat, poziția trebuie să lipsească — atunci `getIntExtra(POSITION_EXTRA, -1)` întoarce -1, adică „insert".
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>

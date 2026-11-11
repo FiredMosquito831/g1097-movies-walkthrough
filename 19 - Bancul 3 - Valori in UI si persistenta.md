@@ -29,9 +29,19 @@ Toate cele zece exerciții sunt variante ale acestor patru direcții. Trei dintr
 4. Scrie răspunsul în două propoziții: listenerul se apelează la `setChecked` **dacă valoarea se schimbă**; pentru `false` nu se schimbă, dar eticheta din XML e deja `"No"`.
 5. Verificare pe emulator: deschide „Inception" (`watched = true`) → eticheta `"Yes"`; deschide „The Matrix" (`watched = false`) → `"No"`. Apoi mută temporar `initListeners()` după blocul `if` și repetă: „Inception" arată `"No"`. Pune ordinea la loc.
 
-**Indiciu 1 — dacă te blochezi la pasul 1:** `CompoundButton.setChecked()` nu e un setter mut. Citește sursa: apelează listenerul, dar numai dacă valoarea se schimbă (`if (mChecked != checked)`).
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 1</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 3:** XML-ul are `android:text="No"` pe `tvWatchedValue` (linia 318). Cazul `false` nu declanșează listenerul, dar eticheta e deja corectă — de aceea funcționează „din noroc".
+`CompoundButton.setChecked()` nu e un setter mut. Citește sursa: apelează listenerul, dar numai dacă valoarea se schimbă (`if (mChecked != checked)`).
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 3</summary>
+
+XML-ul are `android:text="No"` pe `tvWatchedValue` (linia 318). Cazul `false` nu declanșează listenerul, dar eticheta e deja corectă — de aceea funcționează „din noroc".
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -127,9 +137,19 @@ Așa ești independent de ordine și de garda `mChecked != checked`.
 4. În `initListeners()`, adaugă cele două bucăți: `etTitle.setFilters(...)` (blocarea) și `etTitle.addTextChangedListener(...)` (contorul).
 5. Verificare pe emulator: tastează în titlu — contorul crește la fiecare tastă; la 50 de caractere tastarea nu mai adaugă nimic; butonul X din câmp golește textul și contorul revine la `"0 / 50"`.
 
-**Indiciu 1 — dacă te blochezi la pasul 1:** sunt două mecanisme diferite. Contorul e un `TextWatcher`; blocarea e un `InputFilter.LengthFilter`. Unul nu face treaba celuilalt.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 1</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 4:** `TextWatcher` are trei metode; cea care te interesează e `afterTextChanged(Editable s)`, iar lungimea se ia cu `s.length()`. `LengthFilter` se pune în array: `new InputFilter[]{ new InputFilter.LengthFilter(50) }`.
+sunt două mecanisme diferite. Contorul e un `TextWatcher`; blocarea e un `InputFilter.LengthFilter`. Unul nu face treaba celuilalt.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 4</summary>
+
+`TextWatcher` are trei metode; cea care te interesează e `afterTextChanged(Editable s)`, iar lungimea se ia cu `s.length()`. `LengthFilter` se pune în array: `new InputFilter[]{ new InputFilter.LengthFilter(50) }`.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -213,9 +233,19 @@ etTitle.addTextChangedListener(new TextWatcher() {
 4. În `initListeners()`, adaugă watcher-ul: citește textul, verifică `isEmpty()`, apoi `try { Double.parseDouble(raw) } catch (NumberFormatException e)`.
 5. Verificare pe emulator: tastează `160000000` → eticheta arată `$160,000,000`; șterge tot → `$0`; lipește `12a` → eticheta arată `—`.
 
-**Indiciu 1 — dacă te blochezi la pasul 3:** `NumberFormat.getNumberInstance(Locale.US)` grupează cu `,` și separă zecimalele cu `.` — exact ce acceptă `Double.parseDouble`.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 3</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 4:** `Double.parseDouble("")` aruncă excepție, deci verifică `raw.isEmpty()` **înainte** de `try`. Formatarea propriu-zisă e `budgetFormat.format(value)`.
+`NumberFormat.getNumberInstance(Locale.US)` grupează cu `,` și separă zecimalele cu `.` — exact ce acceptă `Double.parseDouble`.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 4</summary>
+
+`Double.parseDouble("")` aruncă excepție, deci verifică `raw.isEmpty()` **înainte** de `try`. Formatarea propriu-zisă e `budgetFormat.format(value)`.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -305,9 +335,19 @@ etBudget.addTextChangedListener(new TextWatcher() {
 3. Înlocuiește corpul lui `onProgressChanged` cu un singur apel: `tvDurationValue.setText(formatDuration(progress));`.
 4. Verificare pe emulator: trage slider-ul la 82 → `"1 h 22 min"`; la 60 → `"1 h"`; la 59 → `"59 min"`. Apoi deschide „Inception" (148) → `"2 h 28 min"` imediat, fără să atingi slider-ul.
 
-**Indiciu 1 — dacă te blochezi la pasul 2:** orele sunt `totalMinutes / 60`, minutele rămase sunt `totalMinutes % 60`. Cazul `minutes == 0` trebuie tratat separat, altfel obții `"1 h 0 min"`.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 2</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 4:** `onProgressChanged` se apelează și când `fillForm` face `sbDuration.setProgress(...)`, cu `fromUser == false`. De aceea eticheta e corectă la deschiderea unui film — nu muta actualizarea în `onStopTrackingTouch`.
+orele sunt `totalMinutes / 60`, minutele rămase sunt `totalMinutes % 60`. Cazul `minutes == 0` trebuie tratat separat, altfel obții `"1 h 0 min"`.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 4</summary>
+
+`onProgressChanged` se apelează și când `fillForm` face `sbDuration.setProgress(...)`, cu `fromUser == false`. De aceea eticheta e corectă la deschiderea unui film — nu muta actualizarea în `onStopTrackingTouch`.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -364,9 +404,19 @@ public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 3. Adaugă `Toast.makeText(MainActivity.this, movies.size() + " movies in the list", Toast.LENGTH_SHORT).show();` la finalul blocului `if (o.getResultCode() == RESULT_OK)`, după `if/else`.
 4. Verificare pe emulator: pornești cu 3 filme demo; apeși `+`, completezi, Save → `"4 movies in the list"`; apoi atingi „Inception", schimbi titlul, Update → `"3 movies in the list"`.
 
-**Indiciu 1 — dacă te blochezi la pasul 3:** în interiorul clasei anonime `ActivityResultCallback`, `this` e callback-ul, nu activitatea. Scrie `MainActivity.this`, altfel nu compilează (nu există `Context`).
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 3</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 4:** numărul trebuie citit **după** mutație. Dacă pui Toast-ul înainte de `movies.add(movie)`, afișezi 3 în loc de 4. `Toast` e deja importat la linia 9.
+în interiorul clasei anonime `ActivityResultCallback`, `this` e callback-ul, nu activitatea. Scrie `MainActivity.this`, altfel nu compilează (nu există `Context`).
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 4</summary>
+
+numărul trebuie citit **după** mutație. Dacă pui Toast-ul înainte de `movies.add(movie)`, afișezi 3 în loc de 4. `Toast` e deja importat la linia 9.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -426,9 +476,19 @@ public void onActivityResult(ActivityResult o) {
 4. Scrie `onSaveInstanceState` (cele patru valori + `releaseCal.getTimeInMillis()`) și `onRestoreInstanceState` (simetric, cu `setTimeInMillis`).
 5. Verificare pe emulator: deschide „Inception", schimbă titlul, bugetul, durata și ratingul, rotește telefonul → valorile rămân. Apoi alege o dată din picker, rotește, apasă Update, redeschide filmul → data e cea aleasă, nu cea de azi.
 
-**Indiciu 1 — dacă te blochezi la pasul 1:** cele patru câmpuri din cerință (`etTitle`, `etBudget`, `sbDuration`, `rbRating`) se salvează deja singure — `EditText.getFreezesText()` returnează `true`, iar `ProgressBar` își salvează progresul. Câmpul care **nu** se salvează e `releaseCal`.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 1</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 4:** `onRestoreInstanceState` rulează după `onStart`, deci după `fillForm(existing)` din `onCreate` — restaurarea ta câștigă în fața modelului. Dacă ai restaura la începutul lui `onCreate`, `fillForm` ți-ar suprascrie valorile.
+cele patru câmpuri din cerință (`etTitle`, `etBudget`, `sbDuration`, `rbRating`) se salvează deja singure — `EditText.getFreezesText()` returnează `true`, iar `ProgressBar` își salvează progresul. Câmpul care **nu** se salvează e `releaseCal`.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 4</summary>
+
+`onRestoreInstanceState` rulează după `onStart`, deci după `fillForm(existing)` din `onCreate` — restaurarea ta câștigă în fața modelului. Dacă ai restaura la începutul lui `onCreate`, `fillForm` ți-ar suprascrie valorile.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -499,9 +559,19 @@ protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
 3. Înlocuiește linia cu un format explicit: `String.format(Locale.US, "%.0f", existing.getBudget())` sau `BigDecimal.valueOf(...).toPlainString()`.
 4. Verificare pe emulator: redeschide toate trei → `160000000`, `30000000`, `63000000`. Apasă Update pe „Inception" fără să atingi bugetul și redeschide-l → valoarea a rămas `160000000`.
 
-**Indiciu 1 — dacă te blochezi la pasul 2:** `String.valueOf(double)` apelează `Double.toString(double)`, care trece la notație științifică de la 10^7 în sus. Toate cele trei valori demo sunt peste prag.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 2</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 3:** `%.0f` = fără zecimale, fără exponent, fără separatori. `Locale.US` e obligatoriu, altfel `Locale.getDefault()` ar pune `,` ca separator zecimal și `Double.parseDouble` ar refuza textul la Save.
+`String.valueOf(double)` apelează `Double.toString(double)`, care trece la notație științifică de la 10^7 în sus. Toate cele trei valori demo sunt peste prag.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 3</summary>
+
+`%.0f` = fără zecimale, fără exponent, fără separatori. `Locale.US` e obligatoriu, altfel `Locale.getDefault()` ar pune `,` ca separator zecimal și `Double.parseDouble` ar refuza textul la Save.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -553,9 +623,19 @@ Varianta 2 cere `import java.math.BigDecimal;`. `Locale` e deja importat (linia 
 4. Verifică al doilea defect: rulează aplicația, deschide „Inception", apasă Update **fără** să atingi câmpul de dată, redeschide filmul → data a devenit azi.
 5. Verificare după reparație: aceeași secvență → data rămâne `16/07/2010`.
 
-**Indiciu 1 — dacă te blochezi la pasul 2:** `dateFormat` nu e `null` — NPE-ul vine din interiorul lui `SimpleDateFormat.format`, care face `calendar.setTime(null)`. Citește stack trace-ul până la frame-ul `ItemActivity.fillForm`.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 2</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 4:** `releaseCal` e actualizat doar în `showReleaseDatePicker` (liniile 199–204). Dacă nu deschizi picker-ul, rămâne pe „acum", iar `saveMovie()` scrie `releaseCal.getTime()` — nu textul din câmp.
+`dateFormat` nu e `null` — NPE-ul vine din interiorul lui `SimpleDateFormat.format`, care face `calendar.setTime(null)`. Citește stack trace-ul până la frame-ul `ItemActivity.fillForm`.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 4</summary>
+
+`releaseCal` e actualizat doar în `showReleaseDatePicker` (liniile 199–204). Dacă nu deschizi picker-ul, rămâne pe „acum", iar `saveMovie()` scrie `releaseCal.getTime()` — nu textul din câmp.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -606,9 +686,19 @@ if (existing.getRelease() != null) {
 4. Scrie varianta pentru `RecyclerView`: `notifyItemInserted(movies.size() - 1)` la inserare, `notifyItemChanged(position)` la editare.
 5. Verificare pe emulator: comentează `notifyDataSetChanged()` doar pe ramura `else`, editează un film → rândul rămâne cu valorile vechi. Pune-l la loc → rândul se actualizează.
 
-**Indiciu 1 — dacă te blochezi la pasul 4:** `ArrayAdapter` nu are `notifyItemChanged`. Metoda aia există doar pe `RecyclerView.Adapter`, deci pe `ListView` singura variantă corectă e `notifyDataSetChanged()`.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 4</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 5:** ordinea e „mută, apoi notifică". Iar obiectul din `Intent` e o instanță nouă (deserializată), deci fără `movies.set(position, movie)` editarea se pierde chiar și cu notify corect.
+`ArrayAdapter` nu are `notifyItemChanged`. Metoda aia există doar pe `RecyclerView.Adapter`, deci pe `ListView` singura variantă corectă e `notifyDataSetChanged()`.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 5</summary>
+
+ordinea e „mută, apoi notifică". Iar obiectul din `Intent` e o instanță nouă (deserializată), deci fără `movies.set(position, movie)` editarea se pierde chiar și cu notify corect.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -669,9 +759,19 @@ if (position == -1) {
 3. Deschide `saveMovie()` la linia 173 și înlocuiește `movie.setBudget(Double.parseDouble(...))` cu varianta cu gardă: `isEmpty()` → `setError` + `requestFocus` + `return`; apoi `try/catch` în jurul parsării.
 4. Verificare pe emulator: golește bugetul și apasă Save → aplicația **nu** crapă, eroarea apare pe câmp, activitatea rămâne deschisă. Scrie `abc` → eroare. Șterge și scrie `100` → eroarea dispare. Save → te întorci în listă cu 4 filme.
 
-**Indiciu 1 — dacă te blochezi la pasul 2:** folosește `afterTextChanged`, nu `onTextChanged` — doar acolo ai `Editable`-ul final. `setError(null)` pe ramurile gol și valid e la fel de important ca `setError("...")` pe cea invalidă.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 2</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 3:** `Double.parseDouble("")` aruncă `NumberFormatException`. `return` trebuie să vină **înainte** de `setResult`/`finish()`, altfel trimiți în `MainActivity` un film incomplet.
+folosește `afterTextChanged`, nu `onTextChanged` — doar acolo ai `Editable`-ul final. `setError(null)` pe ramurile gol și valid e la fel de important ca `setError("...")` pe cea invalidă.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 3</summary>
+
+`Double.parseDouble("")` aruncă `NumberFormatException`. `return` trebuie să vină **înainte** de `setResult`/`finish()`, altfel trimiți în `MainActivity` un film incomplet.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>

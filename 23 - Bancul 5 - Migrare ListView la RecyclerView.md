@@ -46,9 +46,19 @@
 4. Apasă **Sync Now** pe banner-ul care apare sus în Android Studio (sau `File → Sync Project with Gradle Files`). Așteaptă să se termine bara de progres.
 5. Verifică: `Build → Make Project` trebuie să dea `BUILD SUCCESSFUL`. Deschide panoul **External Libraries** din Project view — trebuie să apară `Gradle: androidx.recyclerview:recyclerview:1.4.0`. Pe ecranul telefonului nu se schimbă absolut nimic, pentru că încă nu folosește nimeni clasa.
 
-**Indiciu 1 — dacă te blochezi la pasul 2:** numele din `[libraries]` devine numele folosit în `build.gradle.kts`, cu cratimele transformate în puncte. Aliasul `recyclerview` (un singur cuvânt) se accesează `libs.recyclerview`. Dacă ai scrie `androidx-recyclerview`, ai accesa `libs.androidx.recyclerview`. Aici folosim forma scurtă, ca la `appcompat` și `material`.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 2</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 3:** `implementation(...)` cere **accesorul generat**, nu coordonatele Maven. `implementation("androidx.recyclerview:recyclerview:1.4.0")` ar merge și așa, dar în proiectul ăsta toate dependențele trec prin catalog — dacă scrii coordonatele direct, pierzi punctul pe cerință. Dacă `libs.recyclerview` apare roșu, sync-ul de la pasul 4 nu s-a făcut încă.
+numele din `[libraries]` devine numele folosit în `build.gradle.kts`, cu cratimele transformate în puncte. Aliasul `recyclerview` (un singur cuvânt) se accesează `libs.recyclerview`. Dacă ai scrie `androidx-recyclerview`, ai accesa `libs.androidx.recyclerview`. Aici folosim forma scurtă, ca la `appcompat` și `material`.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 3</summary>
+
+`implementation(...)` cere **accesorul generat**, nu coordonatele Maven. `implementation("androidx.recyclerview:recyclerview:1.4.0")` ar merge și așa, dar în proiectul ăsta toate dependențele trec prin catalog — dacă scrii coordonatele direct, pierzi punctul pe cerință. Dacă `libs.recyclerview` apare roșu, sync-ul de la pasul 4 nu s-a făcut încă.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -129,9 +139,19 @@ dependencies {
 7. În `initListeners()`: șterge integral blocul `listView.setOnItemClickListener(new AdapterView.OnItemClickListener() { ... })`. `RecyclerView` nu are metoda asta — dacă o lași, nu compilează.
 8. Rulează. Trebuie să vezi un ecran gol cu FAB-ul în colț. Apasă FAB-ul, completează formularul, salvează: aplicația **nu** crapă, dar lista rămâne goală.
 
-**Indiciu 1 — dacă te blochezi la pasul 2:** `RecyclerView` nu acceptă `android:entries`. Atributul aparține de `AbsListView` (clasa-părinte a lui `ListView`), nu de `RecyclerView`, care e un `ViewGroup` simplu. Dacă îl lași, build-ul trece, dar atributul e ignorat complet — și e o greșeală pe care corectorul o vede din prima.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 2</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 5:** dacă păstrezi id-ul `listView` ca să nu atingi `MainActivity`, codul **compilează**, dar la runtime primești `ClassCastException: androidx.recyclerview.widget.RecyclerView cannot be cast to android.widget.ListView`. `findViewById` e generic și face cast la tipul cerut; compilatorul nu poate verifica ce obiect găsește efectiv în XML. Redenumirea id-ului e ce te forțează să schimbi tipul.
+`RecyclerView` nu acceptă `android:entries`. Atributul aparține de `AbsListView` (clasa-părinte a lui `ListView`), nu de `RecyclerView`, care e un `ViewGroup` simplu. Dacă îl lași, build-ul trece, dar atributul e ignorat complet — și e o greșeală pe care corectorul o vede din prima.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 5</summary>
+
+dacă păstrezi id-ul `listView` ca să nu atingi `MainActivity`, codul **compilează**, dar la runtime primești `ClassCastException: androidx.recyclerview.widget.RecyclerView cannot be cast to android.widget.ListView`. `findViewById` e generic și face cast la tipul cerut; compilatorul nu poate verifica ce obiect găsește efectiv în XML. Redenumirea id-ului e ce te forțează să schimbi tipul.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -235,9 +255,19 @@ private void initListeners() {
 7. Implementează `onBindViewHolder(...)` cu corp gol și un comentariu `// 23.6`.
 8. `Build → Make Project`. Trebuie `BUILD SUCCESSFUL`. Pe ecran: neschimbat.
 
-**Indiciu 1 — dacă te blochezi la pasul 3:** `RecyclerView.Adapter` cere un singur parametru generic — tipul `ViewHolder`-ului. Dacă îl lași fără (`extends RecyclerView.Adapter`), primești `raw use of parameterized class` și `onCreateViewHolder` nu mai are ce returna type-safe. Dacă pui `RecyclerView.Adapter<Movie>` (tipul modelului), primești eroare pentru că `Movie` nu extinde `ViewHolder`.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 3</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 6:** `new RecyclerView.ViewHolder(view)` nu compilează — clasa e `abstract`. Nu e o problemă de sintaxă, e prin design: `ViewHolder` e făcut să fie subclasat. Trucul `{ }` la final creează o subclasă anonimă, suficientă pentru un schelet care nu afișează nimic. La 23.4 o înlocuim cu clasa noastră.
+`RecyclerView.Adapter` cere un singur parametru generic — tipul `ViewHolder`-ului. Dacă îl lași fără (`extends RecyclerView.Adapter`), primești `raw use of parameterized class` și `onCreateViewHolder` nu mai are ce returna type-safe. Dacă pui `RecyclerView.Adapter<Movie>` (tipul modelului), primești eroare pentru că `Movie` nu extinde `ViewHolder`.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 6</summary>
+
+`new RecyclerView.ViewHolder(view)` nu compilează — clasa e `abstract`. Nu e o problemă de sintaxă, e prin design: `ViewHolder` e făcut să fie subclasat. Trucul `{ }` la final creează o subclasă anonimă, suficientă pentru un schelet care nu afișează nimic. La 23.4 o înlocuim cu clasa noastră.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -318,9 +348,19 @@ public class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 6. Adaugă importurile: `android.widget.RatingBar`, `android.widget.TextView`, `com.google.android.material.chip.Chip`, `ro.ase.ie.g1097.R`.
 7. `Build → Make Project`. `BUILD SUCCESSFUL`. Pe ecran: neschimbat — clasa e declarată, dar nimeni nu o instanțiază încă.
 
-**Indiciu 1 — dacă te blochezi la pasul 2:** clasa interioară se pune **în interiorul** lui `MovieAdapter`, nu ca fișier separat. `static` nu e opțional: fără el, fiecare `ViewHolder` ține o referință la adapter, iar la reciclare rămâi cu obiecte care se țin reciproc în viață.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 2</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 5:** `findViewById` se apelează pe `itemView`, nu pe `this` și nu pe `parent`. `ViewHolder` nu e un `View` — e doar un obiect care ține unul. Dacă scrii `findViewById(...)` simplu, compilatorul îți spune că metoda nu există în `ViewHolder`.
+clasa interioară se pune **în interiorul** lui `MovieAdapter`, nu ca fișier separat. `static` nu e opțional: fără el, fiecare `ViewHolder` ține o referință la adapter, iar la reciclare rămâi cu obiecte care se țin reciproc în viață.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 5</summary>
+
+`findViewById` se apelează pe `itemView`, nu pe `this` și nu pe `parent`. `ViewHolder` nu e un `View` — e doar un obiect care ține unul. Dacă scrii `findViewById(...)` simplu, compilatorul îți spune că metoda nu există în `ViewHolder`.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -398,9 +438,19 @@ import ro.ase.ie.g1097.R;
 6. Adaugă `import android.view.LayoutInflater;`.
 7. `Build → Make Project`. `BUILD SUCCESSFUL`. Pe ecran: neschimbat — adapterul nu e încă atașat la `RecyclerView`.
 
-**Indiciu 1 — dacă te blochezi la pasul 4:** al treilea argument al lui `inflate` trebuie să fie `false`. Cu `true`, `inflate` atașează imediat rândul la `parent`, iar `RecyclerView` aruncă `IllegalStateException` pentru că el însuși vrea să controleze atașarea. `false` înseamnă „construiește-l, dar lasă-mă pe mine să-l pun".
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 4</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 5:** dacă ai schimbat generic-ul dar ai uitat semnăturile, primești `name clash: onBindViewHolder(RecyclerView.ViewHolder,int) and onBindViewHolder(MovieViewHolder,int) have the same erasure`. Nu e o eroare de sintaxă — e semnul că ai amestecat vechiul tip cu noul. Schimbă ambele semnături în același pas.
+al treilea argument al lui `inflate` trebuie să fie `false`. Cu `true`, `inflate` atașează imediat rândul la `parent`, iar `RecyclerView` aruncă `IllegalStateException` pentru că el însuși vrea să controleze atașarea. `false` înseamnă „construiește-l, dar lasă-mă pe mine să-l pun".
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 5</summary>
+
+dacă ai schimbat generic-ul dar ai uitat semnăturile, primești `name clash: onBindViewHolder(RecyclerView.ViewHolder,int) and onBindViewHolder(MovieViewHolder,int) have the same erasure`. Nu e o eroare de sintaxă — e semnul că ai amestecat vechiul tip cu noul. Schimbă ambele semnături în același pas.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -488,9 +538,19 @@ Rulează: vezi trei carduri goale (fără text, pentru că `bind` nu există în
 7. În `onBindViewHolder`, înlocuiește comentariul cu `holder.bind(movies.get(position));`.
 8. `Build → Make Project`. `BUILD SUCCESSFUL`. Pe ecran: neschimbat (sau, dacă ai lăsat verificarea temporară din 23.5, cardurile au acum titlu și subtitlu).
 
-**Indiciu 1 — dacă te blochezi la pasul 2:** `SimpleDateFormat` se creează **o dată**, ca `static final`, nu în `bind`. Dacă îl creezi în `bind`, construiești un obiect nou la fiecare afișare a fiecărui rând — exact munca pe care `ViewHolder`-ul o evită. Pattern-ul `"yyyy"` dă anul cu patru cifre; `"yy"` ar da `10` în loc de `2010`.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 2</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 6:** separatorul nu e `-` și nu e `|`. E `·` (middle dot), caracterul din comentariul `<!-- genre · release year, e.g. "Sci-Fi · 2021" -->`. Dacă îl scrii din tastatură greșit, se vede în listă ca un pătrat. Copiază-l din comentariul din XML.
+`SimpleDateFormat` se creează **o dată**, ca `static final`, nu în `bind`. Dacă îl creezi în `bind`, construiești un obiect nou la fiecare afișare a fiecărui rând — exact munca pe care `ViewHolder`-ul o evită. Pattern-ul `"yyyy"` dă anul cu patru cifre; `"yy"` ar da `10` în loc de `2010`.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 6</summary>
+
+separatorul nu e `-` și nu e `|`. E `·` (middle dot), caracterul din comentariul `<!-- genre · release year, e.g. "Sci-Fi · 2021" -->`. Dacă îl scrii din tastatură greșit, se vede în listă ca un pătrat. Copiază-l din comentariul din XML.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -565,9 +625,19 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 4. Verifică în `movie_item.xml` că `movieRating` are `android:stepSize="0.5"` și `android:isIndicator="true"` — altfel `setRating(4.5f)` ar rotunji la 4 sau 5 stele.
 5. `Build → Make Project`. `BUILD SUCCESSFUL`. Pe ecran: neschimbat (sau, cu verificarea temporară, stelele apar pe card).
 
-**Indiciu 1 — dacă te blochezi la pasul 3:** `String.valueOf(movie.getRating())` ar merge și el, dar dă `4.5` pentru 4.5f și `4.0` pentru 4f — acceptabil. `String.format` îți dă control exact pe numărul de zecimale, ceea ce contează dacă rating-ul vine cu mai multe. Nu folosi `String.format` fără `Locale`: pe un telefon configurat în română ai primi `4,5`, iar designul cardului are `4.5`.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 3</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 4:** dacă stelele arată toate pline sau toate goale, nu e de la cod — e de la `stepSize`. Cu `stepSize="1"`, `setRating(4.5f)` afișează 4 sau 5 stele, după cum rotunjește intern. `stepSize="0.5"` permite jumătăți de stea.
+`String.valueOf(movie.getRating())` ar merge și el, dar dă `4.5` pentru 4.5f și `4.0` pentru 4f — acceptabil. `String.format` îți dă control exact pe numărul de zecimale, ceea ce contează dacă rating-ul vine cu mai multe. Nu folosi `String.format` fără `Locale`: pe un telefon configurat în română ai primi `4,5`, iar designul cardului are `4.5`.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 4</summary>
+
+dacă stelele arată toate pline sau toate goale, nu e de la cod — e de la `stepSize`. Cu `stepSize="1"`, `setRating(4.5f)` afișează 4 sau 5 stele, după cum rotunjește intern. `stepSize="0.5"` permite jumătăți de stea.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -613,9 +683,19 @@ movieRatingValue.setText(String.format(Locale.US, "%.1f", movie.getRating()));
 6. Verifică importul `android.view.View` — e deja acolo din 23.3.
 7. `Build → Make Project`. `BUILD SUCCESSFUL`. Pe ecran: neschimbat (sau, cu verificarea temporară, cardurile sunt complete).
 
-**Indiciu 1 — dacă te blochezi la pasul 3:** `View.GONE`, nu `View.INVISIBLE`. `INVISIBLE` ascunde view-ul dar îi păstrează spațiul, deci cardul rămâne cu o dungă goală sub facts. `GONE` îl scoate din layout complet, iar `ChipGroup` rearanjează chips-urile rămase.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 3</summary>
 
-**Indiciu 2 — dacă te blochezi la formatarea bugetului:** `movie.getBudget()` e `double` în unități întregi (`160000000`), nu în milioane. Împarți la `1_000_000` ca să ajungi la `160`, apoi formatezi cu `%.0f` ca să tai zecimalele. Dacă uiți împărțirea, obții `$160000000M`.
+`View.GONE`, nu `View.INVISIBLE`. `INVISIBLE` ascunde view-ul dar îi păstrează spațiul, deci cardul rămâne cu o dungă goală sub facts. `GONE` îl scoate din layout complet, iar `ChipGroup` rearanjează chips-urile rămase.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la formatarea bugetului</summary>
+
+`movie.getBudget()` e `double` în unități întregi (`160000000`), nu în milioane. Împarți la `1_000_000` ca să ajungi la `160`, apoi formatezi cu `%.0f` ca să tai zecimalele. Dacă uiți împărțirea, obții `$160000000M`.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -672,9 +752,19 @@ chipWatchlist.setVisibility(movie.isOnWatchlist() ? View.VISIBLE : View.GONE);
 7. La finalul lui `bind`, adaugă blocul de click pe `itemView`, cu verificarea `getBindingAdapterPosition() != RecyclerView.NO_POSITION`.
 8. `Build → Make Project`. `BUILD SUCCESSFUL`. Pe ecran: neschimbat — `MainActivity` încă nu construiește `MovieAdapter`, deci schimbarea de constructor nu strică nimic.
 
-**Indiciu 1 — dacă te blochezi la pasul 7:** listener-ul se leagă în `bind`, **nu** în constructorul `ViewHolder`. În constructor, `getBindingAdapterPosition()` ar fi evaluat o singură dată, la crearea rândului, și ar rămâne în urmă la reciclare — ai deschide filmul greșit după prima derulare.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 7</summary>
 
-**Indiciu 2 — dacă te blochezi la verificarea poziției:** `getBindingAdapterPosition()` poate întoarce `RecyclerView.NO_POSITION` (adică `-1`) când rândul e în curs de scoatere sau în timpul unei animații. Fără `if`, ajungi la `movies.get(-1)` și primești `IndexOutOfBoundsException`. Verifică **și** listener-ul null, dacă permiți construirea adapterului fără el.
+listener-ul se leagă în `bind`, **nu** în constructorul `ViewHolder`. În constructor, `getBindingAdapterPosition()` ar fi evaluat o singură dată, la crearea rândului, și ar rămâne în urmă la reciclare — ai deschide filmul greșit după prima derulare.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la verificarea poziției</summary>
+
+`getBindingAdapterPosition()` poate întoarce `RecyclerView.NO_POSITION` (adică `-1`) când rândul e în curs de scoatere sau în timpul unei animații. Fără `if`, ajungi la `movies.get(-1)` și primești `IndexOutOfBoundsException`. Verifică **și** listener-ul null, dacă permiți construirea adapterului fără el.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -760,9 +850,19 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 7. Adaugă metoda `private void openItem(int position)` care construiește `Intent`-ul către `ItemActivity` cu `MOVIE_EXTRA` și `POSITION_EXTRA` și apelează `launcher.launch(intent);`.
 8. Rulează. Trebuie să vezi trei carduri: **Inception** (Sci-Fi · 2010, 4.5, `148 min · $160M`, chips PG-13 + Watched), **Toy Story** (Animation · 1995, 4.0, `81 min · $30M`, chips G + Watched), **The Matrix** (Action · 1999, 5.0, `136 min · $63M`, chips R + Watchlist). Click pe un card → formularul se deschide completat. Salvează modificări → rândul se actualizează cu animație. FAB → formular gol → salvează → rând nou apare în listă cu animație.
 
-**Indiciu 1 — dacă te blochezi la pasul 8 și lista e goală, fără nicio eroare în Logcat:** ai uitat `setLayoutManager`. E singura greșeală din tot capitolul care nu se plânge deloc: `RecyclerView` fără `LayoutManager` nu știe cum să aranjeze rândurile și nu afișează nimic, fără excepție, fără warning.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 8 și lista e goală, fără nicio eroare în Logcat</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 6:** `notifyItemInserted` cere **indexul elementului nou**, nu dimensiunea listei. După `movies.add(movie)`, elementul nou e la `movies.size() - 1`. Dacă scrii `notifyItemInserted(movies.size())`, primești `IndexOutOfBoundsException: Inconsistency detected. Invalid item position ... itemCount is ...`.
+ai uitat `setLayoutManager`. E singura greșeală din tot capitolul care nu se plânge deloc: `RecyclerView` fără `LayoutManager` nu știe cum să aranjeze rândurile și nu afișează nimic, fără excepție, fără warning.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 6</summary>
+
+`notifyItemInserted` cere **indexul elementului nou**, nu dimensiunea listei. După `movies.add(movie)`, elementul nou e la `movies.size() - 1`. Dacă scrii `notifyItemInserted(movies.size())`, primești `IndexOutOfBoundsException: Inconsistency detected. Invalid item position ... itemCount is ...`.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>

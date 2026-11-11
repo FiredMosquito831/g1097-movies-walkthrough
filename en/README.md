@@ -109,6 +109,18 @@ Every requirement has: the prompt, files touched, **"How you approach it — you
 | 21 | [21 - Cheatsheet.md](21%20-%20Cheatsheet.md) | File map, model, IDs, ViewBinding, the listener table, the adapter decision tree, intents, lifecycle, common errors, exam recipes |
 | 22 | [22 - Annotated code.md](22%20-%20Annotated%20code.md) | All six G1097 files explained block by block, plus the complete flow |
 
+### Path 4 — Exam recipes
+
+Every requirement type that can come up, on one page: the exact steps, the files touched, the minimum code that compiles, why it works and the mistake that costs marks. Start with the plan.
+
+| # | File | What it contains | Checks |
+|---|---|---|---|
+| 32 | [32 - The guided plan.md](32%20-%20The%20guided%20plan.md) | 10 sessions, ~18 h, with exact pointers to what you read and practise across the whole site | 10 |
+| 33 | [33 - Recipes 1 - model and UI.md](33%20-%20Recipes%201%20-%20model%20and%20UI.md) | 16 recipes: attributes (String, int, Integer, float, boolean, list, composed, derived), type change, rename, widgets, buttons, a new screen | 16 |
+| 34 | [34 - Recipes 2 - bindings and adapters.md](34%20-%20Recipes%202%20-%20bindings%20and%20adapters.md) | 14 recipes: values bound to labels, conditional visibility, validation, `ArrayAdapter`, `BaseAdapter`, `RecyclerView.Adapter`, the full migration, grid, header, click with callback | 14 |
+| 35 | [35 - Recipes 3 - Intents and persistence.md](35%20-%20Recipes%203%20-%20Intents%20and%20persistence.md) | 13 recipes: start an activity, simple extras, `Serializable` object, result, result code, implicit `Intent`, rotation, `SharedPreferences` + JSON, `Application` | 13 |
+| 36 | [36 - Bank 7 - Intents and navigation.md](36%20-%20Bank%207%20-%20Intents%20and%20navigation.md) | 10 exam-style exercises, with graduated hints and an explained solution | 10 |
+
 ---
 
 ## Progress table

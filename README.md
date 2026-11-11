@@ -109,6 +109,18 @@ Fiecare cerință are: enunț, fișiere atinse, **„Cum abordezi — pașii tă
 | 21 | [21 - Cheatsheet.md](21%20-%20Cheatsheet.md) | Harta fișierelor, model, ID-uri, ViewBinding, tabelul de listeneri, arborele de decizie pentru adaptoare, intents, ciclu de viață, erori frecvente, rețete pentru examen |
 | 22 | [22 - Codul adnotat.md](22%20-%20Codul%20adnotat.md) | Toate cele 6 fișiere G1097 explicate bloc cu bloc, plus fluxul complet |
 
+### Calea 4 — Rețete de examen
+
+Fiecare tip de cerință care poate pica, pe o pagină: pașii exacți, fișierele atinse, codul minim care compilează, de ce merge așa și greșeala care costă puncte. Începe cu planul.
+
+| # | Fișier | Ce conține | Bife |
+|---|---|---|---|
+| 32 | [32 - Planul ghidat.md](32%20-%20Planul%20ghidat.md) | 10 sesiuni, ~18 h, cu trimiteri exacte la ce citești și ce exersezi din tot site-ul | 10 |
+| 33 | [33 - Retete 1 - modelul si interfata.md](33%20-%20Retete%201%20-%20modelul%20si%20interfata.md) | 16 rețete: atribute (String, int, Integer, float, boolean, listă, compus, derivat), schimbare de tip, redenumire, widget-uri, butoane, ecran nou | 16 |
+| 34 | [34 - Retete 2 - bindinguri si adaptoare.md](34%20-%20Retete%202%20-%20bindinguri%20si%20adaptoare.md) | 14 rețete: valori legate de etichete, vizibilitate condiționată, validare, `ArrayAdapter`, `BaseAdapter`, `RecyclerView.Adapter`, migrarea completă, grid, antet, click cu callback | 14 |
+| 35 | [35 - Retete 3 - Intent si persistenta.md](35%20-%20Retete%203%20-%20Intent%20si%20persistenta.md) | 13 rețete: pornire activitate, extra simple, obiect `Serializable`, rezultat, cod de rezultat, `Intent` implicit, rotire, `SharedPreferences` + JSON, `Application` | 13 |
+| 36 | [36 - Bancul 7 - Intent si navigare.md](36%20-%20Bancul%207%20-%20Intent%20si%20navigare.md) | 10 exerciții de tip examen, cu indicii gradate și soluție explicată | 10 |
+
 ---
 
 ## Tabel de progres

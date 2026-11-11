@@ -32,9 +32,19 @@
 3. Open `fillForm(...)` and look for `tvDurationValue`. It isn't there. Run the app, open an existing movie and look at the Duration label: it shows 148, even though `fillForm` wrote nothing there.
 4. Explain why: `sbDuration.setProgress(148)` in `fillForm` fired `onProgressChanged`. Then check the order in `onCreate`: `initControls(); initListeners();` run **before** `fillForm(existing)`.
 
-**Hint 1 — if you get stuck at step 1:** `SeekBar` doesn't have `setOnProgressChangedListener`. The method is called `setOnSeekBarChangeListener` and takes a `SeekBar.OnSeekBarChangeListener` with three methods: `onProgressChanged`, `onStartTrackingTouch`, `onStopTrackingTouch`. Only the first one matters to you.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 1</summary>
 
-**Hint 2 — if you get stuck at step 3:** if the label stays at "0 min" when you edit a movie, the listener wasn't registered at the time of `setProgress`. Check the order in `onCreate`: `initListeners()` must run before `fillForm(existing)`.
+`SeekBar` doesn't have `setOnProgressChangedListener`. The method is called `setOnSeekBarChangeListener` and takes a `SeekBar.OnSeekBarChangeListener` with three methods: `onProgressChanged`, `onStartTrackingTouch`, `onStopTrackingTouch`. Only the first one matters to you.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 3</summary>
+
+if the label stays at "0 min" when you edit a movie, the listener wasn't registered at the time of `setProgress`. Check the order in `onCreate`: `initListeners()` must run before `fillForm(existing)`.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -122,9 +132,19 @@ Direct consequences, all verifiable in the code from `d719ffc`:
 4. Touch every place where `etBudget` appears: `initControls()` (`findViewById`), `fillForm()` (setProgress), `saveMovie()` (getProgress × 1,000,000). In `initListeners()` you add the listener that writes "$160M".
 5. Run it: open Inception → the slider sits at 160, the label shows "$160M". Move the slider → the label changes in steps of 1 million. Save → the budget in the list is the new one.
 
-**Hint 1 — if you get stuck at step 2:** `SeekBar` has no "step". It has `max`. You make the steps yourself, by interpreting the value: progress 0..500 multiplied by `1_000_000`. There is no `android:stepSize` on `SeekBar` (there is on the Material `Slider`, a different widget).
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 2</summary>
 
-**Hint 2 — if you get stuck at step 4:** if the build says "cannot find symbol: variable etBudget", you forgot one of the four places (the field plus the three uses). Search for `etBudget` in the file with Ctrl+F — you must get zero results before you run.
+`SeekBar` has no "step". It has `max`. You make the steps yourself, by interpreting the value: progress 0..500 multiplied by `1_000_000`. There is no `android:stepSize` on `SeekBar` (there is on the Material `Slider`, a different widget).
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 4</summary>
+
+if the build says "cannot find symbol: variable etBudget", you forgot one of the four places (the field plus the three uses). Search for `etBudget` in the file with Ctrl+F — you must get zero results before you run.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -241,9 +261,19 @@ movie.setBudget(sbBudget.getProgress() * 1_000_000.0);
 4. Write the conversion in both directions: on read `setSelection((int) rating - 1)`, clamped to 0..4; on write `setRating(position + 1)`.
 5. Run it: edit a movie with rating 4.5 → the spinner shows "4 stars" (the half is lost). Save → the rating in the list is 4.
 
-**Hint 1 — if you get stuck at step 4:** `Spinner` returns a **position** (0..4), not a value (1..5). `getSelectedItemPosition()` is the index, `getSelectedItem()` is the text ("3 stars"). For the rating you want the index.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 4</summary>
 
-**Hint 2 — if it still doesn't work at step 4:** if the rating is 0 (a new movie, an unset `float` field), `(int) 0 - 1 = -1` — an invalid index. Clamp it: `Math.max(0, Math.min(4, ...))`.
+`Spinner` returns a **position** (0..4), not a value (1..5). `getSelectedItemPosition()` is the index, `getSelectedItem()` is the text ("3 stars"). For the rating you want the index.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if it still doesn't work at step 4</summary>
+
+if the rating is 0 (a new movie, an unset `float` field), `(int) 0 - 1 = -1` — an invalid index. Clamp it: `Math.max(0, Math.min(4, ...))`.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -324,9 +354,19 @@ movie.setRating(spRating.getSelectedItemPosition() + 1);
 4. Fill in `getView`: `if (convertView == null) { inflate; findViewById; setTag } else { getTag }`, then `setText` on the two views.
 5. In `MainActivity`: change the field type and the line in `onCreate`. Run it: two lines per row, the click works unchanged.
 
-**Hint 1 — if you get stuck at step 1:** `android.R.layout.simple_list_item_2` **does** exist and has two `TextView`s (`android.R.id.text1`, `android.R.id.text2`). But `ArrayAdapter` fills only `text1`; `text2` stays empty. So you still end up with your own adapter.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 1</summary>
 
-**Hint 2 — if you get stuck at step 4:** if rows repeat wrongly on scroll (the first movie shows up three times), you forgot `convertView.setTag(holder)` or you put `findViewById` outside the `if (convertView == null)` block.
+`android.R.layout.simple_list_item_2` **does** exist and has two `TextView`s (`android.R.id.text1`, `android.R.id.text2`). But `ArrayAdapter` fills only `text1`; `text2` stays empty. So you still end up with your own adapter.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 4</summary>
+
+if rows repeat wrongly on scroll (the first movie shows up three times), you forgot `convertView.setTag(holder)` or you put `findViewById` outside the `if (convertView == null)` block.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -495,9 +535,19 @@ Nothing else. `listView.setAdapter(movieAdapter)` and `movieAdapter.notifyDataSe
 4. `MainActivity`: change the fields (`ListView` → `RecyclerView`), build the adapter with the click listener, put `setLayoutManager` + `setAdapter` in `initControls()`, delete the `listView.setOnItemClickListener` block from `initListeners()`.
 5. Run it: the list looks like before, the click opens the form, saving updates the row. If the list is empty with no error, see Hint 2.
 
-**Hint 1 — if you get stuck at step 1:** `RecyclerView` isn't in `appcompat`, nor in `material`. It's `androidx.recyclerview:recyclerview`, a separate library. Without it: "cannot find symbol class RecyclerView".
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 1</summary>
 
-**Hint 2 — if you get stuck at step 5:** if the list is empty and no error shows in Logcat, you forgot `setLayoutManager`. It's the only mistake that doesn't complain: a `RecyclerView` without a `LayoutManager` displays nothing.
+`RecyclerView` isn't in `appcompat`, nor in `material`. It's `androidx.recyclerview:recyclerview`, a separate library. Without it: "cannot find symbol class RecyclerView".
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 5</summary>
+
+if the list is empty and no error shows in Logcat, you forgot `setLayoutManager`. It's the only mistake that doesn't complain: a `RecyclerView` without a `LayoutManager` displays nothing.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -726,9 +776,19 @@ recyclerView.setAdapter(movieAdapter);
 3. In `bind()`, after `movieFacts`, read `movie.getPoster()` and handle three cases: `null`, `""`, a valid value.
 4. Run it: Inception shows the URL, a movie added without a poster shows nothing (the row doesn't grow by an empty line).
 
-**Hint 1 — if you get stuck at step 3:** `poster` has `= null` in the model, but the form writes `""` when the field is empty (`etPoster.getText().toString()`). You need both checks: `poster != null && !poster.isEmpty()`.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 3</summary>
 
-**Hint 2 — if you get stuck at step 4:** if the row without a poster still has an empty gap below `movieFacts`, you used `View.INVISIBLE`. It has to be `View.GONE`.
+`poster` has `= null` in the model, but the form writes `""` when the field is empty (`etPoster.getText().toString()`). You need both checks: `poster != null && !poster.isEmpty()`.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 4</summary>
+
+if the row without a poster still has an empty gap below `movieFacts`, you used `View.INVISIBLE`. It has to be `View.GONE`.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -799,9 +859,19 @@ if (poster != null && !poster.isEmpty()) {
 3. Run it. Don't touch anything else — not the adapter, not `movie_item.xml`, not `getItemCount`.
 4. Note what changed visually (margins, clipped titles, heights) and what stayed identical (the row content, the click, saving).
 
-**Hint 1 — if you get stuck at step 2:** `GridLayoutManager` is in the same package as `LinearLayoutManager` (`androidx.recyclerview.widget`). The second parameter is the number of columns, not the height.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 2</summary>
 
-**Hint 2 — if you get stuck at step 4:** the answer to "why doesn't the adapter change" is that the `LayoutManager` receives views already filled by the adapter and only arranges them. It doesn't know what's in them, so there's nothing for it to modify.
+`GridLayoutManager` is in the same package as `LinearLayoutManager` (`androidx.recyclerview.widget`). The second parameter is the number of columns, not the height.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 4</summary>
+
+the answer to "why doesn't the adapter change" is that the `LayoutManager` receives views already filled by the adapter and only arranges them. It doesn't know what's in them, so there's nothing for it to modify.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -862,9 +932,19 @@ Import: `androidx.recyclerview.widget.GridLayoutManager`. The `LinearLayoutManag
 4. Solution B: undo `toString()` (go back to the debug format) and modify `MovieListAdapter.getView` from 18.4.
 5. Write the comparison: files, lines, time, side effects, what you can do extra.
 
-**Hint 1 — if you get stuck at step 2:** `ArrayAdapter` doesn't know what a `Movie` is. It calls `toString()` on each element — that's the only control point over the text.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 2</summary>
 
-**Hint 2 — if it still doesn't work at step 2:** `Date.getYear()` returns the year minus 1900 and is deprecated. 2010 becomes 110. Use `SimpleDateFormat("yyyy", Locale.getDefault())`.
+`ArrayAdapter` doesn't know what a `Movie` is. It calls `toString()` on each element — that's the only control point over the text.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if it still doesn't work at step 2</summary>
+
+`Date.getYear()` returns the year minus 1900 and is deprecated. 2010 becomes 110. Use `SimpleDateFormat("yyyy", Locale.getDefault())`.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -945,9 +1025,19 @@ holder.rowSubtitle.setVisibility(View.GONE);
 3. In `bind()`, write the two-branch logic: valid value → `setText` + `VISIBLE`; otherwise → `GONE`.
 4. Run it: Inception shows "PG-13", Toy Story "G", The Matrix "R". A movie without an approval shows no chip at all.
 
-**Hint 1 — if you get stuck at step 2:** `Chip` extends `TextView` (through `AppCompatCheckBox`), so it has `setText`. The import is `com.google.android.material.chip.Chip`, not `android.widget.*`.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 2</summary>
 
-**Hint 2 — if you get stuck at step 4:** if a recycled row keeps the previous movie's chip, you set `setVisibility(VISIBLE)` only on the positive branch. Both branches must set visibility.
+`Chip` extends `TextView` (through `AppCompatCheckBox`), so it has `setText`. The import is `com.google.android.material.chip.Chip`, not `android.widget.*`.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 4</summary>
+
+if a recycled row keeps the previous movie's chip, you set `setVisibility(VISIBLE)` only on the positive branch. Both branches must set visibility.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -1014,9 +1104,19 @@ Here there's no "empty": a `boolean` is always `true` or `false`. That's why the
 4. Open `MovieAdapter.java`: field in the `ViewHolder`, `findViewById` in the constructor, the branch in `bind()`.
 5. Run it: Inception shows "Written by Christopher Nolan". A movie without a writer doesn't show the line at all.
 
-**Hint 1 — if you get stuck at step 1:** the order is model → layout → adapter. If you start with the XML, you end up writing `movie.getWriter()` in an adapter where the method doesn't exist yet, and you don't understand the error.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 1</summary>
 
-**Hint 2 — if you get stuck at step 5:** if everything compiles but you see nothing on screen, all 3 demo movies have `writer == null` and the `TextView` is `GONE`. Put a value into one sample — otherwise it looks like you did nothing.
+the order is model → layout → adapter. If you start with the XML, you end up writing `movie.getWriter()` in an adapter where the method doesn't exist yet, and you don't understand the error.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 5</summary>
+
+if everything compiles but you see nothing on screen, all 3 demo movies have `writer == null` and the `TextView` is `GONE`. Put a value into one sample — otherwise it looks like you did nothing.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>

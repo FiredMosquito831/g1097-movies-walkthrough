@@ -68,9 +68,19 @@ The first and the second kill requirement (a) before it even gets to run. The th
    Run and look in Logcat at the `G1097` filter. The three values must be equal. When they aren't, you have found the bug.
 6. Put line 71 back and confirm that the three values are equal again after every operation.
 
-**Hint 1 — if you get stuck at step 4:** `ArrayAdapter` does not copy the list, it holds a **reference** to it. So `movies.add(movie)` modifies exactly the list the adapter reads. What is missing is not the data, but the **announcement** that the data has changed.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 4</summary>
 
-**Hint 2 — if you get stuck at step 5:** `adapter.getCount()` returns `mObjects.size()`, i.e. the live value. `listView.getCount()` returns `mItemCount`, the value **cached** at the last `onChanged()`. The difference between them is exactly `notifyDataSetChanged()`.
+`ArrayAdapter` does not copy the list, it holds a **reference** to it. So `movies.add(movie)` modifies exactly the list the adapter reads. What is missing is not the data, but the **announcement** that the data has changed.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 5</summary>
+
+`adapter.getCount()` returns `mObjects.size()`, i.e. the live value. `listView.getCount()` returns `mItemCount`, the value **cached** at the last `onChanged()`. The difference between them is exactly `notifyDataSetChanged()`.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -143,9 +153,19 @@ That message is the best teacher: it tells you exactly what you forgot.
 5. Put `set` back. Then open `ItemActivity.java` at lines 76–83 and ask yourself why `fillForm(existing)` cannot "save" the changes directly into the parent's object.
 6. Check: after Update, tap the row again → the form shows the new values. If it showed the old ones, you added instead of replacing.
 
-**Hint 1 — if you get stuck at step 5:** the object that leaves through the `Intent` is not the object in the list. `putExtra(String, Serializable)` serializes it, and the `Intent` goes through `system_server` (Binder), so at the destination a **new instance** is rebuilt. You modify the copy, not the original.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 5</summary>
 
-**Hint 2 — if you get stuck at step 3:** `set(index, element)` replaces the element at the index and **keeps the size**. `add(element)` adds at the end and **grows the size**. Neither forces you to use the returned value — `add` returns `boolean`, `set` returns the old element — so the compiler doesn't warn you that you chose wrong.
+the object that leaves through the `Intent` is not the object in the list. `putExtra(String, Serializable)` serializes it, and the `Intent` goes through `system_server` (Binder), so at the destination a **new instance** is rebuilt. You modify the copy, not the original.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 3</summary>
+
+`set(index, element)` replaces the element at the index and **keeps the size**. `add(element)` adds at the end and **grows the size**. Neither forces you to use the returned value — `add` returns `boolean`, `set` returns the old element — so the compiler doesn't warn you that you chose wrong.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -221,9 +241,19 @@ if (position >= 0 && position < movies.size()) {
 5. Temporarily add a `Toast` in the callback, **before** the `if`, showing `o.getResultCode()` and whether `o.getData()` is `null`. Repeat both steps: Save → `-1` (RESULT_OK) and an `Intent`; Back → `0` (RESULT_CANCELED) and `null`.
 6. Remove the `Toast`. Optionally, the dangerous experiment from "Why": put `setResult(RESULT_OK);` at the end of `onCreate()` and press Back.
 
-**Hint 1 — if you get stuck at step 4:** `RESULT_OK` is `-1`, `RESULT_CANCELED` is `0`. An activity that closes without calling `setResult` reports `RESULT_CANCELED`. Back doesn't call `saveMovie()`, so there is nobody to set anything else.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 4</summary>
 
-**Hint 2 — if you get stuck at step 6:** `setResult` does not "reset" on Back. The code left set is used by `finish()`. That is why `setResult` is called as the **last** statement before `finish()`, never pre-emptively.
+`RESULT_OK` is `-1`, `RESULT_CANCELED` is `0`. An activity that closes without calling `setResult` reports `RESULT_CANCELED`. Back doesn't call `saveMovie()`, so there is nobody to set anything else.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 6</summary>
+
+`setResult` does not "reset" on Back. The code left set is used by `finish()`. That is why `setResult` is called as the **last** statement before `finish()`, never pre-emptively.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -281,9 +311,19 @@ The order in `saveMovie()` matters: `setResult(...)` **before** `finish()`. The 
 5. Also add the duplicate check (the `hasDuplicateTitles()` method), called in the same place. On a correct test it must always show `false`.
 6. Final check on the emulator: after the four operations, count the rows by eye. Six. Tap the last movie added: the form opens with its values.
 
-**Hint 1 — if you get stuck at step 3:** `movies.size()` grows only on `add`. `set` doesn't change the size. So 3 + 3 = 6, and the edit leaves 6. If you get 7, you used `add` on the edit branch too (24.9). If you get 5, you used `set` on the add branch too — you overwrote a movie.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 3</summary>
 
-**Hint 2 — if you get stuck at step 5:** `Toast.makeText(...)` needs a `Context`; in an activity that is `this`. `Toast.LENGTH_SHORT` is the duration constant. Don't forget `.show()` — without it, the object is built and nothing appears.
+`movies.size()` grows only on `add`. `set` doesn't change the size. So 3 + 3 = 6, and the edit leaves 6. If you get 7, you used `add` on the edit branch too (24.9). If you get 5, you used `set` on the add branch too — you overwrote a movie.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 5</summary>
+
+`Toast.makeText(...)` needs a `Context`; in an activity that is `this`. `Toast.LENGTH_SHORT` is the duration constant. Don't forget `.show()` — without it, the object is built and nothing appears.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -369,9 +409,19 @@ Three numbers, three different sources: `movies.size()` is the truth in the mode
 5. Run the test from step 1 again, then tap "Save Movie". The date in the list must be the one you picked.
 6. Open "Inception" (edit mode), change the title, rotate, tap "Update Movie". Then go back to `MainActivity`, add a movie and rotate there.
 
-**Hint 1 — if you get stuck at step 2:** the framework saves by itself the `View`s that have an `android:id` and `android:saveEnabled="true"` (the default). `EditText.getFreezesText()` returns `true`; `ProgressBar` (the base for `SeekBar` and `RatingBar`) saves its progress; `CompoundButton` saves its check state; `AbsSpinner` saves its position. What is **not** a `View` is not saved.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 2</summary>
 
-**Hint 2 — if you get stuck at step 6:** in `MainActivity`, `movies` is a field of the activity, initialized inline with `new ArrayList<>()`. On rotation a new activity is created, hence a new, empty list. `addSampleMovies()` fills it again with the three demos. `ListView` saves only the scroll position, not the data.
+the framework saves by itself the `View`s that have an `android:id` and `android:saveEnabled="true"` (the default). `EditText.getFreezesText()` returns `true`; `ProgressBar` (the base for `SeekBar` and `RatingBar`) saves its progress; `CompoundButton` saves its check state; `AbsSpinner` saves its position. What is **not** a `View` is not saved.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 6</summary>
+
+in `MainActivity`, `movies` is a field of the activity, initialized inline with `new ArrayList<>()`. On rotation a new activity is created, hence a new, empty list. `addSampleMovies()` fills it again with the three demos. `ListView` saves only the scroll position, not the data.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -490,9 +540,19 @@ A `Bundle` has a practical limit of ~1 MB (`TransactionTooLargeException`). Thre
 5. Call `saveMovies()` in `onPause()`. Check on disk with `adb`.
 6. Test with a title that contains quotation marks and with one that contains diacritics.
 
-**Hint 1 — if you get stuck at step 2:** `movies` is `final`, so `movies = loadMovies();` does **not** compile. Use `movies.addAll(loadMovies());` or `movies.clear(); movies.addAll(...);`. The adapter holds the reference to the list, not to the content — that is why you never reassign, you only modify.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 2</summary>
 
-**Hint 2 — if you get stuck at step 4:** `new JSONArray(json)` throws `JSONException` if the string is invalid. Catch it and start with an empty list — the app repairs itself on the next run. To read the fields use `optString` / `optInt` / `optDouble` / `optBoolean`, which return a default value instead of throwing.
+`movies` is `final`, so `movies = loadMovies();` does **not** compile. Use `movies.addAll(loadMovies());` or `movies.clear(); movies.addAll(...);`. The adapter holds the reference to the list, not to the content — that is why you never reassign, you only modify.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 4</summary>
+
+`new JSONArray(json)` throws `JSONException` if the string is invalid. Catch it and start with an empty list — the app repairs itself on the next run. To read the fields use `optString` / `optInt` / `optDouble` / `optBoolean`, which return a default value instead of throwing.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -668,9 +728,19 @@ Three decisions in the code that are worth explaining:
 4. Run the checklist again after you fix it. A checklist that isn't run twice isn't a checklist, it's an attempt.
 5. Final check: add a movie with the attribute filled in, close the app, reopen, open the movie in edit. The value must be there, in the list and in the form.
 
-**Hint 1 — if you get stuck at check 3:** put a `Toast` with `movie.toString()` in `saveMovie()`, right before `setResult`. If the attribute appears there, `saveMovie` is correct and the problem is further on. If it shows `null` or `0`, the problem is in reading from the widget.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at check 3</summary>
 
-**Hint 2 — if you get stuck at check 6:** if you did 24.6, the JSON has exactly 10 hand-written fields. A new attribute isn't saved to disk until you add both the line in `moviesToJson()` **and** the line in `moviesFromJson()`. It is the most common place where an attribute "disappears on restart".
+put a `Toast` with `movie.toString()` in `saveMovie()`, right before `setResult`. If the attribute appears there, `saveMovie` is correct and the problem is further on. If it shows `null` or `0`, the problem is in reading from the widget.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at check 6</summary>
+
+if you did 24.6, the JSON has exactly 10 hand-written fields. A new attribute isn't saved to disk until you add both the line in `moviesToJson()` **and** the line in `moviesFromJson()`. It is the most common place where an attribute "disappears on restart".
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -744,9 +814,19 @@ The order of the checks is not accidental: from the model towards the disk, from
 4. Put a breakpoint on the `movies.add(movie)` line and run in debug. Inspect `movies.size()` before and after, then `movieAdapter.getCount()` and `listView.getCount()`.
 5. Go through the triage table below and note, for each cause, what value you got.
 
-**Hint 1 — if you get stuck at step 2:** a `Toast` that doesn't appear doesn't necessarily mean the method didn't run — it can mean the activity crashed before it. Check Logcat for `FATAL EXCEPTION` before you draw a conclusion.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 2</summary>
 
-**Hint 2 — if you get stuck at step 4:** the breakpoint goes on the line in the callback, not in `ItemActivity`. There you see `movies`, `movie` and `position` at the same time — exactly the three variables that decide what happens.
+a `Toast` that doesn't appear doesn't necessarily mean the method didn't run — it can mean the activity crashed before it. Check Logcat for `FATAL EXCEPTION` before you draw a conclusion.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 4</summary>
+
+the breakpoint goes on the line in the callback, not in `ItemActivity`. There you see `movies`, `movie` and `position` at the same time — exactly the three variables that decide what happens.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -820,9 +900,19 @@ The triage order, from cheap to expensive: **Logcat → `Toast` → breakpoint**
 5. Experiment the other way round too: in the add branch, replace `movies.add(movie);` with `movies.set(0, movie);`. Add a movie. The list still has 3 rows, and "Inception" is gone. This is the other symptom of the same confusion.
 6. Write `removeDuplicates()` and run it on the list already corrupted at step 2.
 
-**Hint 1 — if you get stuck at step 5:** `set(0, movie)` doesn't throw any exception — index 0 is valid. It simply replaces the first element. That is why the bug is dangerous: it doesn't report itself, it just loses data.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 5</summary>
 
-**Hint 2 — if you get stuck at step 6:** `Movie` doesn't have `equals` and `hashCode`, so `movies.remove(movie)` compares by identity and will never find the "same" movie. Either you deduplicate manually, by title + date, or you add `equals`/`hashCode` to `Movie` — the second option is the correct one.
+`set(0, movie)` doesn't throw any exception — index 0 is valid. It simply replaces the first element. That is why the bug is dangerous: it doesn't report itself, it just loses data.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 6</summary>
+
+`Movie` doesn't have `equals` and `hashCode`, so `movies.remove(movie)` compares by identity and will never find the "same" movie. Either you deduplicate manually, by title + date, or you add `equals`/`hashCode` to `Movie` — the second option is the correct one.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -935,9 +1025,19 @@ movieAdapter.notifyDataSetChanged();
 5. Run again, with "Don't keep activities" enabled (Developer options) — the simulation of activity death. Then close from Recents and reopen, if you did 24.6.
 6. Final check: every row in the table passes, and `hasDuplicateTitles()` returns `false` at the end.
 
-**Hint 1 — if you get stuck at step 2:** `Double.parseDouble("")` throws `NumberFormatException`, and `dateFormat.format(null)` throws `NullPointerException` in `calendar.setTime(null)`. Both are before `setResult`, so the app crashes and the parent receives nothing. They are not "improvements" — they are conditions for requirement (a) to be demonstrable.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 2</summary>
 
-**Hint 2 — if you get stuck at step 3:** `o.getData()` can be `null` even with `RESULT_OK` (if someone called `setResult(RESULT_OK)` without an `Intent`). And `position` can be any integer — an `Intent` is not a typed contract. Both guards are two lines.
+`Double.parseDouble("")` throws `NumberFormatException`, and `dateFormat.format(null)` throws `NullPointerException` in `calendar.setTime(null)`. Both are before `setResult`, so the app crashes and the parent receives nothing. They are not "improvements" — they are conditions for requirement (a) to be demonstrable.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 3</summary>
+
+`o.getData()` can be `null` even with `RESULT_OK` (if someone called `setResult(RESULT_OK)` without an `Intent`). And `position` can be any integer — an `Intent` is not a typed contract. Both guards are two lines.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>

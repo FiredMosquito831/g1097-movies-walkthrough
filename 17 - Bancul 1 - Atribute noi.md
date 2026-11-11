@@ -26,9 +26,19 @@
 8. Deschide `res/layout/movie_item.xml`: adaugă `TextView`-ul `movieWriter` după `movieFacts`. În `MovieAdapter`, trei linii: câmp, `findViewById`, `setText`.
 9. Verifică: Run, adaugă un film cu „Christopher Nolan” la Writer. În listă trebuie să apară `writer='Christopher Nolan'` în textul `toString()`. Atinge filmul: câmpul Writer e completat.
 
-**Indiciu 1 — dacă te blochezi la pasul 1:** câmpul se declară lângă celelalte câmpuri, sus în clasă, nu în constructor. Dacă îl pui în constructor, compilatorul îl tratează ca parametru și `this.writer` nu mai există.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 1</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 3:** `toString()` e chiar sub constructor. Linia nouă se pune între `", poster='" + poster + '\'' +` și `'}'`, cu virgula la început — același stil ca toate celelalte linii.
+câmpul se declară lângă celelalte câmpuri, sus în clasă, nu în constructor. Dacă îl pui în constructor, compilatorul îl tratează ca parametru și `this.writer` nu mai există.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 3</summary>
+
+`toString()` e chiar sub constructor. Linia nouă se pune între `", poster='" + poster + '\'' +` și `'}'`, cu virgula la început — același stil ca toate celelalte linii.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -192,9 +202,19 @@ movies.add(new Movie(
 7. În `ItemActivity.java`: câmpul, `initControls()`, `fillForm()` — cu `String.valueOf(...)` — și `saveMovie()` — cu gardă `isEmpty()` înainte de `Integer.parseInt`.
 8. Verifică: Run, adaugă un film cu anul 2024. În listă apare `year=2024`. Editează un film, golește anul, salvează — nu trebuie să apară niciun crash, iar în listă apare `year=null`.
 
-**Indiciu 1 — dacă te blochezi la pasul 1:** `Integer` e o clasă din `java.lang`, ca `String`. Nu are nevoie de import, se declară cu majusculă și acceptă `null`. `int` e primitiva, cu valoarea implicită `0`.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 1</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 7:** `etYear.setText(existing.getYear())` compilează, dar la runtime aruncă `Resources$NotFoundException`. `Integer`-ul se unboxează la `int` și ajunge la suprascrierea `setText(int resid)`, care caută un id de resursă. Forțează `String` cu `String.valueOf(...)`.
+`Integer` e o clasă din `java.lang`, ca `String`. Nu are nevoie de import, se declară cu majusculă și acceptă `null`. `int` e primitiva, cu valoarea implicită `0`.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 7</summary>
+
+`etYear.setText(existing.getYear())` compilează, dar la runtime aruncă `Resources$NotFoundException`. `Integer`-ul se unboxează la `int` și ajunge la suprascrierea `setText(int resid)`, care caută un id de resursă. Forțează `String` cu `String.valueOf(...)`.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -341,9 +361,19 @@ Pasul 6 — `MainActivity.addSampleMovies()`: al 11-lea argument la toate trei:
 8. În `movie_item.xml`, în `movieStatusGroup`, după `chipWatchlist`: un `Chip` cu id `chipPopular`. În adapter: câmp, `findViewById`, `setVisibility`.
 9. Verifică: Run, adaugă un film cu switch-ul pornit. În listă apare `popular=true`. Deschide un film cu switch-ul oprit: switch-ul trebuie să fie stins, nu pornit.
 
-**Indiciu 1 — dacă te blochezi la pasul 2:** `boolean`, nu `Boolean`. Primitiva are deja valoarea `false`, deci nu are nevoie de inițializare în declarație — și nu poate fi `null`.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 2</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 7:** dacă uiți `swPopular.setChecked(...)` din `fillForm`, nu apare nicio eroare. Dar `saveMovie()` construiește un `Movie` nou, deci la prima editare filmul devine nepopular — fără ca utilizatorul să atingă switch-ul.
+`boolean`, nu `Boolean`. Primitiva are deja valoarea `false`, deci nu are nevoie de inițializare în declarație — și nu poate fi `null`.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 7</summary>
+
+dacă uiți `swPopular.setChecked(...)` din `fillForm`, nu apare nicio eroare. Dar `saveMovie()` construiește un `Movie` nou, deci la prima editare filmul devine nepopular — fără ca utilizatorul să atingă switch-ul.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -484,9 +514,19 @@ Pasul 6 — `MainActivity.addSampleMovies()`: al 11-lea argument, `true` sau `fa
 8. În `movie_item.xml` și adapter: `TextView`-ul `movieImdbScore`, legat cu `"IMDb " + movie.getImdbScore()`.
 9. Verifică: Run, scrie `8,5` cu virgulă în câmp și salvează. Nu trebuie să apară niciun crash, iar în listă apare `imdbScore=8.5`.
 
-**Indiciu 1 — dacă te blochezi la pasul 5:** literalul `float` are nevoie de sufixul `f`. `8.8` fără sufix e `double` și nu se potrivește pe un parametru `float` — eroarea e „incompatible types: possible lossy conversion from double to float”.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 5</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 7:** `Float.parseFloat("8,5")` aruncă `NumberFormatException`, pentru că parserul acceptă doar punct. Normalizezi întâi — `text.replace(',', '.')` — și parsezi rezultatul, nu textul original.
+literalul `float` are nevoie de sufixul `f`. `8.8` fără sufix e `double` și nu se potrivește pe un parametru `float` — eroarea e „incompatible types: possible lossy conversion from double to float”.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 7</summary>
+
+`Float.parseFloat("8,5")` aruncă `NumberFormatException`, pentru că parserul acceptă doar punct. Normalizezi întâi — `text.replace(',', '.')` — și parsezi rezultatul, nu textul original.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -632,9 +672,19 @@ Pasul 6 — `MainActivity.addSampleMovies()`: al 11-lea argument, de tip `float`
 9. În `movie_item.xml` și adapter: `TextView`-ul `movieActors`, legat cu `String.join(", ", movie.getActors())`.
 10. Verifică: Run, scrie `A, B, C` și salvează — în listă apare `actors=[A, B, C]`. Apoi golește câmpul și salvează: trebuie să apară `actors=[]`, nu `actors=[]` cu un element vid înăuntru.
 
-**Indiciu 1 — dacă te blochezi la pasul 1:** inițializează câmpul pe loc, `= new ArrayList<>()`. Altfel e `null` până îl setează cineva, iar `toString()` și cardul trebuie să verifice `null` la fiecare afișare.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 1</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 8:** `"".split(",")` nu întoarce un tablou gol, ci `[""]` — un tablou cu un singur element vid. Fără `if (!trimmed.isEmpty())`, un câmp lăsat gol produce o listă cu un `String` vid, iar cardul afișează o virgulă singuratică.
+inițializează câmpul pe loc, `= new ArrayList<>()`. Altfel e `null` până îl setează cineva, iar `toString()` și cardul trebuie să verifice `null` la fiecare afișare.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 8</summary>
+
+`"".split(",")` nu întoarce un tablou gol, ci `[""]` — un tablou cu un singur element vid. Fără `if (!trimmed.isEmpty())`, un câmp lăsat gol produce o listă cu un `String` vid, iar cardul afișează o virgulă singuratică.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -793,9 +843,19 @@ Pasul 6 — `MainActivity.addSampleMovies()`: al 11-lea argument e o listă, nu 
 8. În `movie_item.xml` și adapter: `TextView`-ul `movieAgeRestriction`, legat cu `"+" + movie.getAgeRestriction()` sau „All ages” pentru 0.
 9. Verifică: Run, trage slider-ul — eticheta se schimbă în timp real. Salvează cu 18, apoi redeschide filmul: slider-ul e la 18 **și** eticheta arată „18+”, nu „0+”.
 
-**Indiciu 1 — dacă te blochezi la pasul 6:** copiază blocul `sbDuration` + `tvDurationValue` din același card și schimbă doar `android:max` din `300` în `21`. Structura e identică, inclusiv separatorul `View` de deasupra.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 6</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 7:** listener-ul trebuie atașat în `initListeners()`, nu în `fillForm()`. `onCreate` rulează `initControls()` → `initListeners()` → `fillForm()`, deci `setProgress` din `fillForm` declanșează `onProgressChanged` și eticheta se actualizează singură. Dacă atașezi listener-ul după `fillForm`, eticheta rămâne „0+” lângă un slider la 18.
+copiază blocul `sbDuration` + `tvDurationValue` din același card și schimbă doar `android:max` din `300` în `21`. Structura e identică, inclusiv separatorul `View` de deasupra.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 7</summary>
+
+listener-ul trebuie atașat în `initListeners()`, nu în `fillForm()`. `onCreate` rulează `initControls()` → `initListeners()` → `fillForm()`, deci `setProgress` din `fillForm` declanșează `onProgressChanged` și eticheta se actualizează singură. Dacă atașezi listener-ul după `fillForm`, eticheta rămâne „0+” lângă un slider la 18.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -971,9 +1031,19 @@ Pasul 6 — `MainActivity.addSampleMovies()`: al 11-lea argument, un `int` simpl
 9. În `movie_item.xml` și adapter: `TextView`-ul `movieCountry`, cu gardă `null`.
 10. Verifică: Run, lasă țara goală și apasă Save. Formularul trebuie să rămână deschis, cu mesajul roșu pe câmp. Scrie „Romania” și apasă din nou: se salvează și apare în listă.
 
-**Indiciu 1 — dacă te blochezi la pasul 8:** garda se pune la începutul lui `saveMovie()`, înainte de `Movie movie = new Movie();`. Dacă o pui după construirea obiectului, ai muncit degeaba și e ușor să uiți `return`.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 8</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 8:** fără `return` după `setError`, metoda continuă, salvează filmul cu țara goală, apelează `setResult(RESULT_OK)` și `finish()` — adică exact ce voiai să împiedici, doar cu un mesaj roșu afișat o clipă.
+garda se pune la începutul lui `saveMovie()`, înainte de `Movie movie = new Movie();`. Dacă o pui după construirea obiectului, ai muncit degeaba și e ușor să uiți `return`.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 8</summary>
+
+fără `return` după `setError`, metoda continuă, salvează filmul cu țara goală, apelează `setResult(RESULT_OK)` și `finish()` — adică exact ce voiai să împiedici, doar cu un mesaj roșu afișat o clipă.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -1121,9 +1191,19 @@ Pasul 6 — `MainActivity.addSampleMovies()`: al 11-lea argument, `"USA"`, `"SUA
 9. În adapter: câmpul, `findViewById`, apoi în `bind()` — `chipAwarded.setVisibility(movie.isAwarded() ? View.VISIBLE : View.GONE)`, cu ambele ramuri.
 10. Verifică: Run, adaugă un film bifat — în listă apare `awarded=true`. După ce faci `RecyclerView` (capitolul 11), derulează lista până la un film nebifat: chip-ul „Awarded” nu trebuie să apară.
 
-**Indiciu 1 — dacă te blochezi la pasul 6:** `MaterialCheckBox` extinde `CheckBox`, deci îl poți ține într-un câmp `CheckBox` — exact cum face fișierul cu `cbOnWatchList`: declarat `CheckBox` în Java, construit ca `MaterialCheckBox` în XML.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 6</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 9:** scrie `setVisibility(movie.isAwarded() ? View.VISIBLE : View.GONE)`, nu un `if` fără `else`. `ViewHolder`-urile sunt reciclate: un rând care a afișat un film premiat e refolosit pentru unul nepremiat și păstrează chip-ul.
+`MaterialCheckBox` extinde `CheckBox`, deci îl poți ține într-un câmp `CheckBox` — exact cum face fișierul cu `cbOnWatchList`: declarat `CheckBox` în Java, construit ca `MaterialCheckBox` în XML.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 9</summary>
+
+scrie `setVisibility(movie.isAwarded() ? View.VISIBLE : View.GONE)`, nu un `if` fără `else`. `ViewHolder`-urile sunt reciclate: un rând care a afișat un film premiat e refolosit pentru unul nepremiat și păstrează chip-ul.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -1243,9 +1323,19 @@ Pasul 6 — `MainActivity.addSampleMovies()`: al 11-lea argument, `true` sau `fa
 9. În `movie_item.xml` și adapter: `TextView`-ul `movieCast`, legat cu `TextUtils.join(", ", movie.getCast())` — cu `import android.text.TextUtils;`.
 10. Verifică: Run, scrie `Tom Hanks:Forrest, Robin Wright:Jenny` și salvează. Nu trebuie să apară `NotSerializableException`. În listă apare `cast=[Tom Hanks (Forrest), Robin Wright (Jenny)]`. Redeschide filmul: câmpul arată din nou `Tom Hanks:Forrest, Robin Wright:Jenny`, nu formatul cu paranteze.
 
-**Indiciu 1 — dacă te blochezi la pasul 1:** `implements Serializable` pe `Actor` nu e opțional. `Movie` pleacă prin `Intent.putExtra(String, Serializable)` și serializarea parcurge tot graful de obiecte — un `Actor` ne-serializabil dă `NotSerializableException` la Save, nu la compilare.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 1</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 8:** folosește `entry.split(":", 2)`, cu limita 2. Fără limită, un rol care conține `:` produce trei elemente, `parts.length == 2` devine fals și intrarea e aruncată fără niciun mesaj.
+`implements Serializable` pe `Actor` nu e opțional. `Movie` pleacă prin `Intent.putExtra(String, Serializable)` și serializarea parcurge tot graful de obiecte — un `Actor` ne-serializabil dă `NotSerializableException` la Save, nu la compilare.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 8</summary>
+
+folosește `entry.split(":", 2)`, cu limita 2. Fără limită, un rol care conține `:` produce trei elemente, `parts.length == 2` devine fals și intrarea e aruncată fără niciun mesaj.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -1471,9 +1561,19 @@ Pasul 7 — `MainActivity.addSampleMovies()`: al 11-lea argument e o listă de `
 6. În adapter: două câmpuri, două `findViewById`, două `setText`.
 7. Verifică în trei atingeri: adaugă un film cu ambele completate → apare în listă; editează și schimbă doar `writer` → `popular` rămâne cum era; golește `writer` → câmpul devine gol, nu păstrează valoarea veche.
 
-**Indiciu 1 — dacă te blochezi la pasul 1:** nu face lanțul de cinci pași de două ori. Deschizi fiecare fișier o singură dată și pui ambele atribute în aceeași editare — cinci treceri, nu zece. La examen diferența e între a termina în 20 de minute și a nu termina.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 1</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 2:** ordinea argumentelor din constructor trebuie respectată la toate trei apelurile: `..., poster, writer, popular`. Aici compilatorul te prinde, pentru că `String` și `boolean` nu se pot confunda. Dacă ambele atribute noi ar fi fost `String`, o inversare ar fi compilat și ar fi salvat scenaristul în câmpul de țară, fără nicio eroare.
+nu face lanțul de cinci pași de două ori. Deschizi fiecare fișier o singură dată și pui ambele atribute în aceeași editare — cinci treceri, nu zece. La examen diferența e între a termina în 20 de minute și a nu termina.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 2</summary>
+
+ordinea argumentelor din constructor trebuie respectată la toate trei apelurile: `..., poster, writer, popular`. Aici compilatorul te prinde, pentru că `String` și `boolean` nu se pot confunda. Dacă ambele atribute noi ar fi fost `String`, o inversare ar fi compilat și ar fi salvat scenaristul în câmpul de țară, fără nicio eroare.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>

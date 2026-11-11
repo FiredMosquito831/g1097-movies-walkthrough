@@ -68,9 +68,19 @@ Primul și al doilea ucid cerința (a) înainte să apuce să ruleze. Al treilea
    Rulează și uită-te în Logcat la filtrul `G1097`. Cei trei parametri trebuie să fie egali. Când nu sunt, ai găsit bug-ul.
 6. Pune linia 71 la loc și confirmă că cei trei parametri sunt din nou egali după fiecare operație.
 
-**Indiciu 1 — dacă te blochezi la pasul 4:** `ArrayAdapter` nu copiază lista, o **referință** ține. Deci `movies.add(movie)` modifică exact lista pe care adapterul o citește. Ce lipsește nu e datele, ci **anunțul** că datele s-au schimbat.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 4</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 5:** `adapter.getCount()` întoarce `mObjects.size()`, adică valoarea live. `listView.getCount()` întoarce `mItemCount`, valoarea **cache-uită** la ultimul `onChanged()`. Diferența dintre ele este exact `notifyDataSetChanged()`.
+`ArrayAdapter` nu copiază lista, o **referință** ține. Deci `movies.add(movie)` modifică exact lista pe care adapterul o citește. Ce lipsește nu e datele, ci **anunțul** că datele s-au schimbat.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 5</summary>
+
+`adapter.getCount()` întoarce `mObjects.size()`, adică valoarea live. `listView.getCount()` întoarce `mItemCount`, valoarea **cache-uită** la ultimul `onChanged()`. Diferența dintre ele este exact `notifyDataSetChanged()`.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -143,9 +153,19 @@ Mesajul ăsta e cel mai bun profesor: îți spune exact ce ai uitat.
 5. Pune `set` la loc. Apoi deschide `ItemActivity.java` la liniile 76–83 și întreabă-te de ce `fillForm(existing)` nu poate „salva" modificările direct în obiectul părinte.
 6. Verificare: după Update, atinge din nou rândul → formularul arată valorile noi. Dacă arăta cele vechi, ai adăugat în loc să înlocuiești.
 
-**Indiciu 1 — dacă te blochezi la pasul 5:** obiectul care pleacă prin `Intent` nu e obiectul din listă. `putExtra(String, Serializable)` îl serializează, iar `Intent`-ul trece prin `system_server` (Binder), deci la destinație se reconstruiește o **instanță nouă**. Modifici copia, nu originalul.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 5</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 3:** `set(index, element)` înlocuiește elementul de la index și **păstrează mărimea**. `add(element)` adaugă la final și **crește mărimea**. Niciuna nu te obligă să folosești valoarea întoarsă — `add` întoarce `boolean`, `set` întoarce elementul vechi — deci compilatorul nu te avertizează că ai ales greșit.
+obiectul care pleacă prin `Intent` nu e obiectul din listă. `putExtra(String, Serializable)` îl serializează, iar `Intent`-ul trece prin `system_server` (Binder), deci la destinație se reconstruiește o **instanță nouă**. Modifici copia, nu originalul.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 3</summary>
+
+`set(index, element)` înlocuiește elementul de la index și **păstrează mărimea**. `add(element)` adaugă la final și **crește mărimea**. Niciuna nu te obligă să folosești valoarea întoarsă — `add` întoarce `boolean`, `set` întoarce elementul vechi — deci compilatorul nu te avertizează că ai ales greșit.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -221,9 +241,19 @@ if (position >= 0 && position < movies.size()) {
 5. Adaugă temporar un `Toast` în callback, **înainte** de `if`, care afișează `o.getResultCode()` și dacă `o.getData()` e `null`. Repetă ambii pași: Save → `-1` (RESULT_OK) și un `Intent`; Back → `0` (RESULT_CANCELED) și `null`.
 6. Scoate `Toast`-ul. Opțional, experimentul periculos de la „De ce": pune `setResult(RESULT_OK);` la finalul lui `onCreate()` și apasă Back.
 
-**Indiciu 1 — dacă te blochezi la pasul 4:** `RESULT_OK` este `-1`, `RESULT_CANCELED` este `0`. O activitate care se închide fără să cheme `setResult` raportează `RESULT_CANCELED`. Back-ul nu cheamă `saveMovie()`, deci nu are cine să seteze altceva.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 4</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 6:** `setResult` nu se „resetează" la Back. Codul rămas setat e folosit de `finish()`. De aceea `setResult` se cheamă **ultima** instrucțiune înainte de `finish()`, niciodată preventiv.
+`RESULT_OK` este `-1`, `RESULT_CANCELED` este `0`. O activitate care se închide fără să cheme `setResult` raportează `RESULT_CANCELED`. Back-ul nu cheamă `saveMovie()`, deci nu are cine să seteze altceva.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 6</summary>
+
+`setResult` nu se „resetează" la Back. Codul rămas setat e folosit de `finish()`. De aceea `setResult` se cheamă **ultima** instrucțiune înainte de `finish()`, niciodată preventiv.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -281,9 +311,19 @@ Ordinea din `saveMovie()` contează: `setResult(...)` **înainte** de `finish()`
 5. Adaugă și verificarea de duplicate (metoda `hasDuplicateTitles()`), apelată în același loc. La un test corect trebuie să afișeze mereu `false`.
 6. Verificare finală pe emulator: după cele patru operații, numără rândurile cu ochiul. Șase. Atinge ultimul film adăugat: formularul se deschide cu valorile lui.
 
-**Indiciu 1 — dacă te blochezi la pasul 3:** `movies.size()` crește doar la `add`. `set` nu schimbă mărimea. Deci 3 + 3 = 6, iar editarea lasă 6. Dacă obții 7, ai folosit `add` și pe ramura de editare (24.9). Dacă obții 5, ai folosit `set` și pe ramura de adăugare — ai suprascris un film.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 3</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 5:** `Toast.makeText(...)` are nevoie de un `Context`; în activitate e `this`. `Toast.LENGTH_SHORT` e constanta de durată. Nu uita `.show()` — fără el, obiectul se construiește și nu apare nimic.
+`movies.size()` crește doar la `add`. `set` nu schimbă mărimea. Deci 3 + 3 = 6, iar editarea lasă 6. Dacă obții 7, ai folosit `add` și pe ramura de editare (24.9). Dacă obții 5, ai folosit `set` și pe ramura de adăugare — ai suprascris un film.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 5</summary>
+
+`Toast.makeText(...)` are nevoie de un `Context`; în activitate e `this`. `Toast.LENGTH_SHORT` e constanta de durată. Nu uita `.show()` — fără el, obiectul se construiește și nu apare nimic.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -369,9 +409,19 @@ Trei numere, trei surse diferite: `movies.size()` e adevărul din model, `adapte
 5. Rulează din nou testul de la pasul 1, apoi apasă „Save Movie". Data din listă trebuie să fie cea aleasă.
 6. Deschide „Inception" (mod editare), schimbă titlul, rotește, apasă „Update Movie". Apoi revino în `MainActivity`, adaugă un film și rotește acolo.
 
-**Indiciu 1 — dacă te blochezi la pasul 2:** framework-ul salvează singur `View`-urile care au `android:id` și `android:saveEnabled="true"` (default). `EditText.getFreezesText()` returnează `true`; `ProgressBar` (baza pentru `SeekBar` și `RatingBar`) își salvează progresul; `CompoundButton` își salvează bifa; `AbsSpinner` își salvează poziția. Ce **nu** e `View` nu se salvează.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 2</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 6:** în `MainActivity`, `movies` e un câmp al activității, inițializat inline cu `new ArrayList<>()`. La rotire se creează o activitate nouă, deci o listă nouă, goală. `addSampleMovies()` o umple iar cu cele trei demo. `ListView` salvează doar poziția de derulare, nu datele.
+framework-ul salvează singur `View`-urile care au `android:id` și `android:saveEnabled="true"` (default). `EditText.getFreezesText()` returnează `true`; `ProgressBar` (baza pentru `SeekBar` și `RatingBar`) își salvează progresul; `CompoundButton` își salvează bifa; `AbsSpinner` își salvează poziția. Ce **nu** e `View` nu se salvează.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 6</summary>
+
+în `MainActivity`, `movies` e un câmp al activității, inițializat inline cu `new ArrayList<>()`. La rotire se creează o activitate nouă, deci o listă nouă, goală. `addSampleMovies()` o umple iar cu cele trei demo. `ListView` salvează doar poziția de derulare, nu datele.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -490,9 +540,19 @@ De ce lista din `MainActivity` se comportă altfel: nu există niciun `View` car
 5. Cheamă `saveMovies()` în `onPause()`. Verifică pe disc cu `adb`.
 6. Testează cu un titlu care conține ghilimele și cu unul care conține diacritice.
 
-**Indiciu 1 — dacă te blochezi la pasul 2:** `movies` e `final`, deci `movies = loadMovies();` **nu compilează**. Folosește `movies.addAll(loadMovies());` sau `movies.clear(); movies.addAll(...);`. Adapterul ține referința la listă, nu la conținut — de aceea nu reasignezi niciodată, doar modifici.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 2</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 4:** `new JSONArray(json)` aruncă `JSONException` dacă șirul e invalid. Prinde-o și pornește cu lista goală — aplicația se auto-repară la prima rulare următoare. Pentru citirea câmpurilor folosește `optString` / `optInt` / `optDouble` / `optBoolean`, care întorc o valoare implicită în loc să arunce.
+`movies` e `final`, deci `movies = loadMovies();` **nu compilează**. Folosește `movies.addAll(loadMovies());` sau `movies.clear(); movies.addAll(...);`. Adapterul ține referința la listă, nu la conținut — de aceea nu reasignezi niciodată, doar modifici.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 4</summary>
+
+`new JSONArray(json)` aruncă `JSONException` dacă șirul e invalid. Prinde-o și pornește cu lista goală — aplicația se auto-repară la prima rulare următoare. Pentru citirea câmpurilor folosește `optString` / `optInt` / `optDouble` / `optBoolean`, care întorc o valoare implicită în loc să arunce.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -668,9 +728,19 @@ Trei decizii din cod care merită explicate:
 4. Rulează din nou checklist-ul după ce ai reparat. Un checklist care nu e rulat de două ori nu e checklist, e încercare.
 5. Verificare finală: adaugă un film cu atributul completat, închide aplicația, redeschide, deschide filmul în editare. Valoarea trebuie să fie acolo, în listă și în formular.
 
-**Indiciu 1 — dacă te blochezi la verificarea 3:** pune un `Toast` cu `movie.toString()` în `saveMovie()`, imediat înainte de `setResult`. Dacă atributul apare acolo, `saveMovie` e corect și problema e mai departe. Dacă apare `null` sau `0`, problema e în citirea din widget.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la verificarea 3</summary>
 
-**Indiciu 2 — dacă te blochezi la verificarea 6:** dacă ai făcut 24.6, JSON-ul are exact 10 câmpuri scrise de mână. Un atribut nou nu se salvează pe disc până nu adaugi și linia din `moviesToJson()` **și** linia din `moviesFromJson()`. E cel mai frecvent loc în care un atribut „dispare la repornire".
+pune un `Toast` cu `movie.toString()` în `saveMovie()`, imediat înainte de `setResult`. Dacă atributul apare acolo, `saveMovie` e corect și problema e mai departe. Dacă apare `null` sau `0`, problema e în citirea din widget.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la verificarea 6</summary>
+
+dacă ai făcut 24.6, JSON-ul are exact 10 câmpuri scrise de mână. Un atribut nou nu se salvează pe disc până nu adaugi și linia din `moviesToJson()` **și** linia din `moviesFromJson()`. E cel mai frecvent loc în care un atribut „dispare la repornire".
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -744,9 +814,19 @@ Ordinea verificărilor nu e întâmplătoare: de la model spre disc, de la cel m
 4. Pune un breakpoint pe linia `movies.add(movie)` și rulează în debug. Inspectează `movies.size()` înainte și după, apoi `movieAdapter.getCount()` și `listView.getCount()`.
 5. Parcurge tabelul de triaj de mai jos și notează, pentru fiecare cauză, ce valoare ai obținut.
 
-**Indiciu 1 — dacă te blochezi la pasul 2:** un `Toast` care nu apare nu înseamnă neapărat că metoda nu a rulat — poate însemna că activitatea a crăpat înainte. Verifică Logcat după `FATAL EXCEPTION` înainte să tragi concluzia.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 2</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 4:** breakpoint-ul se pune pe linia din callback, nu în `ItemActivity`. Acolo vezi simultan `movies`, `movie` și `position` — exact cele trei variabile care decid ce se întâmplă.
+un `Toast` care nu apare nu înseamnă neapărat că metoda nu a rulat — poate însemna că activitatea a crăpat înainte. Verifică Logcat după `FATAL EXCEPTION` înainte să tragi concluzia.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 4</summary>
+
+breakpoint-ul se pune pe linia din callback, nu în `ItemActivity`. Acolo vezi simultan `movies`, `movie` și `position` — exact cele trei variabile care decid ce se întâmplă.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -820,9 +900,19 @@ Ordinea de triaj, de la ieftin la scump: **Logcat → `Toast` → breakpoint**. 
 5. Experimentează și invers: în ramura de adăugare, înlocuiește `movies.add(movie);` cu `movies.set(0, movie);`. Adaugă un film. Lista are tot 3 rânduri, iar „Inception" a dispărut. Acesta e celălalt simptom al aceleiași confuzii.
 6. Scrie `removeDuplicates()` și ruleaz-o pe lista deja coruptă de la pasul 2.
 
-**Indiciu 1 — dacă te blochezi la pasul 5:** `set(0, movie)` nu aruncă nicio excepție — indexul 0 e valid. Pur și simplu înlocuiește primul element. De aceea bug-ul e periculos: nu se semnalează, doar pierde date.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 5</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 6:** `Movie` nu are `equals` și `hashCode`, deci `movies.remove(movie)` compară prin identitate și nu va găsi niciodată „același" film. Fie deduplici manual, pe titlu + dată, fie adaugi `equals`/`hashCode` în `Movie` — a doua variantă e cea corectă.
+`set(0, movie)` nu aruncă nicio excepție — indexul 0 e valid. Pur și simplu înlocuiește primul element. De aceea bug-ul e periculos: nu se semnalează, doar pierde date.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 6</summary>
+
+`Movie` nu are `equals` și `hashCode`, deci `movies.remove(movie)` compară prin identitate și nu va găsi niciodată „același" film. Fie deduplici manual, pe titlu + dată, fie adaugi `equals`/`hashCode` în `Movie` — a doua variantă e cea corectă.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>
@@ -935,9 +1025,19 @@ movieAdapter.notifyDataSetChanged();
 5. Rulează din nou, cu „Don't keep activities" activat (Developer options) — simularea morții activității. Apoi închide din Recents și redeschide, dacă ai făcut 24.6.
 6. Verificare finală: toate rândurile din tabel trec, iar `hasDuplicateTitles()` întoarce `false` la final.
 
-**Indiciu 1 — dacă te blochezi la pasul 2:** `Double.parseDouble("")` aruncă `NumberFormatException`, iar `dateFormat.format(null)` aruncă `NullPointerException` în `calendar.setTime(null)`. Ambele sunt înainte de `setResult`, deci aplicația crapă și părintele nu primește nimic. Nu sunt „îmbunătățiri" — sunt condiții ca cerința (a) să poată fi demonstrată.
+<details markdown="1">
+<summary>Indiciu 1 — dacă te blochezi la pasul 2</summary>
 
-**Indiciu 2 — dacă te blochezi la pasul 3:** `o.getData()` poate fi `null` chiar și cu `RESULT_OK` (dacă cineva a chemat `setResult(RESULT_OK)` fără `Intent`). Iar `position` poate fi orice număr întreg — un `Intent` nu e un contract tipat. Ambele gărzi sunt două linii.
+`Double.parseDouble("")` aruncă `NumberFormatException`, iar `dateFormat.format(null)` aruncă `NullPointerException` în `calendar.setTime(null)`. Ambele sunt înainte de `setResult`, deci aplicația crapă și părintele nu primește nimic. Nu sunt „îmbunătățiri" — sunt condiții ca cerința (a) să poată fi demonstrată.
+
+</details>
+
+<details markdown="1">
+<summary>Indiciu 2 — dacă te blochezi la pasul 3</summary>
+
+`o.getData()` poate fi `null` chiar și cu `RESULT_OK` (dacă cineva a chemat `setResult(RESULT_OK)` fără `Intent`). Iar `position` poate fi orice număr întreg — un `Intent` nu e un contract tipat. Ambele gărzi sunt două linii.
+
+</details>
 
 <details>
 <summary>Soluție — explicativ</summary>

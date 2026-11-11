@@ -85,6 +85,16 @@ CHAPTERS = [
      "30 - Codul G1098 adnotat.md", "30 - G1098 code annotated.md"),
     ("31", "Codul G1099 adnotat", "G1099 code annotated",
      "31 - Codul G1099 adnotat.md", "31 - G1099 code annotated.md"),
+    ("32", "Planul ghidat", "The guided plan",
+     "32 - Planul ghidat.md", "32 - The guided plan.md"),
+    ("33", "Rețete 1 — modelul și interfața", "Recipes 1 — model and UI",
+     "33 - Retete 1 - modelul si interfata.md", "33 - Recipes 1 - model and UI.md"),
+    ("34", "Rețete 2 — bindinguri și adaptoare", "Recipes 2 — bindings and adapters",
+     "34 - Retete 2 - bindinguri si adaptoare.md", "34 - Recipes 2 - bindings and adapters.md"),
+    ("35", "Rețete 3 — Intent, persistență, ciclu de viață", "Recipes 3 — Intents, persistence, lifecycle",
+     "35 - Retete 3 - Intent si persistenta.md", "35 - Recipes 3 - Intents and persistence.md"),
+    ("36", "Bancul 7 — Intent și navigare", "Bank 7 — Intents and navigation",
+     "36 - Bancul 7 - Intent si navigare.md", "36 - Bank 7 - Intents and navigation.md"),
 ]
 
 MD_EXT = ["extra", "codehilite", "toc", "tables", "fenced_code", "attr_list",
@@ -104,6 +114,7 @@ UI = {
         "ch_title": "Capitolul {} — {} · Test 1 — G1097",
         "ch_desc": "Capitolul {} din ghidul de reconstruire a aplicației G1097: {}.",
         "check_step": "Bifează pasul", "check_ex": "Am rezolvat", "check_drill": "Am terminat drill-ul",
+        "check_recipe": "Am exersat rețeta", "recipes": "rețete",
         "lang_other": "EN", "lang_other_title": "Switch to English",
         "progress": "Progresul tău", "complete": "complet", "of": "din", "checks": "bife",
         "saved_local": "salvat local, fără cont",
@@ -125,6 +136,7 @@ UI = {
         "ch_title": "Chapter {} — {} · Test 1 — G1097",
         "ch_desc": "Chapter {} of the G1097 rebuild guide: {}.",
         "check_step": "Mark step done", "check_ex": "Solved", "check_drill": "Drill finished",
+        "check_recipe": "Practised this recipe", "recipes": "recipes",
         "lang_other": "RO", "lang_other_title": "Switch to Romanian",
         "progress": "Your progress", "complete": "complete", "of": "of", "checks": "checks",
         "saved_local": "saved locally, no account",
@@ -155,6 +167,7 @@ def preprocess(raw: str, lang: str):
     ui = UI[lang]
     step_word = "Step" if lang == "en" else "Pasul"
     ex_word = "Exercise" if lang == "en" else "Exercițiu"
+    rc_word = "Recipe" if lang == "en" else "Rețeta"
 
     while i < len(lines):
         ln = lines[i]
@@ -189,6 +202,19 @@ def preprocess(raw: str, lang: str):
                 out.append("")
                 out.append(f'<div class="chk chk-ex" data-key="{key}">'
                            f'<span>{ui["check_ex"]}</span></div>')
+                out.append("")
+                i += 1
+                continue
+
+            m = re.match(r"^(#{2,4})\s+(?:Re[țt]eta|Recipe)\s+(\d+\.\d+)\s*[—–-]\s*(.+)$", ln)
+            if m:
+                num, title = m.group(2), m.group(3).strip()
+                key = f"rc:{num}"
+                items.append({"key": key, "num": num, "kind": "recipe", "title": title})
+                out.append(f"## {rc_word} {num} — {title} {{#reteta-{num.replace('.', '-')}}}")
+                out.append("")
+                out.append(f'<div class="chk chk-rc" data-key="{key}">'
+                           f'<span>{ui["check_recipe"]}</span></div>')
                 out.append("")
                 i += 1
                 continue
@@ -332,6 +358,12 @@ SECTIONS = [
      "60 de cerințe ca la examen, pe codul real din 1097. Pași, indicii, soluții.",
      "60 exam-style requirements on the real 1097 code. Steps, hints, solutions.",
      ["17", "18", "19", "20", "23", "24"]),
+    ("retete", "Rețete de examen", "Exam recipes",
+     "Fiecare tip de cerință posibilă, pas cu pas: model, interfață, bindinguri, adaptoare, "
+     "Intent, persistență — plus planul care te duce prin tot.",
+     "Every possible requirement type, step by step: model, UI, bindings, adapters, "
+     "Intents, persistence — plus the plan that walks you through all of it.",
+     ["32", "33", "34", "35", "36"]),
     ("cod", "Codul explicat + cheatsheet", "Explained code + cheatsheet",
      "Fiecare fișier comentat bloc cu bloc, plus o referință densă de rețete.",
      "Every file annotated block by block, plus a dense reference of recipes.",
@@ -419,7 +451,7 @@ def sidebar_html(active: str, lang: str, total_checks: int) -> str:
     ui = UI[lang]
     lcol = 1 if lang == "en" else 0
     out = ['<aside class="sidebar" id="sidebar">']
-    for slug, ro_t, en_t, ro_s, en_s, nums in [SECTIONS[0], APPENDIX, SECTIONS[1], SECTIONS[2]]:
+    for slug, ro_t, en_t, ro_s, en_s, nums in SECTIONS + [APPENDIX]:
         label = en_t if lang == "en" else ro_t
         out.append(f'<h2><a href="{slug}.html">{htmlmod.escape(label)}</a></h2>')
         out.append('<nav>')
@@ -473,11 +505,14 @@ def chapter_card_html(num: str, lang: str, parsed, totals) -> str:
     items = parsed[lang][num][1]
     steps = sum(1 for x in items if x["kind"] == "step")
     exs = sum(1 for x in items if x["kind"] == "exercise")
+    rcs = sum(1 for x in items if x["kind"] == "recipe")
     meta = []
     if steps:
         meta.append(f'{steps} {ui["steps"]}')
     if exs:
         meta.append(f'{exs} {ui["exercises"]}')
+    if rcs:
+        meta.append(f'{rcs} {ui["recipes"]}')
     if not meta:
         meta.append("—")
     return (
@@ -554,6 +589,16 @@ HERO = {
         "en": ("<b>Exam-style exercises.</b> 60 requirements in the exam's own style, on the real "
                "1097 code. Each has a step-by-step plan, two graduated hints and an explained "
                "solution."),
+    },
+    "retete": {
+        "ro": ("<b>Rețete de examen.</b> Fiecare tip de cerință care poate pica, pe o pagină: "
+               "pașii exacți, fișierele atinse, codul minim care compilează, de ce merge așa și "
+               "greșeala care costă puncte. Începe cu <b>planul ghidat</b> — te duce prin site, "
+               "sesiune cu sesiune."),
+        "en": ("<b>Exam recipes.</b> Every requirement type that can come up, on one page: the "
+               "exact steps, the files touched, the minimum code that compiles, why it works and "
+               "the mistake that costs marks. Start with the <b>guided plan</b> — it walks you "
+               "through the site, session by session."),
     },
     "cod": {
         "ro": ("<b>Codul explicat + cheatsheet.</b> Fiecare fișier din aplicație, comentat bloc cu "

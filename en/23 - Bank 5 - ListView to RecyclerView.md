@@ -46,9 +46,19 @@
 4. Click **Sync Now** on the banner that appears at the top of Android Studio (or `File → Sync Project with Gradle Files`). Wait for the progress bar to finish.
 5. Check: `Build → Make Project` must give `BUILD SUCCESSFUL`. Open the **External Libraries** panel in the Project view — `Gradle: androidx.recyclerview:recyclerview:1.4.0` must appear. On the phone screen absolutely nothing changes, because nobody uses the class yet.
 
-**Hint 1 — if you get stuck at step 2:** the name in `[libraries]` becomes the name used in `build.gradle.kts`, with dashes turned into dots. The alias `recyclerview` (a single word) is accessed as `libs.recyclerview`. If you wrote `androidx-recyclerview`, you would access `libs.androidx.recyclerview`. Here we use the short form, as with `appcompat` and `material`.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 2</summary>
 
-**Hint 2 — if you get stuck at step 3:** `implementation(...)` wants the **generated accessor**, not the Maven coordinates. `implementation("androidx.recyclerview:recyclerview:1.4.0")` would work that way too, but in this project every dependency goes through the catalog — if you write the coordinates directly, you lose the point on the requirement. If `libs.recyclerview` shows up red, the sync from step 4 hasn't happened yet.
+the name in `[libraries]` becomes the name used in `build.gradle.kts`, with dashes turned into dots. The alias `recyclerview` (a single word) is accessed as `libs.recyclerview`. If you wrote `androidx-recyclerview`, you would access `libs.androidx.recyclerview`. Here we use the short form, as with `appcompat` and `material`.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 3</summary>
+
+`implementation(...)` wants the **generated accessor**, not the Maven coordinates. `implementation("androidx.recyclerview:recyclerview:1.4.0")` would work that way too, but in this project every dependency goes through the catalog — if you write the coordinates directly, you lose the point on the requirement. If `libs.recyclerview` shows up red, the sync from step 4 hasn't happened yet.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -129,9 +139,19 @@ dependencies {
 7. In `initListeners()`: delete the entire `listView.setOnItemClickListener(new AdapterView.OnItemClickListener() { ... })` block. `RecyclerView` doesn't have that method — if you leave it, it won't compile.
 8. Run it. You should see an empty screen with the FAB in the corner. Tap the FAB, fill in the form, save: the app **does not** crash, but the list stays empty.
 
-**Hint 1 — if you get stuck at step 2:** `RecyclerView` doesn't accept `android:entries`. The attribute belongs to `AbsListView` (the parent class of `ListView`), not to `RecyclerView`, which is a plain `ViewGroup`. If you leave it, the build passes, but the attribute is completely ignored — and it's a mistake the grader sees straight away.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 2</summary>
 
-**Hint 2 — if you get stuck at step 5:** if you keep the `listView` id so you don't have to touch `MainActivity`, the code **compiles**, but at runtime you get `ClassCastException: androidx.recyclerview.widget.RecyclerView cannot be cast to android.widget.ListView`. `findViewById` is generic and casts to the requested type; the compiler cannot verify what object it actually finds in the XML. Renaming the id is what forces you to change the type.
+`RecyclerView` doesn't accept `android:entries`. The attribute belongs to `AbsListView` (the parent class of `ListView`), not to `RecyclerView`, which is a plain `ViewGroup`. If you leave it, the build passes, but the attribute is completely ignored — and it's a mistake the grader sees straight away.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 5</summary>
+
+if you keep the `listView` id so you don't have to touch `MainActivity`, the code **compiles**, but at runtime you get `ClassCastException: androidx.recyclerview.widget.RecyclerView cannot be cast to android.widget.ListView`. `findViewById` is generic and casts to the requested type; the compiler cannot verify what object it actually finds in the XML. Renaming the id is what forces you to change the type.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -235,9 +255,19 @@ private void initListeners() {
 7. Implement `onBindViewHolder(...)` with an empty body and a `// 23.6` comment.
 8. `Build → Make Project`. It must say `BUILD SUCCESSFUL`. On screen: unchanged.
 
-**Hint 1 — if you get stuck at step 3:** `RecyclerView.Adapter` wants a single generic parameter — the type of the `ViewHolder`. If you leave it off (`extends RecyclerView.Adapter`), you get `raw use of parameterized class` and `onCreateViewHolder` has nothing type-safe to return. If you put `RecyclerView.Adapter<Movie>` (the model type), you get an error because `Movie` doesn't extend `ViewHolder`.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 3</summary>
 
-**Hint 2 — if you get stuck at step 6:** `new RecyclerView.ViewHolder(view)` doesn't compile — the class is `abstract`. It's not a syntax problem, it's by design: `ViewHolder` is meant to be subclassed. The `{ }` trick at the end creates an anonymous subclass, enough for a skeleton that displays nothing. At 23.4 we replace it with our own class.
+`RecyclerView.Adapter` wants a single generic parameter — the type of the `ViewHolder`. If you leave it off (`extends RecyclerView.Adapter`), you get `raw use of parameterized class` and `onCreateViewHolder` has nothing type-safe to return. If you put `RecyclerView.Adapter<Movie>` (the model type), you get an error because `Movie` doesn't extend `ViewHolder`.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 6</summary>
+
+`new RecyclerView.ViewHolder(view)` doesn't compile — the class is `abstract`. It's not a syntax problem, it's by design: `ViewHolder` is meant to be subclassed. The `{ }` trick at the end creates an anonymous subclass, enough for a skeleton that displays nothing. At 23.4 we replace it with our own class.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -318,9 +348,19 @@ public class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 6. Add the imports: `android.widget.RatingBar`, `android.widget.TextView`, `com.google.android.material.chip.Chip`, `ro.ase.ie.g1097.R`.
 7. `Build → Make Project`. `BUILD SUCCESSFUL`. On screen: unchanged — the class is declared, but nobody instantiates it yet.
 
-**Hint 1 — if you get stuck at step 2:** the inner class goes **inside** `MovieAdapter`, not as a separate file. `static` is not optional: without it, every `ViewHolder` holds a reference to the adapter, and after recycling you're left with objects keeping each other alive.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 2</summary>
 
-**Hint 2 — if you get stuck at step 5:** `findViewById` is called on `itemView`, not on `this` and not on `parent`. `ViewHolder` is not a `View` — it's just an object that holds one. If you write plain `findViewById(...)`, the compiler tells you the method doesn't exist in `ViewHolder`.
+the inner class goes **inside** `MovieAdapter`, not as a separate file. `static` is not optional: without it, every `ViewHolder` holds a reference to the adapter, and after recycling you're left with objects keeping each other alive.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 5</summary>
+
+`findViewById` is called on `itemView`, not on `this` and not on `parent`. `ViewHolder` is not a `View` — it's just an object that holds one. If you write plain `findViewById(...)`, the compiler tells you the method doesn't exist in `ViewHolder`.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -398,9 +438,19 @@ import ro.ase.ie.g1097.R;
 6. Add `import android.view.LayoutInflater;`.
 7. `Build → Make Project`. `BUILD SUCCESSFUL`. On screen: unchanged — the adapter is not attached to the `RecyclerView` yet.
 
-**Hint 1 — if you get stuck at step 4:** the third argument of `inflate` must be `false`. With `true`, `inflate` immediately attaches the row to `parent`, and `RecyclerView` throws `IllegalStateException` because it wants to control attachment itself. `false` means "build it, but let me place it".
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 4</summary>
 
-**Hint 2 — if you get stuck at step 5:** if you changed the generic but forgot the signatures, you get `name clash: onBindViewHolder(RecyclerView.ViewHolder,int) and onBindViewHolder(MovieViewHolder,int) have the same erasure`. It's not a syntax error — it's the sign that you mixed the old type with the new one. Change both signatures in the same step.
+the third argument of `inflate` must be `false`. With `true`, `inflate` immediately attaches the row to `parent`, and `RecyclerView` throws `IllegalStateException` because it wants to control attachment itself. `false` means "build it, but let me place it".
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 5</summary>
+
+if you changed the generic but forgot the signatures, you get `name clash: onBindViewHolder(RecyclerView.ViewHolder,int) and onBindViewHolder(MovieViewHolder,int) have the same erasure`. It's not a syntax error — it's the sign that you mixed the old type with the new one. Change both signatures in the same step.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -488,9 +538,19 @@ Run it: you see three empty cards (no text, because `bind` doesn't exist yet). *
 7. In `onBindViewHolder`, replace the comment with `holder.bind(movies.get(position));`.
 8. `Build → Make Project`. `BUILD SUCCESSFUL`. On screen: unchanged (or, if you left the temporary check from 23.5, the cards now have a title and subtitle).
 
-**Hint 1 — if you get stuck at step 2:** `SimpleDateFormat` is created **once**, as `static final`, not in `bind`. If you create it in `bind`, you build a new object on every display of every row — exactly the work the `ViewHolder` avoids. The `"yyyy"` pattern gives the four-digit year; `"yy"` would give `10` instead of `2010`.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 2</summary>
 
-**Hint 2 — if you get stuck at step 6:** the separator is not `-` and not `|`. It's `·` (middle dot), the character from the comment `<!-- genre · release year, e.g. "Sci-Fi · 2021" -->`. If you type it wrong from the keyboard, it shows up in the list as a box. Copy it from the comment in the XML.
+`SimpleDateFormat` is created **once**, as `static final`, not in `bind`. If you create it in `bind`, you build a new object on every display of every row — exactly the work the `ViewHolder` avoids. The `"yyyy"` pattern gives the four-digit year; `"yy"` would give `10` instead of `2010`.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 6</summary>
+
+the separator is not `-` and not `|`. It's `·` (middle dot), the character from the comment `<!-- genre · release year, e.g. "Sci-Fi · 2021" -->`. If you type it wrong from the keyboard, it shows up in the list as a box. Copy it from the comment in the XML.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -565,9 +625,19 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 4. Check in `movie_item.xml` that `movieRating` has `android:stepSize="0.5"` and `android:isIndicator="true"` — otherwise `setRating(4.5f)` would round to 4 or 5 stars.
 5. `Build → Make Project`. `BUILD SUCCESSFUL`. On screen: unchanged (or, with the temporary check, the stars appear on the card).
 
-**Hint 1 — if you get stuck at step 3:** `String.valueOf(movie.getRating())` would work too, but it gives `4.5` for 4.5f and `4.0` for 4f — acceptable. `String.format` gives you exact control over the number of decimals, which matters if the rating comes with more. Don't use `String.format` without a `Locale`: on a phone set to Romanian you'd get `4,5`, while the card design has `4.5`.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 3</summary>
 
-**Hint 2 — if you get stuck at step 4:** if the stars all look full or all empty, it's not from the code — it's from `stepSize`. With `stepSize="1"`, `setRating(4.5f)` shows 4 or 5 stars, depending on how it rounds internally. `stepSize="0.5"` allows half stars.
+`String.valueOf(movie.getRating())` would work too, but it gives `4.5` for 4.5f and `4.0` for 4f — acceptable. `String.format` gives you exact control over the number of decimals, which matters if the rating comes with more. Don't use `String.format` without a `Locale`: on a phone set to Romanian you'd get `4,5`, while the card design has `4.5`.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 4</summary>
+
+if the stars all look full or all empty, it's not from the code — it's from `stepSize`. With `stepSize="1"`, `setRating(4.5f)` shows 4 or 5 stars, depending on how it rounds internally. `stepSize="0.5"` allows half stars.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -613,9 +683,19 @@ movieRatingValue.setText(String.format(Locale.US, "%.1f", movie.getRating()));
 6. Check the `android.view.View` import — it's already there from 23.3.
 7. `Build → Make Project`. `BUILD SUCCESSFUL`. On screen: unchanged (or, with the temporary check, the cards are complete).
 
-**Hint 1 — if you get stuck at step 3:** `View.GONE`, not `View.INVISIBLE`. `INVISIBLE` hides the view but keeps its space, so the card is left with an empty stripe under the facts. `GONE` removes it from the layout entirely, and `ChipGroup` rearranges the remaining chips.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 3</summary>
 
-**Hint 2 — if you get stuck on the budget formatting:** `movie.getBudget()` is a `double` in whole units (`160000000`), not in millions. You divide by `1_000_000` to get to `160`, then format with `%.0f` to cut the decimals. If you forget the division, you get `$160000000M`.
+`View.GONE`, not `View.INVISIBLE`. `INVISIBLE` hides the view but keeps its space, so the card is left with an empty stripe under the facts. `GONE` removes it from the layout entirely, and `ChipGroup` rearranges the remaining chips.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck on the budget formatting</summary>
+
+`movie.getBudget()` is a `double` in whole units (`160000000`), not in millions. You divide by `1_000_000` to get to `160`, then format with `%.0f` to cut the decimals. If you forget the division, you get `$160000000M`.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -672,9 +752,19 @@ chipWatchlist.setVisibility(movie.isOnWatchlist() ? View.VISIBLE : View.GONE);
 7. At the end of `bind`, add the click block on `itemView`, with the `getBindingAdapterPosition() != RecyclerView.NO_POSITION` check.
 8. `Build → Make Project`. `BUILD SUCCESSFUL`. On screen: unchanged — `MainActivity` doesn't build a `MovieAdapter` yet, so the constructor change breaks nothing.
 
-**Hint 1 — if you get stuck at step 7:** the listener is bound in `bind`, **not** in the `ViewHolder` constructor. In the constructor, `getBindingAdapterPosition()` would be evaluated once, when the row is created, and would lag behind on recycling — you'd open the wrong movie after the first scroll.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 7</summary>
 
-**Hint 2 — if you get stuck on the position check:** `getBindingAdapterPosition()` can return `RecyclerView.NO_POSITION` (that is, `-1`) when the row is being removed or during an animation. Without the `if`, you reach `movies.get(-1)` and get `IndexOutOfBoundsException`. Check **also** for a null listener, if you allow the adapter to be built without one.
+the listener is bound in `bind`, **not** in the `ViewHolder` constructor. In the constructor, `getBindingAdapterPosition()` would be evaluated once, when the row is created, and would lag behind on recycling — you'd open the wrong movie after the first scroll.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck on the position check</summary>
+
+`getBindingAdapterPosition()` can return `RecyclerView.NO_POSITION` (that is, `-1`) when the row is being removed or during an animation. Without the `if`, you reach `movies.get(-1)` and get `IndexOutOfBoundsException`. Check **also** for a null listener, if you allow the adapter to be built without one.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -760,9 +850,19 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 7. Add the method `private void openItem(int position)` that builds the `Intent` to `ItemActivity` with `MOVIE_EXTRA` and `POSITION_EXTRA` and calls `launcher.launch(intent);`.
 8. Run it. You should see three cards: **Inception** (Sci-Fi · 2010, 4.5, `148 min · $160M`, chips PG-13 + Watched), **Toy Story** (Animation · 1995, 4.0, `81 min · $30M`, chips G + Watched), **The Matrix** (Action · 1999, 5.0, `136 min · $63M`, chips R + Watchlist). Click a card → the form opens filled in. Save changes → the row updates with an animation. FAB → empty form → save → a new row appears in the list with an animation.
 
-**Hint 1 — if you get stuck at step 8 and the list is empty, with no error in Logcat:** you forgot `setLayoutManager`. It's the only mistake in the whole chapter that doesn't complain at all: `RecyclerView` without a `LayoutManager` doesn't know how to arrange the rows and displays nothing, no exception, no warning.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 8 and the list is empty, with no error in Logcat</summary>
 
-**Hint 2 — if you get stuck at step 6:** `notifyItemInserted` wants **the index of the new item**, not the list size. After `movies.add(movie)`, the new item is at `movies.size() - 1`. If you write `notifyItemInserted(movies.size())`, you get `IndexOutOfBoundsException: Inconsistency detected. Invalid item position ... itemCount is ...`.
+you forgot `setLayoutManager`. It's the only mistake in the whole chapter that doesn't complain at all: `RecyclerView` without a `LayoutManager` doesn't know how to arrange the rows and displays nothing, no exception, no warning.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 6</summary>
+
+`notifyItemInserted` wants **the index of the new item**, not the list size. After `movies.add(movie)`, the new item is at `movies.size() - 1`. If you write `notifyItemInserted(movies.size())`, you get `IndexOutOfBoundsException: Inconsistency detected. Invalid item position ... itemCount is ...`.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>

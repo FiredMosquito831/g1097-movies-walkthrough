@@ -26,9 +26,19 @@
 8. Open `res/layout/movie_item.xml`: add the `movieWriter` `TextView` after `movieFacts`. In `MovieAdapter`, three lines: field, `findViewById`, `setText`.
 9. Verify: Run, add a movie with "Christopher Nolan" in Writer. The list must show `writer='Christopher Nolan'` in the `toString()` text. Tap the movie: the Writer field is filled in.
 
-**Hint 1 — if you get stuck at step 1:** the field is declared next to the other fields, at the top of the class, not in the constructor. If you put it in the constructor, the compiler treats it as a parameter and `this.writer` no longer exists.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 1</summary>
 
-**Hint 2 — if you get stuck at step 3:** `toString()` is right below the constructor. The new line goes between `", poster='" + poster + '\'' +` and `'}'`, with the comma at the start — the same style as all the other lines.
+the field is declared next to the other fields, at the top of the class, not in the constructor. If you put it in the constructor, the compiler treats it as a parameter and `this.writer` no longer exists.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 3</summary>
+
+`toString()` is right below the constructor. The new line goes between `", poster='" + poster + '\'' +` and `'}'`, with the comma at the start — the same style as all the other lines.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -192,9 +202,19 @@ movies.add(new Movie(
 7. In `ItemActivity.java`: the field, `initControls()`, `fillForm()` — with `String.valueOf(...)` — and `saveMovie()` — with an `isEmpty()` guard before `Integer.parseInt`.
 8. Verify: Run, add a movie with the year 2024. The list shows `year=2024`. Edit a movie, clear the year, save — there must be no crash, and the list shows `year=null`.
 
-**Hint 1 — if you get stuck at step 1:** `Integer` is a class in `java.lang`, like `String`. It needs no import, it's declared with a capital letter and it accepts `null`. `int` is the primitive, with the default value `0`.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 1</summary>
 
-**Hint 2 — if you get stuck at step 7:** `etYear.setText(existing.getYear())` compiles, but at runtime it throws `Resources$NotFoundException`. The `Integer` is unboxed to `int` and reaches the `setText(int resid)` overload, which looks for a resource id. Force a `String` with `String.valueOf(...)`.
+`Integer` is a class in `java.lang`, like `String`. It needs no import, it's declared with a capital letter and it accepts `null`. `int` is the primitive, with the default value `0`.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 7</summary>
+
+`etYear.setText(existing.getYear())` compiles, but at runtime it throws `Resources$NotFoundException`. The `Integer` is unboxed to `int` and reaches the `setText(int resid)` overload, which looks for a resource id. Force a `String` with `String.valueOf(...)`.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -341,9 +361,19 @@ Step 6 — `MainActivity.addSampleMovies()`: the 11th argument on all three:
 8. In `movie_item.xml`, in `movieStatusGroup`, after `chipWatchlist`: a `Chip` with id `chipPopular`. In the adapter: field, `findViewById`, `setVisibility`.
 9. Verify: Run, add a movie with the switch on. The list shows `popular=true`. Open a movie with the switch off: the switch must be off, not on.
 
-**Hint 1 — if you get stuck at step 2:** `boolean`, not `Boolean`. The primitive already has the value `false`, so it needs no initialisation in the declaration — and it can't be `null`.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 2</summary>
 
-**Hint 2 — if you get stuck at step 7:** if you forget `swPopular.setChecked(...)` in `fillForm`, no error appears. But `saveMovie()` builds a new `Movie`, so on the first edit the movie becomes unpopular — without the user touching the switch.
+`boolean`, not `Boolean`. The primitive already has the value `false`, so it needs no initialisation in the declaration — and it can't be `null`.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 7</summary>
+
+if you forget `swPopular.setChecked(...)` in `fillForm`, no error appears. But `saveMovie()` builds a new `Movie`, so on the first edit the movie becomes unpopular — without the user touching the switch.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -484,9 +514,19 @@ Step 6 — `MainActivity.addSampleMovies()`: the 11th argument, `true` or `false
 8. In `movie_item.xml` and the adapter: the `movieImdbScore` `TextView`, bound with `"IMDb " + movie.getImdbScore()`.
 9. Verify: Run, type `8,5` with a comma in the field and save. There must be no crash, and the list shows `imdbScore=8.5`.
 
-**Hint 1 — if you get stuck at step 5:** the `float` literal needs the `f` suffix. `8.8` without the suffix is a `double` and doesn't fit a `float` parameter — the error is "incompatible types: possible lossy conversion from double to float".
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 5</summary>
 
-**Hint 2 — if you get stuck at step 7:** `Float.parseFloat("8,5")` throws `NumberFormatException`, because the parser only accepts a dot. You normalise first — `text.replace(',', '.')` — and parse the result, not the original text.
+the `float` literal needs the `f` suffix. `8.8` without the suffix is a `double` and doesn't fit a `float` parameter — the error is "incompatible types: possible lossy conversion from double to float".
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 7</summary>
+
+`Float.parseFloat("8,5")` throws `NumberFormatException`, because the parser only accepts a dot. You normalise first — `text.replace(',', '.')` — and parse the result, not the original text.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -632,9 +672,19 @@ Step 6 — `MainActivity.addSampleMovies()`: the 11th argument, of type `float` 
 9. In `movie_item.xml` and the adapter: the `movieActors` `TextView`, bound with `String.join(", ", movie.getActors())`.
 10. Verify: Run, type `A, B, C` and save — the list shows `actors=[A, B, C]`. Then clear the field and save: it must show `actors=[]`, not `actors=[]` with an empty element inside.
 
-**Hint 1 — if you get stuck at step 1:** initialise the field on the spot, `= new ArrayList<>()`. Otherwise it's `null` until someone sets it, and `toString()` and the card have to check for `null` on every display.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 1</summary>
 
-**Hint 2 — if you get stuck at step 8:** `"".split(",")` doesn't return an empty array, it returns `[""]` — an array with a single empty element. Without `if (!trimmed.isEmpty())`, a field left empty produces a list with an empty `String`, and the card shows a lonely comma.
+initialise the field on the spot, `= new ArrayList<>()`. Otherwise it's `null` until someone sets it, and `toString()` and the card have to check for `null` on every display.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 8</summary>
+
+`"".split(",")` doesn't return an empty array, it returns `[""]` — an array with a single empty element. Without `if (!trimmed.isEmpty())`, a field left empty produces a list with an empty `String`, and the card shows a lonely comma.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -793,9 +843,19 @@ Step 6 — `MainActivity.addSampleMovies()`: the 11th argument is a list, not a 
 8. In `movie_item.xml` and the adapter: the `movieAgeRestriction` `TextView`, bound with `"+" + movie.getAgeRestriction()` or "All ages" for 0.
 9. Verify: Run, drag the slider — the label changes in real time. Save with 18, then reopen the movie: the slider is at 18 **and** the label shows "18+", not "0+".
 
-**Hint 1 — if you get stuck at step 6:** copy the `sbDuration` + `tvDurationValue` block from the same card and change only `android:max` from `300` to `21`. The structure is identical, including the `View` separator above it.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 6</summary>
 
-**Hint 2 — if you get stuck at step 7:** the listener must be attached in `initListeners()`, not in `fillForm()`. `onCreate` runs `initControls()` → `initListeners()` → `fillForm()`, so the `setProgress` in `fillForm` triggers `onProgressChanged` and the label updates itself. If you attach the listener after `fillForm`, the label stays at "0+" next to a slider at 18.
+copy the `sbDuration` + `tvDurationValue` block from the same card and change only `android:max` from `300` to `21`. The structure is identical, including the `View` separator above it.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 7</summary>
+
+the listener must be attached in `initListeners()`, not in `fillForm()`. `onCreate` runs `initControls()` → `initListeners()` → `fillForm()`, so the `setProgress` in `fillForm` triggers `onProgressChanged` and the label updates itself. If you attach the listener after `fillForm`, the label stays at "0+" next to a slider at 18.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -971,9 +1031,19 @@ Step 6 — `MainActivity.addSampleMovies()`: the 11th argument, a plain `int`:
 9. In `movie_item.xml` and the adapter: the `movieCountry` `TextView`, with a `null` guard.
 10. Verify: Run, leave the country empty and press Save. The form must stay open, with the red message on the field. Type "Romania" and press again: it saves and appears in the list.
 
-**Hint 1 — if you get stuck at step 8:** the guard goes at the start of `saveMovie()`, before `Movie movie = new Movie();`. If you put it after building the object, you've done the work for nothing and it's easy to forget the `return`.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 8</summary>
 
-**Hint 2 — if you get stuck at step 8:** without the `return` after `setError`, the method continues, saves the movie with the empty country, calls `setResult(RESULT_OK)` and `finish()` — exactly what you wanted to prevent, just with a red message shown for a moment.
+the guard goes at the start of `saveMovie()`, before `Movie movie = new Movie();`. If you put it after building the object, you've done the work for nothing and it's easy to forget the `return`.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 8</summary>
+
+without the `return` after `setError`, the method continues, saves the movie with the empty country, calls `setResult(RESULT_OK)` and `finish()` — exactly what you wanted to prevent, just with a red message shown for a moment.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -1121,9 +1191,19 @@ Step 6 — `MainActivity.addSampleMovies()`: the 11th argument, `"USA"`, `"SUA"`
 9. In the adapter: the field, `findViewById`, then in `bind()` — `chipAwarded.setVisibility(movie.isAwarded() ? View.VISIBLE : View.GONE)`, with both branches.
 10. Verify: Run, add a movie with the box checked — the list shows `awarded=true`. After you do the `RecyclerView` (chapter 11), scroll the list to a movie without the box: the "Awarded" chip must not appear.
 
-**Hint 1 — if you get stuck at step 6:** `MaterialCheckBox` extends `CheckBox`, so you can hold it in a `CheckBox` field — exactly how the file does it with `cbOnWatchList`: declared as `CheckBox` in Java, built as `MaterialCheckBox` in XML.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 6</summary>
 
-**Hint 2 — if you get stuck at step 9:** write `setVisibility(movie.isAwarded() ? View.VISIBLE : View.GONE)`, not an `if` without an `else`. `ViewHolder`s are recycled: a row that displayed an awarded movie is reused for one that isn't and keeps the chip.
+`MaterialCheckBox` extends `CheckBox`, so you can hold it in a `CheckBox` field — exactly how the file does it with `cbOnWatchList`: declared as `CheckBox` in Java, built as `MaterialCheckBox` in XML.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 9</summary>
+
+write `setVisibility(movie.isAwarded() ? View.VISIBLE : View.GONE)`, not an `if` without an `else`. `ViewHolder`s are recycled: a row that displayed an awarded movie is reused for one that isn't and keeps the chip.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -1243,9 +1323,19 @@ Step 6 — `MainActivity.addSampleMovies()`: the 11th argument, `true` or `false
 9. In `movie_item.xml` and the adapter: the `movieCast` `TextView`, bound with `TextUtils.join(", ", movie.getCast())` — with `import android.text.TextUtils;`.
 10. Verify: Run, type `Tom Hanks:Forrest, Robin Wright:Jenny` and save. No `NotSerializableException` must appear. The list shows `cast=[Tom Hanks (Forrest), Robin Wright (Jenny)]`. Reopen the movie: the field shows `Tom Hanks:Forrest, Robin Wright:Jenny` again, not the format with parentheses.
 
-**Hint 1 — if you get stuck at step 1:** `implements Serializable` on `Actor` is not optional. `Movie` travels through `Intent.putExtra(String, Serializable)` and serialisation walks the whole object graph — a non-serialisable `Actor` gives a `NotSerializableException` on Save, not at compile time.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 1</summary>
 
-**Hint 2 — if you get stuck at step 8:** use `entry.split(":", 2)`, with the limit 2. Without a limit, a role containing `:` produces three elements, `parts.length == 2` becomes false and the entry is thrown away without any message.
+`implements Serializable` on `Actor` is not optional. `Movie` travels through `Intent.putExtra(String, Serializable)` and serialisation walks the whole object graph — a non-serialisable `Actor` gives a `NotSerializableException` on Save, not at compile time.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 8</summary>
+
+use `entry.split(":", 2)`, with the limit 2. Without a limit, a role containing `:` produces three elements, `parts.length == 2` becomes false and the entry is thrown away without any message.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
@@ -1471,9 +1561,19 @@ Step 7 — `MainActivity.addSampleMovies()`: the 11th argument is a list of `Act
 6. In the adapter: two fields, two `findViewById`, two `setText`.
 7. Verify in three touches: add a movie with both filled in → it appears in the list; edit it and change only `writer` → `popular` stays as it was; clear `writer` → the field becomes empty, it doesn't keep the old value.
 
-**Hint 1 — if you get stuck at step 1:** don't do the five-step chain twice. You open each file once and put both attributes in the same edit — five passes, not ten. At the exam the difference is between finishing in 20 minutes and not finishing.
+<details markdown="1">
+<summary>Hint 1 — if you get stuck at step 1</summary>
 
-**Hint 2 — if you get stuck at step 2:** the order of the constructor arguments must be respected in all three calls: `..., poster, writer, popular`. Here the compiler catches you, because `String` and `boolean` can't be confused. If both new attributes had been `String`, a swap would have compiled and saved the screenwriter in the country field, with no error at all.
+don't do the five-step chain twice. You open each file once and put both attributes in the same edit — five passes, not ten. At the exam the difference is between finishing in 20 minutes and not finishing.
+
+</details>
+
+<details markdown="1">
+<summary>Hint 2 — if you get stuck at step 2</summary>
+
+the order of the constructor arguments must be respected in all three calls: `..., poster, writer, popular`. Here the compiler catches you, because `String` and `boolean` can't be confused. If both new attributes had been `String`, a swap would have compiled and saved the screenwriter in the country field, with no error at all.
+
+</details>
 
 <details>
 <summary>Solution — explained</summary>
