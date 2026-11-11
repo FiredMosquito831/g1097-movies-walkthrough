@@ -422,9 +422,10 @@ for lang in ("ro", "en"):
         )
 
     if lang == "ro":
-        hero_p = ("Aplicația <b>Movies</b>, reconstruită de la zero. 11 capitole, 97 de pași, "
-                  "53 de exerciții. Fiecare pas are un „De ce”, un „Cum” și o verificare; fiecare "
-                  "exercițiu are indiciu și soluție pliabile.")
+        hero_p = ("Aplicația <b>Movies</b>, reconstruită de la zero, plus proiectele de curs "
+                  "și istoricul repo-ului. <b>16 capitole</b>, 204 bife de progres. Fiecare pas are "
+                  "un „De ce”, un „Cum” și o verificare; fiecare exercițiu are indiciu și soluție "
+                  "pliabile.")
         howto = """
 <ol>
   <li><b>Bifează</b> căsuța de sub titlul fiecărui pas când l-ai terminat. Progresul
@@ -445,9 +446,9 @@ din repo-ul <code>mihaidoinea/dma2026</code>. Materialul e construit strict pe g
 materialului. Nu îl copia — îl reconstruiești.</p>
 """
     else:
-        hero_p = ("The <b>Movies</b> app, rebuilt from scratch. 11 chapters, 97 steps, "
-                  "53 exercises. Every step has a “Why”, a “How” and a check; every exercise "
-                  "has a collapsible hint and solution.")
+        hero_p = ("The <b>Movies</b> app, rebuilt from scratch, plus the course projects and "
+                  "the repo history. <b>16 chapters</b>, 204 progress checks. Every step has a "
+                  "“Why”, a “How” and a check; every exercise has a collapsible hint and solution.")
         howto = """
 <ol>
   <li><b>Tick</b> the box under each step title when you finish it. Progress is saved
