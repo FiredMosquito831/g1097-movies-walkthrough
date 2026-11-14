@@ -413,12 +413,11 @@ SECTIONS = [
      "why they exist, how they work, what breaks without them.",
      ["21", "37"]),
 ]
-APPENDIX = ("anexe", "Anexe — celelalte grupe și proiectele de curs",
-            "Appendix — the other groups and the course projects",
-            "Codul adnotat al grupelor G1096, G1098 și G1099, proiectele DMA02/DMA03/DMA05/DMA06 "
-            "și istoricul complet al repo-ului.",
-            "The annotated code of groups G1096, G1098 and G1099, the DMA02/DMA03/DMA05/DMA06 "
-            "projects and the complete repo history.",
+APPENDIX = ("anexe", "Cod adnotat — toate versiunile", "Annotated code — all versions",
+            "Versiunea actuală (14.11.2026) cu RecyclerView, apoi versiunea veche pentru toate "
+            "cele patru grupe, proiectele de curs și istoricul complet al repo-ului.",
+            "The current version (2026-11-14) with RecyclerView, then the old version for all "
+            "four groups, the course projects and the complete repo history.",
             ["22", "29", "30", "31", "12", "13", "14", "15", "16", "25", "26", "27", "28"])
 
 # chapter number -> project folder under src/, for the annotated-code downloads
@@ -694,6 +693,10 @@ HEAD = """<!doctype html>
 # short labels for the top bar; the full titles stay on the section pages
 NAV_SHORT = {"anexe": ("Cod adnotat", "Annotated code")}
 
+# chapters whose home is another section, but which the "anexe" page highlights
+# as the current version (they keep their own progress, counted in their section)
+CURRENT_VERSION = {"anexe": ["38", "39"]}
+
 
 def section_nav_html(active_section: str, lang: str) -> str:
     parts = []
@@ -888,20 +891,56 @@ HERO = {
                "adapter, an Intent, a lifecycle, why each exists and what breaks without it."),
     },
     "anexe": {
-        "ro": ("<b>Anexe.</b> Codul adnotat al celorlalte grupe (G1096, G1098, G1099) — aceeași "
-               "aplicație, altă variantă, cu diferențele față de 1097 scoase în evidență — plus "
-               "proiectele de curs (DMA02, DMA03, DMA05, DMA06), adică exact lucrurile care lipsesc "
-               "din G1097: RecyclerView, ViewBinding, meniuri, ciclu de viață. Și istoricul complet "
-               "al repo-ului."),
-        "en": ("<b>Appendix.</b> The annotated code of the other groups (G1096, G1098, G1099) — the "
-               "same app, a different variant, with the differences from 1097 spelled out — plus the "
-               "course projects (DMA02, DMA03, DMA05, DMA06), which is exactly what G1097 lacks: "
-               "RecyclerView, ViewBinding, menus, the lifecycle. And the complete repo history."),
+        "ro": ("<b>Cod adnotat.</b> Începe cu <b>versiunea actuală</b> — codul din 14.11.2026, cu "
+               "RecyclerView, adaptor propriu și callback de click. Urmează codul versiunii vechi "
+               "pentru toate cele patru grupe, proiectele de curs (DMA02, DMA03, DMA05, DMA06) și "
+               "istoricul complet al repo-ului."),
+        "en": ("<b>Annotated code.</b> Start with the <b>current version</b> — the code from "
+               "2026-11-14, with RecyclerView, a custom adapter and a click callback. Then the old "
+               "version's code for all four groups, the course projects (DMA02, DMA03, DMA05, DMA06) "
+               "and the complete repo history."),
     },
 }
 
 
 CODE_LABELS = {'ro': {'code_label': 'Cod', 'code_title': 'Deschide browserul de cod', 'code_panel_title': 'dma2026 — cod sursă', 'code_search': 'Caută fișier…', 'code_hint': 'Alege un fișier din stânga.'}, 'en': {'code_label': 'Code', 'code_title': 'Open the code browser', 'code_panel_title': 'dma2026 — source code', 'code_search': 'Search a file…', 'code_hint': 'Pick a file on the left.'}}
+
+
+def current_version_html(slug, lang, lcol):
+    nums = CURRENT_VERSION.get(slug)
+    if not nums:
+        return ""
+    label = "Versiunea actuală" if lang != "en" else "The current version"
+    cards = []
+    for num in nums:
+        ch = ch_by_num(num)
+        title = ch[1 + lcol]
+        items = parsed[lang][num][1]
+        exs = sum(1 for x in items if x["kind"] == "exercise")
+        rcs = sum(1 for x in items if x["kind"] == "recipe")
+        cps = sum(1 for x in items if x["kind"] == "concept")
+        meta = []
+        if exs:
+            meta.append(f'{exs} {UI[lang]["exercises"]}')
+        if rcs:
+            meta.append(f'{rcs} {UI[lang]["recipes"]}')
+        if cps:
+            meta.append(f'{cps} {UI[lang]["concepts"]}')
+        if not meta:
+            meta.append("8 " + ("fișiere adnotate" if lang != "en" else "annotated files")
+                        if num == "38" else
+                        "7 " + ("secțiuni" if lang != "en" else "sections"))
+        cards.append(
+            f'<a class="cv-card" href="cap-{num}.html">'
+            f'<span class="cv-num">{num}</span>'
+            f'<span class="cv-title">{htmlmod.escape(title)}</span>'
+            f'<span class="cv-meta">{" · ".join(meta)}</span></a>'
+        )
+    return (
+        f'<section class="current-version">'
+        f'<p class="cv-eyebrow">{htmlmod.escape(label)}</p>'
+        f'<div class="cv-grid">{"".join(cards)}</div></section>'
+    )
 
 
 def section_page(slug, ro_t, en_t, ro_s, en_s, nums, lang, outdir, base, ui, lcol):
@@ -928,6 +967,8 @@ def section_page(slug, ro_t, en_t, ro_s, en_s, nums, lang, outdir, base, ui, lco
     <span><b id="sectionPct">0%</b> · <b id="sectionDone">0</b> / <b id="sectionTotal">{stotal}</b> {label_checks}</span>
   </div>
 </section>
+
+{current_version_html(slug, lang, lcol)}
 
 <div class="chapter-grid" id="sectionGrid" data-section-total="{stotal}">
 {cards}
