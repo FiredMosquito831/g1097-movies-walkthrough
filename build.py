@@ -97,6 +97,10 @@ CHAPTERS = [
      "36 - Bancul 7 - Intent si navigare.md", "36 - Bank 7 - Intents and navigation.md"),
     ("37", "Conceptele, explicate", "The concepts, explained",
      "37 - Conceptele explicate.md", "37 - The concepts explained.md"),
+    ("38", "Codul nou adnotat (14.11.2026)", "The new code, annotated (2026-11-14)",
+     "38 - Codul nou adnotat.md", "38 - The new code annotated.md"),
+    ("39", "Ce s-a schimbat față de versiunea veche", "What changed from the old version",
+     "39 - Ce s-a schimbat.md", "39 - What changed.md"),
 ]
 
 MD_EXT = ["extra", "codehilite", "toc", "tables", "fenced_code", "attr_list",
@@ -124,7 +128,7 @@ UI = {
         "repo_btn": "⌥ Tot repo-ul, în Android Studio",
         "prof_btn": "↗ Repo-ul profesorului",
         "prof_note": "Sursa originală, fără comentarii — pentru comparație: {clone}",
-        "repo_note": "Toate cele 8 module într-un singur proiect, cu codul adnotat. Clonezi cu {clone} și îl deschizi în Android Studio. Comentariile sunt în <b>română</b> pe <code>main</code>; pentru <b>engleză</b>: <code>git checkout english</code>.",
+        "repo_note": "Cele 8 module plus proiectul complet din 14.11, cu codul adnotat. Clonezi cu {clone} și îl deschizi în Android Studio. Comentariile sunt în <b>română</b> pe <code>main</code>; pentru <b>engleză</b>: <code>git checkout english</code>.",
         "download_note": "Proiectul întreg, cu fișierele adnotate: se deschide în Android Studio (File → Open) și rulează direct pe emulator.",
         "lang_other": "EN", "lang_other_title": "Switch to English",
         "progress": "Progresul tău", "complete": "complet", "of": "din", "checks": "bife",
@@ -155,7 +159,7 @@ UI = {
         "repo_btn": "⌥ The whole repo, in Android Studio",
         "prof_btn": "↗ The professor's repo",
         "prof_note": "The original source, without comments — for comparison: {clone}",
-        "repo_note": "All eight modules in one project, with the annotated code. Clone it with {clone} and open it in Android Studio. Comments are in <b>Romanian</b> on <code>main</code>; for <b>English</b>: <code>git checkout english</code>.",
+        "repo_note": "The eight modules plus the full 2026-11-14 project, with the annotated code. Clone it with {clone} and open it in Android Studio. Comments are in <b>Romanian</b> on <code>main</code>; for <b>English</b>: <code>git checkout english</code>.",
         "download_note": "The whole project, with the annotated files: open it in Android Studio (File → Open) and run it straight on the emulator.",
         "lang_other": "RO", "lang_other_title": "Switch to Romanian",
         "progress": "Your progress", "complete": "complete", "of": "of", "checks": "checks",
@@ -334,7 +338,7 @@ def add_drill_checkpoint(md_text: str, num: str, items: list, lang: str) -> str:
         title = "Annotated code read"
         marker = "## 22.2" if lang == "en" else "## 22.2"
         label = "Am citit codul adnotat" if lang != "en" else "I read the annotated code"
-    elif num in ("29", "30", "31"):
+    elif num in ("29", "30", "31", "38", "39"):
         key = f"read:{num}"
         title = "Annotated code read"
         marker = f"## {num}.1"
@@ -384,6 +388,10 @@ def render(md_text: str) -> str:
 # --------------------------------------------------------------- sections
 # (slug, RO title, EN title, RO subtitle, EN subtitle, chapter numbers)
 SECTIONS = [
+    ("v2", "Versiunea 2", "Version 2",
+     "Codul de la 14.11.2026: RecyclerView, adaptor propriu, callback de click, ecran nou. Adnotat integral, plus ce s-a schimbat față de versiunea veche.",
+     "The code from 2026-11-14: RecyclerView, a custom adapter, a click callback, a new screen. Fully annotated, plus what changed from the old version.",
+     ["38", "39"]),
     ("rescrie", "Rescrie de la 0", "Rebuild from scratch",
      "Construiești aplicația G1097 pas cu pas, de la proiect gol până la starea din repo.",
      "You build the G1097 app step by step, from an empty project to the repo state.",
@@ -417,6 +425,7 @@ APPENDIX = ("anexe", "Anexe — celelalte grupe și proiectele de curs",
 ANNOTATED = {
     "22": "G1097", "25": "DMA02", "26": "DMA03", "27": "DMA05",
     "28": "DMA06", "29": "G1096", "30": "G1098", "31": "G1099",
+    "38": "G1098-14.11.2026(week7-full)",
 }
 
 PROF_REPO = "https://github.com/mihaidoinea/dma2026"
@@ -478,16 +487,18 @@ def _md_blocks(md: str):
 
 
 DECL_CLASS = re.compile(r"^\s*(?:public\s+)?(?:final\s+|abstract\s+)?class\s+(\w+)")
+DECL_IFACE = re.compile(r"^\s*(?:public\s+)?interface\s+(\w+)")
 DECL_METHOD = re.compile(
     r"^\s*(?:public|protected|private)\s+"
     r"(?:static\s+|final\s+|abstract\s+|synchronized\s+)*"
     r"([\w<>\[\],.\s]*?)\s*(\w+)\s*\(")
+DECL_IFACE_METHOD = re.compile(r"^\s*[\w<>\[\],.]+\s+(\w+)\s*\([^)]*\)\s*;")
 DECL_ID = re.compile(r'android:id="@\+id/(\w+)"')
 
 
 def _decls(code: str, kind: str):
     """Class / method declarations (java) or android:id values (xml), first occurrence only."""
-    out, seen = [], set()
+    out, seen, is_iface = [], set(), False
     for i, line in enumerate(code.split("\n")):
         if kind == "xml":
             m = DECL_ID.search(line)
@@ -495,6 +506,19 @@ def _decls(code: str, kind: str):
                 seen.add(m.group(1))
                 out.append((i, m.group(1), "id"))
             continue
+        mi = DECL_IFACE.match(line)
+        if mi:
+            is_iface = True
+            if ("class", mi.group(1)) not in seen:
+                seen.add(("class", mi.group(1)))
+                out.append((i, mi.group(1), "class"))
+            continue
+        if is_iface:
+            m = DECL_IFACE_METHOD.match(line)
+            if m and ("method", m.group(1)) not in seen:
+                seen.add(("method", m.group(1)))
+                out.append((i, m.group(1), "method"))
+                continue
         m = DECL_CLASS.match(line)
         if m and ("class", m.group(1)) not in seen:
             seen.add(("class", m.group(1)))
@@ -507,11 +531,11 @@ def _decls(code: str, kind: str):
         if "=" in before or ";" in before:
             continue
         name = m.group(2)
-        kind = "ctor" if (out and out[0][2] == "class" and name == out[0][1]) else "method"
-        if (kind, name) in seen:
+        kind_of = "ctor" if (out and out[0][2] == "class" and name == out[0][1]) else "method"
+        if (kind_of, name) in seen:
             continue
-        seen.add((kind, name))
-        out.append((i, name, kind))
+        seen.add((kind_of, name))
+        out.append((i, name, kind_of))
     return out
 
 
@@ -815,6 +839,18 @@ total_checks = sum(totals.values())
 print(f"TOTAL checks: {total_checks}")
 
 HERO = {
+    "v2": {
+        "ro": ("<b>Versiunea 2 — codul de la 14.11.2026.</b> Aplicația are acum "
+               "<b>RecyclerView</b>, un <b>adaptor propriu</b> cu <code>ViewHolder</code>, un "
+               "<b>callback de click</b> prin interfață și un <b>ecran nou</b>. Codul e adnotat "
+               "linie cu linie, iar capitolul 39 arată exact ce s-a schimbat față de versiunea "
+               "veche și de ce."),
+        "en": ("<b>Version 2 — the code from 2026-11-14.</b> The app now has a "
+               "<b>RecyclerView</b>, a <b>custom adapter</b> with a <code>ViewHolder</code>, a "
+               "<b>click callback</b> through an interface, and a <b>new screen</b>. The code is "
+               "annotated line by line, and chapter 39 shows exactly what changed from the old "
+               "version and why."),
+    },
     "rescrie": {
         "ro": ("<b>Rescrie de la 0.</b> Pornești de la un proiect gol și ajungi la aplicația "
                "completă, în 11 capitole. Fiecare pas are un „De ce”, un „Cum” și o verificare. "
@@ -1303,25 +1339,28 @@ def build_annotated_downloads():
         if not annotated:
             skipped.append(num)
             continue
+        # a standalone project brings its own gradle root; a module needs the repo's
+        standalone = os.path.isfile(os.path.join(mod_root, "settings.gradle.kts"))
         zpath = os.path.join(out, "cap-%s.zip" % num)
         with zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED) as z:
             z.writestr("%s/CITESTE.txt" % proj, _readme_for(proj, num, len(annotated)))
-            for rel in ROOT_FILES:
-                src = os.path.join(CODE_SRC, rel)
-                if os.path.isfile(src):
-                    z.write(src, "%s/%s" % (proj, rel))
-            z.writestr("%s/settings.gradle.kts" % proj, _settings_for(proj))
-            for rel in GRADLE_FILES:
-                src = os.path.join(CODE_SRC, rel)
-                if os.path.isfile(src):
-                    z.write(src, "%s/%s" % (proj, rel))
-            if os.path.isfile(jar):
-                z.write(jar, "%s/gradle/wrapper/gradle-wrapper.jar" % proj)
+            if not standalone:
+                for rel in ROOT_FILES:
+                    src = os.path.join(CODE_SRC, rel)
+                    if os.path.isfile(src):
+                        z.write(src, "%s/%s" % (proj, rel))
+                z.writestr("%s/settings.gradle.kts" % proj, _settings_for(proj))
+                for rel in GRADLE_FILES:
+                    src = os.path.join(CODE_SRC, rel)
+                    if os.path.isfile(src):
+                        z.write(src, "%s/%s" % (proj, rel))
+                if os.path.isfile(jar):
+                    z.write(jar, "%s/gradle/wrapper/gradle-wrapper.jar" % proj)
             for dirpath, _, files in os.walk(mod_root):
                 for f in files:
                     full = os.path.join(dirpath, f)
                     rel = os.path.relpath(full, CODE_SRC).replace("\\", "/")
-                    arc = "%s/%s" % (proj, rel)
+                    arc = rel if standalone else "%s/%s" % (proj, rel)
                     if rel in annotated:
                         z.writestr(arc, annotated[rel])
                     else:

@@ -54,6 +54,15 @@ Un pas e „gata” când: codul compilează, aplicația rulează, și poți exp
 
 ## Ordinea capitolelor
 
+### Versiunea 2 — codul de la 14.11.2026
+
+Versiunea **actualizată** a aplicației: `RecyclerView`, adaptor propriu cu `ViewHolder`, callback de click prin interfață `IMovieListener` și un ecran nou. Ea înlocuiește varianta veche la examen.
+
+| # | Fișier | Ce conține | Bife |
+|---|---|---|---|
+| 38 | [38 - Codul nou adnotat.md](38%20-%20Codul%20nou%20adnotat.md) | Cele 8 fișiere noi sau modificate, adnotate linie cu linie: `MainActivity`, `MovieAdapter`, `IMovieListener`, `PlaceCiocanul`, `movie_item.xml`, `activity_main.xml`, `activity_place_ciocanul.xml`, manifestul | 1 |
+| 39 | [39 - Ce s-a schimbat.md](39%20-%20Ce%20s-a%20schimbat.md) | Ce s-a schimbat față de versiunea veche și de ce: lista, adaptorul, click-ul, ecranul nou, ce a rămas identic, ce mai e șchiop, ce înseamnă pentru examen | 1 |
+
 ### Calea 1 — Rescrie de la 0
 
 | # | Fișier | Ce înveți | Pași |

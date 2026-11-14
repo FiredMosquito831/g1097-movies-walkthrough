@@ -54,6 +54,15 @@ A step is “done” when: the code compiles, the app runs, and you can explain 
 
 ## Chapter order
 
+### Version 2 — the code from 2026-11-14
+
+The **updated** version of the app: `RecyclerView`, a custom adapter with a `ViewHolder`, a click callback through the `IMovieListener` interface, and a new screen. It replaces the old variant for the exam.
+
+| # | File | What it contains | Checks |
+|---|---|---|---|
+| 38 | [38 - The new code annotated.md](38%20-%20The%20new%20code%20annotated.md) | The eight new or changed files, annotated line by line: `MainActivity`, `MovieAdapter`, `IMovieListener`, `PlaceCiocanul`, `movie_item.xml`, `activity_main.xml`, `activity_place_ciocanul.xml`, the manifest | 1 |
+| 39 | [39 - What changed.md](39%20-%20What%20changed.md) | What changed from the old version and why: the list, the adapter, the click, the new screen, what stayed identical, what is still weak, what it means for the exam | 1 |
+
 ### Path 1 — Rebuild from scratch
 
 | # | File | What you learn | Steps |
